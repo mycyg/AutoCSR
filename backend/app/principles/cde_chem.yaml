@@ -1,0 +1,180 @@
+# CDE (China NMPA) — 化学药品 CSR 撰写指导原则 (simplified)
+# Aligns with ICH E3 but emphasizes Chinese-specific items the writer must
+# surface (Han ethnicity subgroup, NMPA acceptance letter, etc.).
+
+meta:
+  id: cde_chem
+  name: CDE 化学药品临床研究报告指导原则
+  version: "2020-trial"
+  scope: [chemical]
+
+sections:
+  - id: "1"
+    title: "封面与摘要"
+    required: true
+    requirements:
+      - "中英文研究标题、申办者、研究编号、报告版本"
+      - "GCP 声明、伦理委员会编号"
+      - "NMPA 临床试验默示许可批件号"
+    children: []
+
+  - id: "2"
+    title: "缩略语表"
+    required: true
+    requirements: ["与正文一致，包含 MedDRA / WHODrug 版本号"]
+    children: []
+
+  - id: "3"
+    title: "伦理"
+    required: true
+    requirements:
+      - "中国伦理委员会列表与批件日期"
+      - "知情同意流程，简体中文知情同意书引用"
+    children: []
+
+  - id: "4"
+    title: "研究目的与背景"
+    required: true
+    requirements:
+      - "立题依据，国内外同类药物情况"
+      - "前期 I/II 期试验小结"
+    children: []
+
+  - id: "5"
+    title: "研究设计"
+    required: true
+    requirements:
+      - "随机、对照、盲法、入组排除标准"
+      - "中心数与中心列表"
+      - "样本量计算依据（α、β、效应量假设）"
+    children:
+      - id: "5.1"
+        title: "试验药物"
+        requirements: ["规格、批号、剂型、生产厂家、储存条件"]
+        children: []
+      - id: "5.2"
+        title: "对照药"
+        requirements: ["对照药选择依据（阳性 / 安慰剂）"]
+        children: []
+      - id: "5.3"
+        title: "随机化方法"
+        requirements: ["分层因素、随机化系统（IWRS）"]
+        children: []
+      - id: "5.4"
+        title: "盲法与揭盲"
+        requirements: ["盲法实施细节、紧急揭盲流程"]
+        children: []
+
+  - id: "6"
+    title: "受试者"
+    required: true
+    requirements: []
+    children:
+      - id: "6.1"
+        title: "受试者流程图（CONSORT）"
+        requirements: ["筛选 / 入组 / 随机 / 治疗 / 完成 / 退出，按治疗组分列"]
+        stat_hints: ["各阶段 n、退出原因频数"]
+        children: []
+      - id: "6.2"
+        title: "人口学与基线特征"
+        requirements: ["年龄、性别、BMI、疾病分期；汉族 / 少数民族构成（CDE 关注）"]
+        stat_hints: ["按治疗组的均数 ± SD / 中位数 (IQR)"]
+        children: []
+      - id: "6.3"
+        title: "方案违背"
+        requirements: ["重大 / 一般违背分类与频数"]
+        stat_hints: ["违背类型 × 治疗组频数表"]
+        children: []
+
+  - id: "7"
+    title: "有效性评价"
+    required: true
+    requirements: []
+    children:
+      - id: "7.1"
+        title: "主要疗效指标"
+        requirements: ["定义、测量时点、统计模型、协变量"]
+        stat_hints: ["主要终点：点估计、95% CI、p 值、模型公式"]
+        children: []
+      - id: "7.2"
+        title: "次要疗效指标"
+        requirements: ["逐项汇总，控制 I 类错误的策略"]
+        stat_hints: ["每个次要终点的 n、点估计、95% CI"]
+        children: []
+      - id: "7.3"
+        title: "亚组分析"
+        requirements: ["预设亚组：年龄、性别、基线严重度；探索性亚组明确标注"]
+        stat_hints: ["森林图数据：亚组 × HR/OR ± 95% CI"]
+        children: []
+
+  - id: "8"
+    title: "安全性评价"
+    required: true
+    requirements: []
+    children:
+      - id: "8.1"
+        title: "暴露量"
+        requirements: ["治疗周期、累积剂量、暴露人年"]
+        stat_hints: ["按治疗组的暴露天数中位数、人年总数"]
+        children: []
+      - id: "8.2"
+        title: "不良事件汇总"
+        requirements: ["AE、TEAE、TRAE、严重 AE、致死 AE 频数 (%)"]
+        stat_hints: ["SOC × PT × 治疗组频数表"]
+        children: []
+      - id: "8.3"
+        title: "死亡 / SAE / 导致停药的 AE"
+        requirements: ["逐例叙事，附在附录"]
+        stat_hints: ["按治疗组的死亡 / SAE / 停药 AE 人数"]
+        children: []
+      - id: "8.4"
+        title: "实验室检查"
+        requirements: ["按参数列出 shift table 与异常发生率"]
+        stat_hints: ["shift table：基线 vs 终点 × 参数 × 治疗组"]
+        children: []
+      - id: "8.5"
+        title: "生命体征 / ECG / 体格检查"
+        requirements: ["BP、HR、QTcF 变化；QT 关注阈值（30 ms / 60 ms 变化）"]
+        stat_hints: ["各时点均值变化 ± SD；异常阈值人数"]
+        children: []
+
+  - id: "9"
+    title: "讨论与结论"
+    required: true
+    requirements:
+      - "获益风险综合评估"
+      - "与已上市同类产品比较"
+      - "对中国人群适用性讨论"
+    children: []
+
+  - id: "10"
+    title: "参考文献"
+    required: true
+    requirements: ["GB/T 7714 或 Vancouver 格式"]
+    children: []
+
+  - id: "11"
+    title: "附录"
+    required: true
+    requirements: []
+    children:
+      - id: "11.1"
+        title: "方案及修订记录"
+        requirements: []
+        children: []
+      - id: "11.2"
+        title: "统计分析计划"
+        requirements: []
+        children: []
+      - id: "11.3"
+        title: "病例报告表样本"
+        requirements: []
+        children: []
+      - id: "11.4"
+        title: "受试者数据列表"
+        requirements: ["按方案集 / ITT 集 / PP 集分别列出"]
+        children: []
+      - id: "11.5"
+        title: "SAE / 死亡叙事"
+        requirements: ["逐例标准格式叙事"]
+        children: []

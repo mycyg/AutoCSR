@@ -1,0 +1,68 @@
+# CDE — 中药 / 天然药物 CSR 指导原则 (stub for M2; full template in M3)
+# Anchored on NMPA TCM guideline:「中药新药临床研究一般原则」
+
+meta:
+  id: cde_tcm
+  name: CDE 中药新药临床研究报告指导原则
+  version: stub-2026-05
+  scope: [tcm, natural_product]
+
+sections:
+  - id: "1"
+    title: "封面与背景"
+    required: true
+    requirements:
+      - "药品中文通用名、英文名、规格、剂型、批准临床批件号"
+      - "处方组成（君臣佐使、剂量）、功能主治"
+      - "古典文献依据 / 名老中医方剂溯源"
+    children: []
+
+  - id: "2"
+    title: "立题依据与既往临床基础"
+    required: true
+    requirements:
+      - "中医证候特点、辨证依据"
+      - "前期 I 期 / 探索性 II 期数据"
+    children: []
+
+  - id: "3"
+    title: "研究设计"
+    required: true
+    requirements:
+      - "中医证候诊断 + 西医病种诊断双重入排"
+      - "对照药选择（阳性中成药 / 化学药 / 安慰剂）"
+      - "证候量表、生活质量量表的选择依据"
+    children: []
+
+  - id: "4"
+    title: "有效性评价（中西医结合）"
+    required: true
+    requirements:
+      - "西医疗效指标 + 中医证候疗效指标双线评价"
+      - "证候积分变化、证候疗效判定标准（中医药管理局发布）"
+    stat_hints: ["证候积分基线 vs 终点的均数 ± SD；证候有效率 (%)"]
+    children: []
+
+  - id: "5"
+    title: "安全性评价"
+    required: true
+    requirements:
+      - "中药特异性：肝肾毒性、过敏反应"
+      - "重金属、农残、马兜铃酸类成分关注"
+    children: []
+
+  - id: "6"
+    title: "讨论与结论"
+    required: true
+    requirements:
+      - "中医证候适用性"
+      - "中药复方多靶点作用机制讨论"
+    children: []
+
+  - id: "7"
+    title: "附录"
+    required: true
+    requirements:
+      - "证候诊断标准全文"
+      - "药材产地、炮制方法、质量标准"
+    children: []

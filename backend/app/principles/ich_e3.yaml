@@ -1,0 +1,549 @@
+# ICH E3 — Clinical Study Reports: Structure and Content (R1, 1995)
+# Sections mirror the official guideline. Requirements are condensed writing
+# prompts the writer LLM expands per study. stat_hints attach to leaves only
+# so analyst_llm knows what numbers to surface.
+
+meta:
+  id: ich_e3
+  name: ICH E3 Clinical Study Report
+  version: R1
+  scope: [chemical, biologic]
+
+sections:
+  - id: "1"
+    title: "Title Page"
+    required: true
+    requirements:
+      - "Study title (full and short)"
+      - "Investigational product name + indication studied"
+      - "Phase, design summary, sponsor, protocol identifier"
+      - "Study initiation / completion dates, report version + date"
+      - "GCP compliance statement, lead investigator signature block"
+    stat_hints: []
+    children: []
+
+  - id: "2"
+    title: "Synopsis"
+    required: true
+    requirements:
+      - "Brief structured summary covering objectives, methodology, results, conclusions"
+      - "Use template fields: name of sponsor, finished product, active ingredient, indication, phase, dates"
+      - "Population enrolled vs analyzed, primary endpoint result (point estimate + CI + p)"
+      - "Key safety findings (SAEs, deaths, discontinuations)"
+    stat_hints:
+      - "Primary efficacy: point estimate, 95% CI, p-value"
+      - "Death/SAE counts by arm"
+    children: []
+
+  - id: "3"
+    title: "Table of Contents"
+    required: true
+    requirements: ["Auto-generated; include all sections, tables, figures, appendices"]
+    stat_hints: []
+    children: []
+
+  - id: "4"
+    title: "List of Abbreviations and Definition of Terms"
+    required: true
+    requirements:
+      - "All acronyms used in body"
+      - "Define non-standard terms; reference dictionaries (MedDRA, WHODrug) with version"
+    stat_hints: []
+    children: []
+
+  - id: "5"
+    title: "Ethics"
+    required: true
+    requirements: []
+    stat_hints: []
+    children:
+      - id: "5.1"
+        title: "Independent Ethics Committee / Institutional Review Board"
+        requirements: ["IEC/IRB name(s) and approval date(s) per site"]
+        children: []
+      - id: "5.2"
+        title: "Ethical Conduct of the Study"
+        requirements: ["Declaration of Helsinki + GCP compliance statement"]
+        children: []
+      - id: "5.3"
+        title: "Patient Information and Consent"
+        requirements: ["Process for obtaining informed consent; assent for minors if applicable"]
+        children: []
+
+  - id: "6"
+    title: "Investigators and Study Administrative Structure"
+    required: true
+    requirements:
+      - "List of investigators and sites (appendix usually)"
+      - "Sponsor representatives, CRO, central lab, IVRS, statistician"
+      - "Steering / DSMB / adjudication committees"
+    stat_hints: []
+    children: []
+
+  - id: "7"
+    title: "Introduction"
+    required: true
+    requirements:
+      - "Background and rationale for the study"
+      - "Place of the trial within development plan"
+      - "Brief reference to prior nonclinical and clinical data"
+    stat_hints: []
+    children: []
+
+  - id: "8"
+    title: "Study Objectives"
+    required: true
+    requirements:
+      - "Primary objective (single, hypothesis-driven, measurable)"
+      - "Secondary objectives"
+      - "Exploratory objectives clearly labeled as such"
+    stat_hints: []
+    children: []
+
+  - id: "9"
+    title: "Investigational Plan"
+    required: true
+    requirements: []
+    stat_hints: []
+    children:
+      - id: "9.1"
+        title: "Overall Study Design and Plan — Description"
+        requirements:
+          - "Schematic (flow diagram) of design"
+          - "Randomization ratio, blinding, controls, treatment duration, follow-up"
+        stat_hints: []
+        children: []
+      - id: "9.2"
+        title: "Discussion of Study Design, Including Choice of Control Groups"
+        requirements:
+          - "Justify control type (placebo / active / historical)"
+          - "Justify sample size, alpha, power assumptions"
+        stat_hints:
+          - "Sample size N, alpha, power, assumed effect size"
+        children: []
+      - id: "9.3"
+        title: "Selection of Study Population"
+        requirements: []
+        stat_hints: []
+        children:
+          - id: "9.3.1"
+            title: "Inclusion Criteria"
+            requirements: ["List each criterion exactly as in protocol"]
+            children: []
+          - id: "9.3.2"
+            title: "Exclusion Criteria"
+            requirements: ["List each criterion"]
+            children: []
+          - id: "9.3.3"
+            title: "Removal of Patients from Therapy or Assessment"
+            requirements: ["Predefined withdrawal criteria; follow-up plan"]
+            children: []
+      - id: "9.4"
+        title: "Treatments"
+        requirements: []
+        stat_hints: []
+        children:
+          - id: "9.4.1"
+            title: "Treatments Administered"
+            requirements: ["Dose, regimen, route, duration; concomitant therapy rules"]
+            children: []
+          - id: "9.4.2"
+            title: "Identity of Investigational Product(s)"
+            requirements: ["Batch/lot numbers, formulation, manufacturer"]
+            children: []
+          - id: "9.4.3"
+            title: "Method of Assigning Patients to Treatment Groups"
+            requirements: ["Randomization scheme, stratification factors, IVRS/IWRS"]
+            children: []
+          - id: "9.4.4"
+            title: "Selection of Doses in the Study"
+            requirements: ["Rationale tied to prior PK/PD/efficacy data"]
+            children: []
+          - id: "9.4.5"
+            title: "Blinding"
+            requirements: ["Who was blinded; emergency unblinding procedure"]
+            children: []
+          - id: "9.4.6"
+            title: "Prior and Concomitant Therapy"
+            requirements: ["Permitted/prohibited drugs; washout"]
+            children: []
+          - id: "9.4.7"
+            title: "Treatment Compliance"
+            requirements: ["How measured (pill count, plasma levels, diary)"]
+            children: []
+      - id: "9.5"
+        title: "Efficacy and Safety Variables"
+        requirements: []
+        stat_hints: []
+        children:
+          - id: "9.5.1"
+            title: "Efficacy and Safety Measurements Assessed and Flow Chart"
+            requirements: ["Schedule of assessments table"]
+            children: []
+          - id: "9.5.2"
+            title: "Appropriateness of Measurements"
+            requirements: ["Validation references for non-standard scales"]
+            children: []
+          - id: "9.5.3"
+            title: "Primary Efficacy Variable(s)"
+            requirements: ["Definition, time point, measurement method, derivation"]
+            stat_hints: ["Primary endpoint by arm: n, mean/median, SD/IQR, change from baseline"]
+            children: []
+          - id: "9.5.4"
+            title: "Drug Concentration Measurements"
+            requirements: ["Sampling schedule, bioanalytical method, LLOQ"]
+            children: []
+      - id: "9.6"
+        title: "Data Quality Assurance"
+        requirements: ["Monitoring frequency, data management, audits"]
+        children: []
+      - id: "9.7"
+        title: "Statistical Methods Planned in the Protocol and Determination of Sample Size"
+        requirements: []
+        stat_hints: []
+        children:
+          - id: "9.7.1"
+            title: "Statistical and Analytical Plans"
+            requirements:
+              - "Analysis populations (ITT, mITT, PP, Safety)"
+              - "Handling of missing data, multiplicity, interim analyses"
+            stat_hints: ["List of analysis sets with n per arm"]
+            children: []
+          - id: "9.7.2"
+            title: "Determination of Sample Size"
+            requirements: ["Assumptions, alpha, power, calculated N + actual enrolled"]
+            stat_hints: ["Assumed effect, alpha, power, target N, actual N"]
+            children: []
+      - id: "9.8"
+        title: "Changes in the Conduct of the Study or Planned Analyses"
+        requirements: ["Protocol amendments timeline; SAP amendments"]
+        children: []
+
+  - id: "10"
+    title: "Study Patients"
+    required: true
+    requirements: []
+    stat_hints: []
+    children:
+      - id: "10.1"
+        title: "Disposition of Patients"
+        requirements:
+          - "CONSORT-style flow: screened, enrolled, randomized, treated, completed, withdrawn"
+          - "Reasons for discontinuation by arm"
+        stat_hints:
+          - "n per disposition state by arm"
+          - "withdrawal reason counts"
+        children: []
+      - id: "10.2"
+        title: "Protocol Deviations"
+        requirements: ["Major deviations by category and arm; impact on analysis sets"]
+        stat_hints: ["Deviation counts by category × arm"]
+        children: []
+
+  - id: "11"
+    title: "Efficacy Evaluation"
+    required: true
+    requirements: []
+    stat_hints: []
+    children:
+      - id: "11.1"
+        title: "Data Sets Analysed"
+        requirements: ["Define ITT/PP/mITT exactly; n per set per arm"]
+        stat_hints: ["n per analysis set × arm"]
+        children: []
+      - id: "11.2"
+        title: "Demographic and Other Baseline Characteristics"
+        requirements: ["Table of baseline demographics + disease characteristics"]
+        stat_hints:
+          - "Age: mean (SD), median (IQR), range"
+          - "Sex, race, region distribution"
+          - "Baseline severity scores"
+        children: []
+      - id: "11.3"
+        title: "Measurements of Treatment Compliance"
+        requirements: ["Compliance summary by arm"]
+        stat_hints: ["Mean compliance % by arm"]
+        children: []
+      - id: "11.4"
+        title: "Efficacy Results and Tabulations of Individual Patient Data"
+        requirements: []
+        stat_hints: []
+        children:
+          - id: "11.4.1"
+            title: "Analysis of Efficacy"
+            requirements:
+              - "Primary analysis result with full statistical detail"
+              - "Sensitivity analyses for missing data and analysis set"
+            stat_hints:
+              - "Point estimate, 95% CI, p-value, model + covariates"
+              - "Sensitivity analysis results table"
+            children: []
+          - id: "11.4.2"
+            title: "Statistical/Analytical Issues"
+            requirements:
+              - "Multiplicity adjustment, interim analyses outcomes"
+              - "Examination of subgroups, interaction tests"
+            stat_hints: ["Subgroup forest plot data"]
+            children: []
+          - id: "11.4.3"
+            title: "Tabulation of Individual Response Data"
+            requirements: ["By-patient listings reference appendix 16.2"]
+            children: []
+          - id: "11.4.4"
+            title: "Drug Dose, Drug Concentration, and Relationships to Response"
+            requirements: ["PK/PD relationship if measured"]
+            stat_hints: ["Exposure-response model summary"]
+            children: []
+          - id: "11.4.5"
+            title: "Drug-Drug and Drug-Disease Interactions"
+            requirements: ["Concomitant therapy effect analyses"]
+            children: []
+          - id: "11.4.6"
+            title: "By-Patient Displays"
+            requirements: ["Reference to Section 14 figures"]
+            children: []
+          - id: "11.4.7"
+            title: "Efficacy Conclusions"
+            requirements: ["State whether primary objective met; quantify benefit"]
+            children: []
+
+  - id: "12"
+    title: "Safety Evaluation"
+    required: true
+    requirements: []
+    stat_hints: []
+    children:
+      - id: "12.1"
+        title: "Extent of Exposure"
+        requirements: ["Duration of exposure, total patient-years, cumulative dose"]
+        stat_hints:
+          - "Exposure days by arm: mean, median, max"
+          - "Patient-years of exposure per arm"
+        children: []
+      - id: "12.2"
+        title: "Adverse Events (AEs)"
+        requirements: []
+        stat_hints: []
+        children:
+          - id: "12.2.1"
+            title: "Brief Summary of Adverse Events"
+            requirements: ["Overall AE rate by arm, treatment-related rate, SAE rate, discontinuations"]
+            stat_hints:
+              - "Any AE: n (%) by arm"
+              - "AE leading to discontinuation: n (%) by arm"
+            children: []
+          - id: "12.2.2"
+            title: "Display of Adverse Events"
+            requirements: ["AE table by SOC × PT (MedDRA), severity, relatedness"]
+            stat_hints: ["AE counts by SOC × PT × arm"]
+            children: []
+          - id: "12.2.3"
+            title: "Analysis of Adverse Events"
+            requirements: ["Inferential comparison if pre-specified; otherwise descriptive"]
+            stat_hints: ["AE risk differences with 95% CI for key events"]
+            children: []
+          - id: "12.2.4"
+            title: "Listing of Adverse Events by Patient"
+            requirements: ["Reference appendix listings"]
+            children: []
+      - id: "12.3"
+        title: "Deaths, Other Serious Adverse Events, and Other Significant Adverse Events"
+        requirements: []
+        stat_hints: []
+        children:
+          - id: "12.3.1"
+            title: "Listing of Deaths, Other SAEs and Other Significant AEs"
+            requirements: ["Full narrative per death and per SAE in appendix 14.3"]
+            stat_hints: ["Death/SAE counts by arm; narrative cross-refs"]
+            children: []
+          - id: "12.3.2"
+            title: "Narratives of Deaths, Other Serious Adverse Events, and Certain Other Significant Adverse Events"
+            requirements: ["Cross-reference to Section 14.3.3 narratives"]
+            children: []
+          - id: "12.3.3"
+            title: "Analysis and Discussion of Deaths, Other SAEs and Other Significant AEs"
+            requirements: ["Discuss patterns, causality, dose relationship"]
+            children: []
+      - id: "12.4"
+        title: "Clinical Laboratory Evaluation"
+        requirements: []
+        stat_hints: []
+        children:
+          - id: "12.4.1"
+            title: "Listing of Individual Laboratory Measurements by Patient and Each Abnormal Laboratory Value"
+            requirements: ["Listings appendix"]
+            children: []
+          - id: "12.4.2"
+            title: "Evaluation of Each Laboratory Parameter"
+            requirements: ["Shift tables (Normal/High/Low → Normal/High/Low)"]
+            stat_hints:
+              - "Shift counts by parameter × arm"
+              - "Mean change from baseline per visit"
+            children: []
+      - id: "12.5"
+        title: "Vital Signs, Physical Findings, and Other Observations Related to Safety"
+        requirements: ["BP, HR, weight, ECG QTcF; report mean changes and outliers"]
+        stat_hints: ["Mean changes ± SD per visit per arm; outlier counts"]
+        children: []
+      - id: "12.6"
+        title: "Safety Conclusions"
+        requirements: ["Benefit-risk language tying back to AE and lab signals"]
+        children: []
+
+  - id: "13"
+    title: "Discussion and Overall Conclusions"
+    required: true
+    requirements:
+      - "Integrate efficacy + safety into clinical context"
+      - "Limitations: design, population, generalizability"
+      - "Compare with prior trials and published literature"
+      - "Implications for labeling / further development"
+    stat_hints: []
+    children: []
+
+  - id: "14"
+    title: "Tables, Figures and Graphs Referred to but not Included in the Text"
+    required: true
+    requirements: []
+    stat_hints: []
+    children:
+      - id: "14.1"
+        title: "Demographic Data"
+        requirements: ["Detailed baseline tables"]
+        children: []
+      - id: "14.2"
+        title: "Efficacy Data"
+        requirements: ["Full efficacy tables and figures including subgroup forest plots"]
+        children: []
+      - id: "14.3"
+        title: "Safety Data"
+        requirements: []
+        children:
+          - id: "14.3.1"
+            title: "Displays of Adverse Events"
+            requirements: ["AE tables by SOC × PT"]
+            children: []
+          - id: "14.3.2"
+            title: "Listings of Deaths, Other SAEs, and Other Significant AEs"
+            requirements: ["Per-patient listings"]
+            children: []
+          - id: "14.3.3"
+            title: "Narratives of Deaths, Other SAEs, and Certain Other Significant AEs"
+            requirements: ["One narrative per event, standard format"]
+            children: []
+          - id: "14.3.4"
+            title: "Abnormal Laboratory Value Listing (each patient)"
+            requirements: ["Sorted by patient × parameter × visit"]
+            children: []
+
+  - id: "15"
+    title: "Reference List"
+    required: true
+    requirements:
+      - "Vancouver style citations"
+      - "Include publications, regulatory guidelines, internal reports cited in body"
+    stat_hints: []
+    children: []
+
+  - id: "16"
+    title: "Appendices"
+    required: true
+    requirements: []
+    stat_hints: []
+    children:
+      - id: "16.1"
+        title: "Study Information"
+        requirements: []
+        children:
+          - id: "16.1.1"
+            title: "Protocol and Protocol Amendments"
+            requirements: ["Final protocol + amendment versions"]
+            children: []
+          - id: "16.1.2"
+            title: "Sample Case Report Form"
+            requirements: ["Blank CRF for unique pages"]
+            children: []
+          - id: "16.1.3"
+            title: "List of IECs/IRBs + Representative Written Information for Patient + Consent Forms"
+            requirements: []
+            children: []
+          - id: "16.1.4"
+            title: "List and Description of Investigators and Other Important Participants in the Study"
+            requirements: ["CVs (1-2 page) in appendix"]
+            children: []
+          - id: "16.1.5"
+            title: "Signatures of Principal or Coordinating Investigator(s) or Sponsor's Responsible Medical Officer"
+            requirements: []
+            children: []
+          - id: "16.1.6"
+            title: "Listing of Patients Receiving Test Drug(s)/Investigational Product(s) from Specific Batches"
+            requirements: []
+            children: []
+          - id: "16.1.7"
+            title: "Randomisation Scheme and Codes"
+            requirements: []
+            children: []
+          - id: "16.1.8"
+            title: "Audit Certificates"
+            requirements: []
+            children: []
+          - id: "16.1.9"
+            title: "Documentation of Statistical Methods"
+            requirements: ["Final SAP + amendments"]
+            children: []
+          - id: "16.1.10"
+            title: "Documentation of Inter-Laboratory Standardisation Methods and Quality Assurance Procedures"
+            requirements: []
+            children: []
+          - id: "16.1.11"
+            title: "Publications Based on the Study"
+            requirements: []
+            children: []
+          - id: "16.1.12"
+            title: "Important Publications Referenced in the Report"
+            requirements: []
+            children: []
+      - id: "16.2"
+        title: "Patient Data Listings"
+        requirements: []
+        children:
+          - id: "16.2.1"
+            title: "Discontinued Patients"
+            requirements: []
+            children: []
+          - id: "16.2.2"
+            title: "Protocol Deviations"
+            requirements: []
+            children: []
+          - id: "16.2.3"
+            title: "Patients Excluded from the Efficacy Analysis"
+            requirements: []
+            children: []
+          - id: "16.2.4"
+            title: "Demographic Data"
+            requirements: []
+            children: []
+          - id: "16.2.5"
+            title: "Compliance and/or Drug Concentration Data"
+            requirements: []
+            children: []
+          - id: "16.2.6"
+            title: "Individual Efficacy Response Data"
+            requirements: []
+            children: []
+          - id: "16.2.7"
+            title: "Adverse Event Listings (each patient)"
+            requirements: []
+            children: []
+          - id: "16.2.8"
+            title: "Listing of Individual Laboratory Measurements by Patient"
+            requirements: []
+            children: []
+      - id: "16.3"
+        title: "Case Report Forms"
+        requirements: ["CRFs for deaths, SAEs, withdrawals due to AE"]
+        children: []
+      - id: "16.4"
+        title: "Individual Patient Data Listings"
+        requirements: ["Supplied if requested by regulator"]
+        children: []

@@ -11,7 +11,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import summary as config_summary
-from app.server.routes import health, llm_ping, projects
+from app.server.routes import (
+    health, llm_ping, projects,
+    upload, ingest, cleansing, corpus, principles,
+)
+from app.server.ws import router as ws_router
 
 logger = logging.getLogger("autocsr")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
@@ -35,6 +39,14 @@ def create_app() -> FastAPI:
     app.include_router(health.router, prefix="/api")
     app.include_router(llm_ping.router, prefix="/api")
     app.include_router(projects.router, prefix="/api")
+    app.include_router(upload.router, prefix="/api")
+    app.include_router(ingest.router, prefix="/api")
+    app.include_router(cleansing.router, prefix="/api")
+    app.include_router(corpus.router, prefix="/api")
+    app.include_router(principles.router, prefix="/api")
+
+    # WebSocket hub (no /api prefix — exposed at /ws/{pid})
+    app.include_router(ws_router)
 
     # Also mount /health at the root for naive load balancers / smoke checks.
     app.include_router(health.router)
