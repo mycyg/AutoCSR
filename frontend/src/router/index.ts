@@ -24,6 +24,18 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/CleanseView.vue'),
     props: true,
   },
+  {
+    path: '/p/:id/analyze',
+    name: 'project-analyze',
+    component: () => import('@/views/AnalyzeView.vue'),
+    props: true,
+  },
+  {
+    path: '/p/:id/outline',
+    name: 'project-outline',
+    component: () => import('@/views/OutlineView.vue'),
+    props: true,
+  },
 ]
 
 const router = createRouter({

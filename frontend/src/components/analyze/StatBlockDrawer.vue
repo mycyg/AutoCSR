@@ -1,0 +1,82 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+import { MdPreview } from 'md-editor-v3'
+import 'md-editor-v3/lib/preview.css'
+import type { StatBlockDTO } from '@/api/rest'
+
+const props = defineProps<{ open: boolean; block: StatBlockDTO | null }>()
+const emit = defineEmits<{ (e: 'update:open', v: boolean): void }>()
+
+const visible = computed({
+  get: () => props.open,
+  set: (v: boolean) => emit('update:open', v),
+})
+
+function refCopy(): void {
+  if (props.block?.ref_code) {
+    void navigator.clipboard.writeText(props.block.ref_code)
+  }
+}
+</script>
+
+<template>
+  <el-drawer v-model="visible" direction="rtl" size="64%" :destroy-on-close="true">
+    <template #header>
+      <div class="hdr" v-if="block">
+        <h3>{{ block.title }}</h3>
+        <div class="meta">
+          <el-tag size="small">{{ block.analysis_type }}</el-tag>
+          <span class="ref" @click="refCopy" title="点击复制引用">{{ block.ref_code }}</span>
+        </div>
+      </div>
+    </template>
+    <div v-if="block" class="body">
+      <section class="card">
+        <h4>渲染后表格</h4>
+        <MdPreview :modelValue="block.markdown_table || '_no table_'" :theme="'light'" />
+      </section>
+      <section class="card">
+        <h4>原始结果（result_json）</h4>
+        <el-collapse>
+          <el-collapse-item title="展开 JSON 树">
+            <pre class="json">{{ JSON.stringify(block.result_json, null, 2) }}</pre>
+          </el-collapse-item>
+        </el-collapse>
+      </section>
+      <section class="card">
+        <h4>参数 / 来源</h4>
+        <ul class="params">
+          <li v-for="(v, k) in block.params" :key="k as string">
+            <code>{{ k }}</code>: {{ typeof v === 'object' ? JSON.stringify(v) : String(v) }}
+          </li>
+        </ul>
+        <div class="srcs">
+          来源文件：
+          <span v-for="s in block.source_files" :key="s" class="src">{{ s }}</span>
+        </div>
+        <div v-if="block.notes?.length" class="notes">
+          备注：{{ block.notes.join(' · ') }}
+        </div>
+      </section>
+    </div>
+  </el-drawer>
+</template>
+
+<style scoped>
+.hdr h3 { margin: 0; font-size: 16px; }
+.hdr .meta { margin-top: 6px; display: flex; gap: 10px; align-items: center; }
+.hdr .ref {
+  font-family: ui-monospace, SFMono-Regular, monospace; font-size: 12px;
+  color: #1d4ed8; cursor: pointer;
+}
+.body { padding: 6px 4px; }
+.card { background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; padding: 14px 18px; margin-bottom: 16px; }
+.card h4 { margin: 0 0 10px 0; font-size: 14px; color: #374151; }
+.json { background: #0f172a; color: #f8fafc; padding: 12px; border-radius: 4px; font-size: 12px; max-height: 320px; overflow: auto; }
+.params { padding-left: 18px; margin: 0; color: #4b5563; }
+.params li { margin: 3px 0; font-size: 13px; }
+.params code { background: #f1f5f9; padding: 1px 6px; border-radius: 3px; }
+.srcs { margin-top: 8px; color: #4b5563; font-size: 12px; }
+.srcs .src { display: inline-block; margin-right: 8px; }
+.notes { margin-top: 8px; color: #6b7280; font-size: 12px; }
+</style>

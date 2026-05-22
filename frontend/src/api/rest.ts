@@ -164,4 +164,97 @@ export async function getPreview(pid: string, fileId: string, n = 50): Promise<{
   return (await api.get(`/projects/${pid}/cleansing/preview`, { params: { file_id: fileId, n } })).data
 }
 
+// -- M3: analysis & outline --------------------------------------------------
+
+export interface StatBlockSummaryDTO {
+  id: string
+  project_id: string
+  analysis_type: 'descriptive' | 'inferential' | 'survival' | 'safety'
+  title: string
+  source_files: string[]
+  created_at: string
+  ref_code: string
+  n_rows: number | null
+  n_cols: number | null
+}
+
+export interface StatBlockDTO extends StatBlockSummaryDTO {
+  params: Record<string, unknown>
+  result_json: Record<string, unknown>
+  markdown_table: string
+  notes: string[]
+}
+
+export async function triggerAutoAnalysis(pid: string): Promise<{ started: boolean; status: string; blocks?: StatBlockSummaryDTO[] }> {
+  return (await api.post(`/projects/${pid}/analysis/auto`, {}, { timeout: 300_000 })).data
+}
+
+export async function runAnalysis(pid: string, type: string, params: Record<string, unknown>): Promise<{ id: string; block: StatBlockDTO }> {
+  return (await api.post(`/projects/${pid}/analysis/run`, { type, params }, { timeout: 180_000 })).data
+}
+
+export async function listStats(pid: string, analysisType?: string, q?: string): Promise<StatBlockSummaryDTO[]> {
+  return (await api.get(`/projects/${pid}/stats`, { params: { analysis_type: analysisType, q } })).data
+}
+
+export async function getStat(pid: string, statId: string): Promise<StatBlockDTO> {
+  return (await api.get(`/projects/${pid}/stats/${statId}`)).data
+}
+
+export async function deleteStat(pid: string, statId: string): Promise<{ ok: boolean }> {
+  return (await api.delete(`/projects/${pid}/stats/${statId}`)).data
+}
+
+export interface OutlineNodeDTO {
+  id: string
+  title: string
+  principle_ref: string
+  level: number
+  status: 'pending' | 'writing' | 'done' | 'editing'
+  stat_hints: string[]
+  stat_refs: string[]
+  literature_refs: string[]
+  notes: string
+  project_specific: boolean
+  children: OutlineNodeDTO[]
+}
+
+export interface OutlineDTO {
+  project_id: string
+  principle_id: string
+  version: number
+  root_sections: OutlineNodeDTO[]
+  created_at: string
+  updated_at: string
+  notes: string[]
+}
+
+export async function buildOutline(pid: string, principleId: string): Promise<{ started: boolean; status: string; version: number | null; n_nodes: number }> {
+  return (await api.post(`/projects/${pid}/outline/build`, { principle_id: principleId }, { timeout: 600_000 })).data
+}
+
+export async function getOutline(pid: string): Promise<OutlineDTO> {
+  return (await api.get(`/projects/${pid}/outline`)).data
+}
+
+export async function patchOutlineNode(pid: string, nodeId: string, patch: Partial<OutlineNodeDTO>): Promise<OutlineNodeDTO> {
+  return (await api.patch(`/projects/${pid}/outline/nodes/${nodeId}`, patch)).data
+}
+
+export async function addOutlineChild(pid: string, parentId: string, title: string, notes?: string): Promise<OutlineNodeDTO> {
+  return (await api.post(`/projects/${pid}/outline/nodes/${parentId}/children`, { title, notes })).data
+}
+
+export async function deleteOutlineNode(pid: string, nodeId: string): Promise<{ ok: boolean }> {
+  return (await api.delete(`/projects/${pid}/outline/nodes/${nodeId}`)).data
+}
+
+export async function listOutlineVersions(pid: string): Promise<number[]> {
+  return (await api.get(`/projects/${pid}/outline/versions`)).data
+}
+
+export async function restoreOutlineVersion(pid: string, version: number): Promise<{ ok: boolean; version: number }> {
+  return (await api.post(`/projects/${pid}/outline/restore/${version}`)).data
+}
+
 export default api
