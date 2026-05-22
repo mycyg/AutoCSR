@@ -14,7 +14,7 @@ from app.config import summary as config_summary
 from app.server.routes import (
     health, llm_ping, projects,
     upload, ingest, cleansing, corpus, principles,
-    analysis, outline,
+    analysis, outline, report,
 )
 from app.server.ws import router as ws_router
 
@@ -47,6 +47,7 @@ def create_app() -> FastAPI:
     app.include_router(principles.router, prefix="/api")
     app.include_router(analysis.router, prefix="/api")
     app.include_router(outline.router, prefix="/api")
+    app.include_router(report.router, prefix="/api")
 
     # WebSocket hub (no /api prefix — exposed at /ws/{pid})
     app.include_router(ws_router)

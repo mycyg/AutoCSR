@@ -12,7 +12,7 @@ const steps = [
   { key: 'cleanse', label: '清洗', path: 'cleanse', enabled: true },
   { key: 'analyze', label: '分析', path: 'analyze', enabled: true },
   { key: 'outline', label: '大纲', path: 'outline', enabled: true },
-  { key: 'report', label: '撰写', path: 'report', enabled: false },
+  { key: 'report', label: '撰写', path: 'report', enabled: true },
   { key: 'export', label: '导出', path: 'export', enabled: false },
 ]
 
@@ -22,6 +22,7 @@ const activeKey = computed(() => {
   if (n.includes('cleanse')) return 'cleanse'
   if (n.includes('analyze')) return 'analyze'
   if (n.includes('outline')) return 'outline'
+  if (n.includes('report')) return 'report'
   if (n === 'project-detail') return 'intake'
   return ''
 })
@@ -46,7 +47,7 @@ function go(step: typeof steps[number]): void {
         </span>
       </nav>
       <div class="actions">
-        <el-tag size="small" type="success">M3</el-tag>
+        <el-tag size="small" type="success">M4</el-tag>
       </div>
     </el-header>
     <el-main class="autocsr-main">

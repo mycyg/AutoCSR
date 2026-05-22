@@ -257,4 +257,88 @@ export async function restoreOutlineVersion(pid: string, version: number): Promi
   return (await api.post(`/projects/${pid}/outline/restore/${version}`)).data
 }
 
+// -- M4: report writers ------------------------------------------------------
+
+export interface CitationRefDTO {
+  ref_code: string
+  type: 'literature' | 'stat' | 'principle' | 'note'
+  locator: string
+  snippet: string
+}
+
+export interface LLMMetaDTO {
+  model: string
+  tokens_in: number
+  tokens_out: number
+  latency_ms: number
+  via: string
+}
+
+export interface SectionDraftDTO {
+  node_id: string
+  title: string
+  markdown: string
+  citations: CitationRefDTO[]
+  word_count: number
+  generated_at: string
+  llm_meta: LLMMetaDTO
+  warnings: string[]
+  status: 'draft' | 'harmonized' | 'error'
+}
+
+export interface DraftSummaryDTO {
+  node_id: string
+  title: string
+  status: 'draft' | 'harmonized' | 'error'
+  word_count: number
+  n_citations: number
+  generated_at: string | null
+  warnings: string[]
+}
+
+export interface ReportStatusDTO {
+  project_id: string
+  outline_version: number | null
+  leaves_total: number
+  leaves_done: number
+  leaves_errored: number
+  current_phase: 'idle' | 'background' | 'results' | 'discussion' | 'harmonize' | 'done' | 'error'
+  harmonized: boolean
+  total_tokens: { input: number; output: number }
+  total_words: number
+  last_event_at: string | null
+  error: string | null
+  sections: { node_id: string; title: string; status: string; words: number; error?: string }[]
+}
+
+export async function generateReport(pid: string, harmonize = true, leafLimit?: number): Promise<{ started: boolean }> {
+  return (await api.post(`/projects/${pid}/report/generate`, {
+    harmonize, leaf_limit: leafLimit,
+  })).data
+}
+
+export async function getReportStatus(pid: string): Promise<ReportStatusDTO> {
+  return (await api.get(`/projects/${pid}/report/status`)).data
+}
+
+export async function listDrafts(pid: string): Promise<DraftSummaryDTO[]> {
+  return (await api.get(`/projects/${pid}/report/drafts`)).data
+}
+
+export async function getDraft(pid: string, nodeId: string): Promise<SectionDraftDTO> {
+  return (await api.get(`/projects/${pid}/report/drafts/${nodeId}`)).data
+}
+
+export async function regenerateDraft(pid: string, nodeId: string, extra?: string): Promise<SectionDraftDTO> {
+  return (await api.post(`/projects/${pid}/report/regenerate/${nodeId}`, { extra_instructions: extra ?? '' }, { timeout: 300_000 })).data
+}
+
+export async function getTerminology(pid: string): Promise<Record<string, string>> {
+  return (await api.get(`/projects/${pid}/terminology`)).data
+}
+
+export async function patchTerminology(pid: string, terms: Record<string, string>): Promise<Record<string, string>> {
+  return (await api.patch(`/projects/${pid}/terminology`, terms)).data
+}
+
 export default api
