@@ -45,6 +45,128 @@ def _draft_path(pid: str, node_id: str) -> Path:
     return _chapters_dir(pid) / f"{safe}.json"
 
 
+def _safe_node(node_id: str) -> str:
+    return node_id.replace("/", "_")
+
+
+def _version_path(pid: str, node_id: str, version: int) -> Path:
+    return _chapters_dir(pid) / f"{_safe_node(node_id)}_v{int(version)}.json"
+
+
+def list_versions(pid: str, node_id: str) -> list[int]:
+    """Return ascending list of saved version numbers for one section."""
+    d = _chapters_dir(pid)
+    prefix = f"{_safe_node(node_id)}_v"
+    out: list[int] = []
+    for f in d.glob(f"{prefix}*.json"):
+        stem = f.stem  # e.g. "11.2.3_v7"
+        try:
+            ver = int(stem.rsplit("_v", 1)[-1])
+        except ValueError:
+            continue
+        out.append(ver)
+    return sorted(out)
+
+
+def load_version(pid: str, node_id: str, version: int) -> SectionDraft | None:
+    p = _version_path(pid, node_id, version)
+    if not p.exists():
+        return None
+    try:
+        return SectionDraft.model_validate_json(p.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+
+
+def snapshot_draft(pid: str, draft: SectionDraft) -> int:
+    """Persist a versioned snapshot of the draft.
+
+    Returns the version number assigned. Versions start at 1 and grow
+    monotonically per section. The "current" draft file (without ``_v*``
+    suffix) is always kept in sync by :func:`save_draft`.
+    """
+    versions = list_versions(pid, draft.node_id)
+    next_ver = (versions[-1] + 1) if versions else 1
+    p = _version_path(pid, draft.node_id, next_ver)
+    payload = json.loads(draft.model_dump_json())
+    payload.setdefault("_meta", {})["version"] = next_ver
+    with _lock(pid):
+        p.write_text(
+            json.dumps(payload, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+    return next_ver
+
+
+def restore_version(pid: str, node_id: str, version: int) -> SectionDraft | None:
+    """Restore a snapshot to be the current draft (also creates a new snapshot
+    of the restored content so version history is monotonic)."""
+    src = load_version(pid, node_id, version)
+    if src is None:
+        return None
+    # Re-save as current; bump warnings to mark provenance
+    warnings = list(src.warnings or [])
+    warnings.append(f"restored_from_v{int(version)}")
+    restored = src.model_copy(update={"warnings": warnings})
+    save_draft(pid, restored)
+    snapshot_draft(pid, restored)
+    return restored
+
+
+# ---------------------------------------------------------------------------
+# Chat history persistence
+# ---------------------------------------------------------------------------
+
+def _chats_dir(pid: str) -> Path:
+    p = _proj_dir(pid) / "chats"
+    p.mkdir(parents=True, exist_ok=True)
+    return p
+
+
+def _chat_path(pid: str, node_id: str) -> Path:
+    return _chats_dir(pid) / f"{_safe_node(node_id)}.jsonl"
+
+
+def append_chat_message(pid: str, node_id: str, message_payload: dict[str, Any]) -> None:
+    p = _chat_path(pid, node_id)
+    line = json.dumps(message_payload, ensure_ascii=False, default=str)
+    with _lock(pid):
+        with p.open("a", encoding="utf-8") as f:
+            f.write(line + "\n")
+
+
+def load_chat_history(pid: str, node_id: str) -> list[dict[str, Any]]:
+    p = _chat_path(pid, node_id)
+    if not p.exists():
+        return []
+    out: list[dict[str, Any]] = []
+    for line in p.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            out.append(json.loads(line))
+        except json.JSONDecodeError:
+            continue
+    return out
+
+
+def delete_chat_message(pid: str, node_id: str, message_id: str) -> bool:
+    p = _chat_path(pid, node_id)
+    if not p.exists():
+        return False
+    items = load_chat_history(pid, node_id)
+    new_items = [m for m in items if m.get("id") != message_id]
+    if len(new_items) == len(items):
+        return False
+    with _lock(pid):
+        p.write_text(
+            "\n".join(json.dumps(m, ensure_ascii=False, default=str) for m in new_items) + ("\n" if new_items else ""),
+            encoding="utf-8",
+        )
+    return True
+
+
 def _report_path(pid: str) -> Path:
     return _proj_dir(pid) / "report.json"
 

@@ -341,4 +341,100 @@ export async function patchTerminology(pid: string, terms: Record<string, string
   return (await api.patch(`/projects/${pid}/terminology`, terms)).data
 }
 
+// -- M5: chat editor + version rollback --------------------------------------
+
+export interface PatchDTO {
+  op: 'replace_section' | 'insert_paragraph' | 'replace_paragraph' | 'patch_field'
+  target: number | string | null
+  before: string
+  after: string
+  applied: boolean
+  note: string
+}
+
+export interface ChatMessageDTO {
+  id: string
+  role: 'user' | 'assistant' | 'system'
+  content: string
+  patches: PatchDTO[]
+  ts: string
+  meta?: Record<string, unknown>
+}
+
+export interface ChatTurnResultDTO {
+  assistant_message: ChatMessageDTO
+  patches: PatchDTO[]
+  new_version: number | null
+  new_warnings: string[]
+}
+
+export async function postChat(pid: string, nodeId: string, message: string): Promise<ChatTurnResultDTO> {
+  return (await api.post(`/projects/${pid}/chapters/${nodeId}/chat`,
+    { message }, { timeout: 300_000 })).data
+}
+
+export async function getChatHistory(pid: string, nodeId: string): Promise<ChatMessageDTO[]> {
+  return (await api.get(`/projects/${pid}/chapters/${nodeId}/chat`)).data
+}
+
+export async function deleteChatMessage(pid: string, nodeId: string, msgId: string): Promise<{ ok: boolean }> {
+  return (await api.delete(`/projects/${pid}/chapters/${nodeId}/chat/${msgId}`)).data
+}
+
+export async function listSectionVersions(pid: string, nodeId: string): Promise<number[]> {
+  return (await api.get(`/projects/${pid}/report/drafts/${nodeId}/versions`)).data
+}
+
+export async function rollbackSection(pid: string, nodeId: string, version: number): Promise<SectionDraftDTO> {
+  return (await api.post(`/projects/${pid}/report/drafts/${nodeId}/rollback/${version}`)).data
+}
+
+// -- M5: DOCX export ---------------------------------------------------------
+
+export interface ExportOptions {
+  include_compliance_note?: boolean
+  include_toc?: boolean
+  include_appendix_cleansing?: boolean
+  include_appendix_analysis?: boolean
+}
+
+export interface ExportResultDTO {
+  ok: boolean
+  filename: string
+  size_bytes: number
+  n_sections: number
+  n_citations: number
+  generated_at: string
+}
+
+export interface ExportEntryDTO {
+  filename: string
+  path: string
+  size_bytes: number
+  n_sections?: number
+  n_citations?: number
+  created_at: string
+}
+
+export async function exportDocx(pid: string, opts: ExportOptions = {}): Promise<ExportResultDTO> {
+  return (await api.post(`/projects/${pid}/export/docx`, opts, { timeout: 600_000 })).data
+}
+
+export async function listExports(pid: string): Promise<ExportEntryDTO[]> {
+  return (await api.get(`/projects/${pid}/exports`)).data
+}
+
+export async function deleteExport(pid: string, filename: string): Promise<{ ok: boolean }> {
+  return (await api.delete(`/projects/${pid}/export/docx/${encodeURIComponent(filename)}`)).data
+}
+
+export function exportDownloadUrl(pid: string, filename: string): string {
+  return `/api/projects/${pid}/export/docx/${encodeURIComponent(filename)}`
+}
+
+export async function updateDraftMarkdown(pid: string, nodeId: string, markdown: string): Promise<{ draft: SectionDraftDTO; version: number }> {
+  return (await api.put(`/projects/${pid}/report/drafts/${nodeId}/markdown`, { markdown },
+    { timeout: 60_000 })).data
+}
+
 export default api

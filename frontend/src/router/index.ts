@@ -42,6 +42,12 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/ReportView.vue'),
     props: true,
   },
+  {
+    path: '/p/:id/export',
+    name: 'project-export',
+    component: () => import('@/views/ExportView.vue'),
+    props: true,
+  },
 ]
 
 const router = createRouter({

@@ -105,6 +105,19 @@ async function onSaveTerminology(terms: Record<string, string>): Promise<void> {
   }
 }
 
+async function onPatchApplied(): Promise<void> {
+  if (!reportStore.selectedNodeId) return
+  // Refresh the current draft so the center pane shows the edited markdown
+  await reportStore.loadDraft(props.id, reportStore.selectedNodeId)
+  await reportStore.refreshDrafts(props.id)
+}
+
+async function onRolledBack(_version: number): Promise<void> {
+  if (!reportStore.selectedNodeId) return
+  await reportStore.loadDraft(props.id, reportStore.selectedNodeId)
+  await reportStore.refreshDrafts(props.id)
+}
+
 const phase = computed(() => reportStore.phase)
 const running = computed(() => ['background', 'results', 'discussion', 'harmonize'].includes(phase.value))
 </script>
@@ -153,11 +166,15 @@ const running = computed(() => ['background', 'results', 'discussion', 'harmoniz
           @regenerate="(extra) => onRegenerate(extra)" />
       </el-main>
 
-      <el-aside class="right" width="320px">
+      <el-aside class="right" width="380px">
         <WriterStatus
+          :project-id="props.id"
+          :node-id="reportStore.selectedNodeId"
           :status="reportStore.status"
           :terminology="reportStore.terminology"
-          @save-terminology="onSaveTerminology" />
+          @save-terminology="onSaveTerminology"
+          @patch-applied="onPatchApplied"
+          @rolled-back="onRolledBack" />
       </el-aside>
     </el-container>
   </div>
