@@ -83,6 +83,12 @@ async def export_docx_endpoint(pid: str, body: dict = Body(default_factory=dict)
             "n_sections": result["n_sections"],
             "n_citations": result["n_citations"],
         })
+        try:
+            from app.state import default_machine, ProjectState
+            default_machine.try_transition(pid, ProjectState.exported,
+                                            reason=f"docx {result['filename']}")
+        except Exception:
+            pass
     else:
         await publish(pid, "export.error", {"error": result.get("error")})
         raise HTTPException(status_code=500, detail=result.get("error") or "docx build failed")

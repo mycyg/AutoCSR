@@ -50,7 +50,20 @@ async def generate(pid: str, body: dict = Body(default_factory=dict)) -> dict[st
 
     async def _runner() -> None:
         try:
-            await write_all(pid, harmonize=harmonize, leaf_limit=leaf_limit)
+            try:
+                from app.state import default_machine, ProjectState
+                default_machine.try_transition(pid, ProjectState.writing,
+                                                reason="report.generate")
+            except Exception:
+                pass
+            report = await write_all(pid, harmonize=harmonize, leaf_limit=leaf_limit)
+            try:
+                from app.state import default_machine, ProjectState
+                target = ProjectState.harmonized if report.harmonized else ProjectState.writing
+                default_machine.try_transition(pid, target,
+                                                reason="report.generate done")
+            except Exception:
+                pass
         except Exception as e:
             logger.exception("report.generate failed")
             status_reg.mark_error(pid, str(e)[:300])

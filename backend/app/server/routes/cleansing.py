@@ -158,6 +158,12 @@ async def apply(
         "file_id": file_id, "snapshot_id": out["snapshot_id"],
         "rows_after": out["rows_after"],
     })
+    try:
+        from app.state import default_machine, ProjectState
+        default_machine.try_transition(pid, ProjectState.cleansed,
+                                        reason=f"apply {file_id}")
+    except Exception:
+        pass
     return out
 
 

@@ -77,6 +77,12 @@ def create_project(body: ProjectCreate) -> dict[str, Any]:
     pdir.mkdir(parents=True, exist_ok=True)
     for sub in _SUBDIRS:
         (pdir / sub).mkdir(exist_ok=True)
+    # Initialize state machine record (idempotent)
+    try:
+        from app.state import default_machine
+        default_machine.get_record(pid)
+    except Exception:
+        pass
     return json.loads(proj.model_dump_json())
 
 

@@ -42,5 +42,13 @@ async def upload_files(pid: str, files: list[UploadFile] = File(...)) -> dict[st
             "size_bytes": entry.size_bytes, "stored_path": entry.stored_path,
             "status": entry.status,
         })
+    # Transition the project to "uploaded" — best-effort so a file added
+    # later in the pipeline doesn't block the upload itself.
+    try:
+        from app.state import default_machine, ProjectState
+        default_machine.try_transition(pid, ProjectState.uploaded,
+                                        reason=f"+{len(out)} files")
+    except Exception:
+        pass
     return {"project_id": pid, "uploaded": out,
             "total_entries": len(load_entries(pid))}

@@ -4,22 +4,23 @@ Run: uvicorn app.server.main:app --port 8766
 """
 from __future__ import annotations
 
-import json
 import logging
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import summary as config_summary
+from app.observability.logger import configure_logging, get_logger
 from app.server.routes import (
-    health, llm_ping, projects,
+    admin, health, llm_ping, projects,
     upload, ingest, cleansing, corpus, principles,
-    analysis, outline, report, chat, export,
+    analysis, outline, report, chat, export, sandbox,
 )
 from app.server.ws import router as ws_router
 
-logger = logging.getLogger("autocsr")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
+configure_logging()
+logger = get_logger("autocsr.server")
 
 
 def create_app() -> FastAPI:
@@ -50,6 +51,8 @@ def create_app() -> FastAPI:
     app.include_router(report.router, prefix="/api")
     app.include_router(chat.router, prefix="/api")
     app.include_router(export.router, prefix="/api")
+    app.include_router(admin.router, prefix="/api")
+    app.include_router(sandbox.router, prefix="/api")
 
     # WebSocket hub (no /api prefix — exposed at /ws/{pid})
     app.include_router(ws_router)
@@ -60,8 +63,7 @@ def create_app() -> FastAPI:
 
     @app.on_event("startup")
     async def _log_startup() -> None:
-        logger.info("AutoCSR backend starting. settings: %s",
-                    json.dumps(config_summary(), ensure_ascii=False))
+        logger.info("server.start", settings=config_summary())
 
     return app
 

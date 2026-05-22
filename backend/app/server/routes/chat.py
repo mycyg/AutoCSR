@@ -56,7 +56,18 @@ async def post_chat(pid: str, node_id: str, body: dict = Body(...)) -> dict[str,
     history = _hist_to_models(load_chat_history(pid, node_id))
     await publish(pid, "chat.assistant_thinking", {"node_id": node_id})
     try:
-        result = await chat_turn(pid, node_id, message, history)
+        from app.agents.writer import ChatEditorAgent
+        from app.schemas.agent import AgentInput
+        from app.schemas.chat import ChatTurnResult
+        agent = ChatEditorAgent()
+        ai = AgentInput(
+            project_id=pid,
+            payload={"node_id": node_id, "user_message": message,
+                      "history": history},
+            meta={"node_id": node_id},
+        )
+        ao = await agent.run(ai)
+        result = ChatTurnResult.model_validate(ao.result)
     except Exception as e:
         logger.exception("chat_turn failed")
         await publish(pid, "chat.error", {"node_id": node_id, "error": str(e)[:200]})
@@ -73,6 +84,12 @@ async def post_chat(pid: str, node_id: str, body: dict = Body(...)) -> dict[str,
             "n_patches": len(result.patches),
             "new_version": result.new_version,
         })
+        try:
+            from app.state import default_machine, ProjectState
+            default_machine.try_transition(pid, ProjectState.editing,
+                                            reason=f"chat on {node_id}")
+        except Exception:
+            pass
     await publish(pid, "chat.turn_done", {
         "node_id": node_id,
         "assistant_id": result.assistant_message.id,

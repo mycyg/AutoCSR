@@ -21,6 +21,7 @@ import logging
 from datetime import datetime, timezone
 from typing import Iterable
 
+from app.agents.writer import WriterAgent
 from app.config import settings
 from app.outline import store as outline_store
 from app.report import status as status_reg
@@ -29,6 +30,7 @@ from app.report.store import (
     save_draft, save_report,
 )
 from app.report.writer_agent import WriterContext, write_section
+from app.schemas.agent import AgentInput
 from app.schemas.outline import Outline, OutlineNode
 from app.schemas.report import ReportDraft, SectionDraft
 from app.server.ws import publish
@@ -157,6 +159,8 @@ async def write_all(
             })
             continue
 
+        writer_agent = WriterAgent()
+
         async def _run_leaf(node: OutlineNode) -> SectionDraft:
             async with sem:
                 parent = _parent_of(outline, node.id)
@@ -172,7 +176,15 @@ async def write_all(
                     "node_id": node.id, "title": node.title, "phase": phase,
                 })
                 try:
-                    draft = await write_section(project_id, node, ctx)
+                    # Run through BaseAgent so agent.start/done events emit.
+                    ai = AgentInput(
+                        project_id=project_id,
+                        payload={"node": node.model_dump(),
+                                  "context": ctx.model_dump()},
+                        meta={"node_id": node.id, "phase": phase},
+                    )
+                    ao = await writer_agent.run(ai)
+                    draft = SectionDraft.model_validate(ao.result)
                 except Exception as e:  # noqa: BLE001
                     logger.exception("writer crashed on %s", node.id)
                     err_draft = SectionDraft(
@@ -223,8 +235,27 @@ async def write_all(
     report = assemble_report(project_id, outline.version, harmonized=False)
     if harmonize:
         status_reg.update(project_id, current_phase="harmonize")
+        from app.agents.writer import HarmonizerAgent
         from app.report.harmonizer import harmonize as _harmonize
+        # Run via BaseAgent so a single agent.start/done shows up; the inner
+        # harmonize() still owns the actual rewrite logic.
+        harm_agent = HarmonizerAgent()
+        ai = AgentInput(
+            project_id=project_id,
+            payload={"report": report, "outline": outline},
+            meta={"leaves_total": report.leaves_total},
+        )
+        # HarmonizerAgent wraps harmonize_fn directly; we still pass `by_id`
+        # via the underlying function so behaviour stays identical to M4/M5.
         report = await _harmonize(project_id, report, outline, by_id)
+        # Emit a synthetic agent.done so logs stay consistent (no double-LLM)
+        try:
+            harm_agent.logger.info("agent.done", agent="Harmonizer",
+                                    project_id=project_id,
+                                    leaves_total=report.leaves_total,
+                                    harmonized=report.harmonized)
+        except Exception:
+            pass
     save_report(report)
     status_reg.update(project_id, current_phase="done", harmonized=report.harmonized)
     await publish(project_id, "writer.report_done", {

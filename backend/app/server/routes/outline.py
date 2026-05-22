@@ -40,6 +40,12 @@ async def build_endpoint(pid: str, body: dict = Body(...)) -> dict[str, Any]:
                 "version": outline.version,
                 "n_nodes": len(outline.walk()),
             })
+            try:
+                from app.state import default_machine, ProjectState
+                default_machine.try_transition(pid, ProjectState.outlined,
+                                                reason=f"v{outline.version}")
+            except Exception:
+                pass
         except Exception as e:
             logger.exception("outline.build failed")
             await publish(pid, "outline.error", {"error": str(e)})

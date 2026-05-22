@@ -37,6 +37,12 @@ async def trigger_auto(pid: str) -> dict[str, Any]:
                 "n_blocks": len(blocks),
                 "ids": [b.id for b in blocks],
             })
+            try:
+                from app.state import default_machine, ProjectState
+                default_machine.try_transition(pid, ProjectState.analyzed,
+                                                reason=f"auto +{len(blocks)} blocks")
+            except Exception:
+                pass
         except Exception as e:
             logger.exception("auto_analyze failed")
             await publish(pid, "analysis.error", {"error": str(e)})
