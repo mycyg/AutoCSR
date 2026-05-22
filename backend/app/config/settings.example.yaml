@@ -1,0 +1,41 @@
+# Copy to settings.yaml and fill in real values. settings.yaml is gitignored.
+# Environment variables override these at runtime (see backend/app/config/__init__.py).
+
+# ---------------------------------------------------------------
+# Primary LLM — every chat / outline / writer / editor call goes here.
+# DeepSeek (OpenAI-compatible chat/completions) is the default for cheap test
+# runs; swap to Ark / OpenAI / Anthropic by editing this segment in settings.yaml.
+# ---------------------------------------------------------------
+llm:
+  base_url: https://api.deepseek.com/v1
+  api_key: ""                # ENV: LLM_API_KEY overrides
+  model: deepseek-chat
+  # api_format: openai       # openai | anthropic; auto-detected when base_url ends in /anthropic
+  # user_agent: "autocsr/0.1"
+
+# ---------------------------------------------------------------
+# Embedding — optional in M1; corpus module will fall back to grep-only.
+# ---------------------------------------------------------------
+# embedding:
+#   base_url: https://api.deepseek.com/v1
+#   api_key: ""
+#   model: text-embedding-3-small
+#   endpoint_path: /embeddings
+#   api_style: openai
+
+# ---------------------------------------------------------------
+# HTTP server
+# ---------------------------------------------------------------
+server:
+  host: 127.0.0.1
+  port: 8766
+  data_dir: ./data           # project storage root; relative paths resolve against repo root
+
+# ---------------------------------------------------------------
+# AutoCSR feature toggles (placeholders for M2+; harmless in M1).
+# ---------------------------------------------------------------
+pipeline:
+  pii_strip: true             # default-on, cannot be skipped silently in cleansing
+  max_parallel_writers: 4
+  max_parallel_ingest_workers: 4
+  llm_data_redaction: strict  # strict | mild | off
