@@ -32,10 +32,15 @@ class WriterAgent(BaseAgent):
         except Exception as e:  # noqa: BLE001
             raise AgentError(f"invalid OutlineNode payload: {e}", retryable=False)
         ctx_raw = payload.get("context") or {}
+        # Pop analyst_pool first because Pydantic can't validate the live
+        # FuturePool object; we attach it back after construction.
+        analyst_pool = ctx_raw.pop("analyst_pool", None) if isinstance(ctx_raw, dict) else None
         ctx = WriterContext(project_id=agent_input.project_id, **{
             k: v for k, v in ctx_raw.items()
             if k in WriterContext.model_fields and k != "project_id"
         })
+        if analyst_pool is not None:
+            ctx.analyst_pool = analyst_pool
         try:
             draft = await write_section(agent_input.project_id, node, ctx)
         except Exception as e:  # noqa: BLE001

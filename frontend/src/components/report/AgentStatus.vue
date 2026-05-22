@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { ReportStatusDTO } from '@/api/rest'
+import { useReportStore } from '@/stores/report'
 
 const props = defineProps<{ status: ReportStatusDTO | null }>()
+const reportStore = useReportStore()
 
 const progress = computed(() => {
   if (!props.status) return 0
@@ -23,6 +25,34 @@ const phaseLabel: Record<string, string> = {
 const errored = computed(() =>
   (props.status?.sections ?? []).filter((s) => s.status === 'error'),
 )
+
+const subPhaseEntries = computed(() =>
+  Object.values(reportStore.subPhases).sort((a, b) => b.ts - a.ts).slice(0, 8),
+)
+
+const recentTools = computed(() => reportStore.toolCallLog.slice(0, 5))
+
+const dedupHits = computed(() => reportStore.dedupHits.slice(0, 3))
+
+const subPhaseLabel: Record<string, string> = {
+  thinking: '思考',
+  searching: '检索 corpus',
+  'sandbox-running': '沙盒执行',
+  'calling-analyst': '调用 analyst',
+  drafting: '撰写',
+  done: '完成',
+  error: '错误',
+}
+
+function fmtArgs(v: unknown): string {
+  if (!v) return ''
+  try {
+    const s = JSON.stringify(v)
+    return s.length > 120 ? s.slice(0, 120) + '…' : s
+  } catch {
+    return String(v)
+  }
+}
 </script>
 
 <template>
@@ -59,6 +89,42 @@ const errored = computed(() =>
       <div v-if="status.error" class="errors">
         <el-alert type="error" :closable="false">{{ status.error }}</el-alert>
       </div>
+
+      <div v-if="subPhaseEntries.length" class="subphases">
+        <h4>writer 子状态</h4>
+        <ul>
+          <li v-for="e in subPhaseEntries" :key="e.nodeId">
+            <code>{{ e.nodeId }}</code> ·
+            <span class="phase-pill">{{ subPhaseLabel[e.phase] ?? e.phase }}</span>
+            <span v-if="e.toolCall" class="tool-name">{{ e.toolCall }}</span>
+          </li>
+        </ul>
+      </div>
+
+      <div v-if="recentTools.length" class="toolcalls">
+        <h4>最近工具调用</h4>
+        <ul>
+          <li v-for="(c, i) in recentTools" :key="i"
+              :class="{ err: c.ok === false }"
+              :title="fmtArgs(c.args)">
+            <code>{{ c.nodeId }}</code> · {{ c.name }}
+            <span v-if="c.durationMs" class="muted">· {{ c.durationMs }}ms</span>
+            <span v-if="c.errorMsg" class="muted err">· {{ c.errorMsg }}</span>
+          </li>
+        </ul>
+      </div>
+
+      <div v-if="dedupHits.length" class="dedup">
+        <h4>analyst 查询去重</h4>
+        <ul>
+          <li v-for="(h, i) in dedupHits" :key="i">
+            <span class="muted">复用：</span>「{{ h.query }}」
+            <span v-if="h.requesters.length" class="muted">
+              · {{ h.requesters.join(', ') }}
+            </span>
+          </li>
+        </ul>
+      </div>
     </template>
   </div>
 </template>
@@ -76,4 +142,13 @@ const errored = computed(() =>
 .errors h4 { margin: 6px 0 4px; font-size: 12px; color: #374151; }
 .errors ul { margin: 0; padding-left: 16px; }
 .err-msg { color: #ef4444; font-size: 11px; }
+.subphases, .toolcalls, .dedup { margin-top: 6px; border-top: 1px dashed #e5e7eb; padding-top: 6px; }
+.subphases h4, .toolcalls h4, .dedup h4 { margin: 4px 0; font-size: 11px; color: #6b7280; font-weight: 500; }
+.subphases ul, .toolcalls ul, .dedup ul { padding-left: 14px; margin: 0; font-size: 11px; }
+.phase-pill { display: inline-block; padding: 0 6px; border-radius: 8px; background: #eef2ff; color: #4338ca; }
+.tool-name { margin-left: 6px; font-family: ui-monospace, monospace; color: #047857; }
+.toolcalls li { cursor: help; padding: 1px 0; }
+.toolcalls li.err { color: #b91c1c; }
+.muted { color: #9ca3af; }
+.muted.err { color: #ef4444; }
 </style>

@@ -6,6 +6,24 @@ import {
   type DraftSummaryDTO, type ReportStatusDTO, type SectionDraftDTO,
 } from '@/api/rest'
 
+export interface WriterSubPhaseEntry {
+  nodeId: string
+  phase: string
+  toolCall?: string
+  ts: number
+}
+
+export interface WriterToolCallLog {
+  nodeId: string
+  name: string
+  args?: unknown
+  ok?: boolean
+  durationMs?: number
+  errorMsg?: string
+  turn?: number
+  ts: number
+}
+
 export const useReportStore = defineStore('report', () => {
   const status = ref<ReportStatusDTO | null>(null)
   const drafts = ref<DraftSummaryDTO[]>([])
@@ -14,6 +32,10 @@ export const useReportStore = defineStore('report', () => {
   const terminology = ref<Record<string, string>>({})
   const generating = ref(false)
   const error = ref<string | null>(null)
+  // M9 — per-section subphase + the latest few tool calls (ring buffer)
+  const subPhases = ref<Record<string, WriterSubPhaseEntry>>({})
+  const toolCallLog = ref<WriterToolCallLog[]>([])
+  const dedupHits = ref<{ query: string; requesters: string[]; ts: number }[]>([])
 
   const currentDraft = computed(() => {
     const id = selectedNodeId.value
@@ -106,6 +128,41 @@ export const useReportStore = defineStore('report', () => {
       if (t === 'harmonizer.done' || t === 'writer.report_done') {
         void refreshDrafts(pid)
       }
+    } else if (t === 'writer.subphase') {
+      const nodeId = String(p.node_id ?? '')
+      if (nodeId) {
+        subPhases.value = {
+          ...subPhases.value,
+          [nodeId]: {
+            nodeId,
+            phase: String(p.phase ?? ''),
+            toolCall: p.tool_call ? String(p.tool_call) : undefined,
+            ts: Date.now(),
+          },
+        }
+      }
+    } else if (t === 'writer.tool_call_start' || t === 'writer.tool_call_end'
+               || t === 'writer.tool_call_error') {
+      const entry: WriterToolCallLog = {
+        nodeId: String(p.node_id ?? ''),
+        name: String(p.name ?? ''),
+        args: p.args_preview,
+        ok: t === 'writer.tool_call_end' ? Boolean(p.ok ?? true)
+            : t === 'writer.tool_call_error' ? false : undefined,
+        durationMs: typeof p.duration_ms === 'number' ? p.duration_ms : undefined,
+        errorMsg: t === 'writer.tool_call_error' ? String(p.msg ?? '') : undefined,
+        turn: typeof p.turn === 'number' ? p.turn : undefined,
+        ts: Date.now(),
+      }
+      const next = [entry, ...toolCallLog.value]
+      toolCallLog.value = next.slice(0, 25)
+    } else if (t === 'analyst.dedup_hit') {
+      const next = [{
+        query: String(p.query ?? ''),
+        requesters: Array.isArray(p.requesters) ? p.requesters.map(String) : [],
+        ts: Date.now(),
+      }, ...dedupHits.value]
+      dedupHits.value = next.slice(0, 10)
     }
   }
 
@@ -116,10 +173,14 @@ export const useReportStore = defineStore('report', () => {
     selectedNodeId.value = null
     terminology.value = {}
     error.value = null
+    subPhases.value = {}
+    toolCallLog.value = []
+    dedupHits.value = []
   }
 
   return {
     status, drafts, draftCache, selectedNodeId, terminology, generating, error,
+    subPhases, toolCallLog, dedupHits,
     currentDraft, leavesTotal, leavesDone, leavesErrored, totalTokens, totalWords, phase,
     refreshStatus, refreshDrafts, loadDraft, selectNode, generate, regenerate,
     loadTerminology, saveTerminology, handleWS, reset,

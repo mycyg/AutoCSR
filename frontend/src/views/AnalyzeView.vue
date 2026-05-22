@@ -5,6 +5,7 @@ import { useAnalysisStore } from '@/stores/analysis'
 import { connectProjectWS } from '@/api/ws'
 import StatBlockDrawer from '@/components/analyze/StatBlockDrawer.vue'
 import ManualAnalysisDialog from '@/components/analyze/ManualAnalysisDialog.vue'
+import DataAskPanel from '@/components/analyze/DataAskPanel.vue'
 
 const props = defineProps<{ id: string }>()
 const analysis = useAnalysisStore()
@@ -18,6 +19,7 @@ const typeColor: Record<string, string> = {
   inferential: 'success',
   survival: 'warning',
   safety: 'danger',
+  custom: 'info',
 }
 
 const typeLabel: Record<string, string> = {
@@ -25,6 +27,7 @@ const typeLabel: Record<string, string> = {
   inferential: '组间检验',
   survival: '生存分析',
   safety: '安全性',
+  custom: '自定义',
 }
 
 const sortedBlocks = computed(() => [...analysis.blocks])
@@ -131,6 +134,8 @@ function fmtDate(s: string): string {
         </el-table-column>
       </el-table>
     </section>
+
+    <DataAskPanel :project-id="props.id" @stat-block-saved="analysis.refresh(props.id)" />
 
     <StatBlockDrawer v-model:open="drawerOpen" :block="analysis.selected" />
     <ManualAnalysisDialog v-model:open="manualOpen" :project-id="props.id"

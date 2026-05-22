@@ -51,6 +51,14 @@ class WriterContext(BaseModel):
     terminology: dict[str, str] = Field(default_factory=dict)
     extra_instructions: str = ""           # optional override for regenerate / editor
     max_words: int = 600                   # target upper bound; prompt only, soft
+    # M9 — tool loop knobs
+    enable_tools: bool = False             # when True, writer drives an LLM ↔ tool loop
+    max_tool_turns: int = 5
+    available_tools: list[str] | None = None  # subset of builtin tool names; None=all
+    analyst_pool: Any = None               # FuturePool injected by orchestrator (M9)
+
+    class Config:
+        arbitrary_types_allowed = True
 
 
 # ---------------------------------------------------------------------------
@@ -285,6 +293,128 @@ def _is_mock() -> bool:
 
 
 # ---------------------------------------------------------------------------
+# Tool loop adapter (M9)
+# ---------------------------------------------------------------------------
+
+async def _run_writer_tool_loop(
+    *,
+    project_id: str,
+    node: OutlineNode,
+    ctx: "WriterContext",
+    sys_msg: str,
+    user_msg: str,
+    llm_policy: _policy.LLMPolicy,
+) -> Any:
+    """Drive the LLM ↔ tool loop for one section.
+
+    Returns a ``ToolLoopResult``.
+    """
+    from app.agents.builtin_tools import writer_tools
+    from app.agents.tool_loop import ToolContext, run_tool_loop
+    from app.server.ws import publish
+
+    avail = ctx.available_tools
+    tools = writer_tools(exclude=[t.name for t in writer_tools()
+                                    if avail is not None and t.name not in avail and t.name != "respond"])
+    tool_ctx = ToolContext(
+        project_id=project_id,
+        node_id=node.id,
+        extra={
+            "analyst_pool": ctx.analyst_pool,
+            "node_title": node.title,
+        },
+    )
+
+    async def _emit(kind: str, payload: dict[str, Any]) -> None:
+        # Translate ToolLoop events into writer.subphase / writer.tool_call_*
+        try:
+            if kind == "turn_start":
+                await publish(project_id, "writer.subphase", {
+                    "node_id": node.id, "phase": "thinking",
+                    "turn": payload.get("turn"),
+                })
+            elif kind == "tool_call_start":
+                phase = "tool"
+                name = payload.get("name") or ""
+                if name == "sandbox_python":
+                    phase = "sandbox-running"
+                elif name == "call_analyst":
+                    phase = "calling-analyst"
+                elif name == "search_corpus":
+                    phase = "searching"
+                elif name == "respond":
+                    phase = "drafting"
+                await publish(project_id, "writer.subphase", {
+                    "node_id": node.id, "phase": phase, "tool_call": name,
+                })
+                await publish(project_id, "writer.tool_call_start", {
+                    "node_id": node.id, "name": name,
+                    "args_preview": _short_args(payload.get("args")),
+                    "turn": payload.get("turn"),
+                })
+            elif kind == "tool_call_end":
+                await publish(project_id, "writer.tool_call_end", {
+                    "node_id": node.id,
+                    "name": payload.get("name"),
+                    "duration_ms": payload.get("duration_ms"),
+                    "turn": payload.get("turn"),
+                    "ok": payload.get("ok", True),
+                })
+            elif kind == "tool_call_error":
+                await publish(project_id, "writer.tool_call_error", {
+                    "node_id": node.id,
+                    "name": payload.get("name"),
+                    "msg": payload.get("msg"),
+                    "turn": payload.get("turn"),
+                })
+        except Exception:
+            pass
+
+    final_user_msg = (
+        f"{user_msg}\n\n"
+        "## 工作流程\n"
+        "1. 先评估需要哪些证据：用 `search_corpus` 找文献；用 `read_stat_block` 读已绑定的统计块；如需新分析就 `call_analyst` 或 `sandbox_python`。\n"
+        "2. 拿到证据后调用 `respond` 提交最终 markdown，把数字和 [Ref<...>] 一一对应。\n"
+    )
+
+    return await run_tool_loop(
+        system_prompt=sys_msg,
+        user_messages=[{"role": "user", "content": final_user_msg}],
+        tools=tools,
+        ctx=tool_ctx,
+        llm_policy=llm_policy,
+        max_turns=int(ctx.max_tool_turns or 5),
+        on_event=_emit,
+    )
+
+
+def _short_args(value: Any) -> Any:
+    """Trim verbose args (especially long code strings) before publishing."""
+    if isinstance(value, dict):
+        out: dict[str, Any] = {}
+        for k, v in value.items():
+            if isinstance(v, str) and len(v) > 200:
+                out[k] = v[:200] + "…"
+            else:
+                out[k] = v
+        return out
+    return value
+
+
+def _save_tool_history(project_id: str, node_id: str, meta: dict[str, Any]) -> None:
+    """Append a writer-tool-call history file for the section."""
+    from app.config import data_dir as _data_dir
+    safe = node_id.replace("/", "_")
+    base = _data_dir() / "projects" / project_id / "chapters"
+    base.mkdir(parents=True, exist_ok=True)
+    p = base / f"{safe}_tools.jsonl"
+    with p.open("a", encoding="utf-8") as f:
+        for tc in meta.get("tool_calls") or []:
+            f.write(re.sub(r"\s+", " ",
+                            __import__("json").dumps(tc, ensure_ascii=False, default=str)).strip() + "\n")
+
+
+# ---------------------------------------------------------------------------
 # Public entrypoint
 # ---------------------------------------------------------------------------
 
@@ -308,8 +438,52 @@ async def write_section(
     tokens_in = tokens_out = 0
     warnings: list[str] = []
     status: str = "draft"
+    tool_loop_meta: dict[str, Any] | None = None
 
-    if _is_mock():
+    # ------------------------------------------------------------------
+    # Mode A: tool loop (M9) — real LLM with self-service tools
+    # ------------------------------------------------------------------
+    if ctx.enable_tools and not _is_mock():
+        try:
+            tl_result = await _run_writer_tool_loop(
+                project_id=project_id, node=outline_node, ctx=ctx,
+                sys_msg=sys_msg, user_msg=user_msg,
+                llm_policy=llm_policy or _policy.writer_llm(),
+            )
+            markdown = (tl_result.final_response or "").strip()
+            via = "llm-tools"
+            tokens_in = tl_result.total_meta.tokens_in
+            tokens_out = tl_result.total_meta.tokens_out
+            tool_loop_meta = {
+                "terminated": tl_result.terminated,
+                "n_tool_calls": len(tl_result.tool_calls),
+                "tool_calls": [tc.to_dict() for tc in tl_result.tool_calls],
+                "citations": tl_result.citations,
+            }
+            if tl_result.terminated != "respond":
+                warnings.append(f"tool_loop_terminated:{tl_result.terminated}")
+            if not markdown:
+                # fall through to mock so the orchestrator can keep going
+                markdown = _mock_section(outline_node, stat_ev, lit_ev)
+                via = "fallback"
+                status = "error"
+                warnings.append("tool_loop_empty_response")
+            # Persist tool-call history for the section
+            try:
+                _save_tool_history(project_id, outline_node.id, tool_loop_meta)
+            except Exception:  # noqa: BLE001
+                pass
+        except Exception as e:  # noqa: BLE001
+            logger.warning("writer tool loop failed for %s: %s", outline_node.id, e)
+            warnings.append(f"tool_loop_error:{type(e).__name__}:{str(e)[:160]}")
+            markdown = _mock_section(outline_node, stat_ev, lit_ev)
+            via = "fallback"
+            status = "error"
+
+    # ------------------------------------------------------------------
+    # Mode B: legacy single-shot LLM or mock
+    # ------------------------------------------------------------------
+    elif _is_mock():
         markdown = _mock_section(outline_node, stat_ev, lit_ev)
         via = "mock"
     else:

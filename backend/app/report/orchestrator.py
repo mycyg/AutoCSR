@@ -1,5 +1,11 @@
 """Three-phase parallel orchestrator for M4 writer agents.
 
+M9 update — :class:`AnalystFuturePool` deduplicates identical natural-language
+analyst queries that multiple writers might issue inside the same run. The
+pool is passed in via :class:`WriterContext.analyst_pool` and consumed by the
+``call_analyst`` builtin tool.
+
+
 Phases:
     A. background  — outline sections whose top-level chapter id ∈ {1..9}.
                       Mostly no statistical dependencies.
@@ -18,6 +24,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 from datetime import datetime, timezone
 from typing import Iterable
 
@@ -36,6 +43,68 @@ from app.schemas.report import ReportDraft, SectionDraft
 from app.server.ws import publish
 
 logger = logging.getLogger("autocsr.report.orchestrator")
+
+
+# ---------------------------------------------------------------------------
+# Analyst FuturePool — shared cache of analyst queries across writers
+# ---------------------------------------------------------------------------
+
+import hashlib as _hashlib
+from typing import Any as _Any
+
+
+class AnalystFuturePool:
+    """Coalesce identical analyst queries into a single sandbox run.
+
+    Two writers that both ask "ADAE 出现频率 top 5 SOC" will share the
+    same :class:`asyncio.Future` and therefore the same StatBlock; the
+    sandbox only runs once. We emit ``analyst.dedup_hit`` so the frontend
+    can show the cache hit.
+    """
+
+    def __init__(self) -> None:
+        self._futures: dict[str, asyncio.Future[_Any]] = {}
+        self._requesters: dict[str, list[str]] = {}
+        self._lock = asyncio.Lock()
+
+    @staticmethod
+    def _key(query: str, scope: str) -> str:
+        norm = (query.strip().lower() + "|" + scope.strip().lower())
+        return _hashlib.sha1(norm.encode("utf-8")).hexdigest()[:16]
+
+    async def request(self, project_id: str, query: str, scope: str = "all",
+                       *, requester: str = "") -> dict[str, _Any]:
+        key = self._key(query, scope)
+        async with self._lock:
+            fut = self._futures.get(key)
+            if fut is None:
+                fut = asyncio.get_event_loop().create_future()
+                self._futures[key] = fut
+                self._requesters[key] = [requester] if requester else []
+                fresh = True
+            else:
+                self._requesters.setdefault(key, []).append(requester)
+                fresh = False
+        if fresh:
+            try:
+                from app.agents.analyst_agent import run_analyst
+                from app.server.ws import publish as _publish
+
+                result = await run_analyst(project_id, query, scope=scope)
+                fut.set_result(result)
+                return result
+            except Exception as e:  # noqa: BLE001
+                fut.set_exception(e)
+                raise
+        else:
+            from app.server.ws import publish as _publish
+
+            await _publish(project_id, "analyst.dedup_hit", {
+                "query": query, "scope": scope,
+                "requesters": list(self._requesters.get(key, [])),
+                "key": key,
+            })
+            return await fut
 
 
 # ---------------------------------------------------------------------------
@@ -113,6 +182,8 @@ async def write_all(
     harmonize: bool = True,
     only_phases: Iterable[str] | None = None,
     leaf_limit: int | None = None,
+    enable_tools: bool | None = None,
+    max_tool_turns: int = 5,
 ) -> ReportDraft:
     """Run the full multi-agent writer pipeline.
 
@@ -144,6 +215,17 @@ async def write_all(
     max_parallel = int(conf.get("max_parallel_writers", 4) or 4)
     sem = asyncio.Semaphore(max_parallel)
 
+    # Decide whether writers should drive an LLM ↔ tool loop. The env var
+    # `CSR_WRITER_TOOLS=1` is the simplest way to opt in from e2e tests; the
+    # explicit `enable_tools` keyword wins if provided.
+    if enable_tools is None:
+        enable_tools = os.environ.get("CSR_WRITER_TOOLS", "").lower() in ("1", "true", "yes")
+
+    # Pool only matters when tools are enabled and we are NOT in mock mode.
+    analyst_pool: AnalystFuturePool | None = None
+    if enable_tools and os.environ.get("CSR_WRITER_MOCK", "").lower() not in ("1", "true", "yes"):
+        analyst_pool = AnalystFuturePool()
+
     target_phases = list(only_phases) if only_phases else list(PHASES)
     last_section_tail: dict[str, str] = {}  # parent_id -> tail of previous sibling
 
@@ -171,16 +253,26 @@ async def write_all(
                     parent_summary=parent_summary,
                     sibling_tail=sibling_tail,
                     terminology=terminology,
+                    enable_tools=bool(enable_tools),
+                    max_tool_turns=int(max_tool_turns),
                 )
+                if analyst_pool is not None:
+                    ctx.analyst_pool = analyst_pool
                 await publish(project_id, "writer.section_start", {
                     "node_id": node.id, "title": node.title, "phase": phase,
                 })
                 try:
                     # Run through BaseAgent so agent.start/done events emit.
+                    # The Pydantic model dump cannot carry the live FuturePool
+                    # object — inject it separately under "context" so the
+                    # WriterAgent wrapper can re-attach.
+                    ctx_dict = ctx.model_dump(exclude={"analyst_pool"})
+                    if analyst_pool is not None:
+                        ctx_dict["analyst_pool"] = analyst_pool
                     ai = AgentInput(
                         project_id=project_id,
                         payload={"node": node.model_dump(),
-                                  "context": ctx.model_dump()},
+                                  "context": ctx_dict},
                         meta={"node_id": node.id, "phase": phase},
                     )
                     ao = await writer_agent.run(ai)

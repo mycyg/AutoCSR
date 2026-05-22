@@ -169,7 +169,7 @@ export async function getPreview(pid: string, fileId: string, n = 50): Promise<{
 export interface StatBlockSummaryDTO {
   id: string
   project_id: string
-  analysis_type: 'descriptive' | 'inferential' | 'survival' | 'safety'
+  analysis_type: 'descriptive' | 'inferential' | 'survival' | 'safety' | 'custom'
   title: string
   source_files: string[]
   created_at: string
@@ -203,6 +203,35 @@ export async function getStat(pid: string, statId: string): Promise<StatBlockDTO
 
 export async function deleteStat(pid: string, statId: string): Promise<{ ok: boolean }> {
   return (await api.delete(`/projects/${pid}/stats/${statId}`)).data
+}
+
+// -- M8: data ask (analyst agent) -------------------------------------------
+
+export interface AskResponseDTO {
+  stat_block: StatBlockDTO
+  sandbox_run_id: string
+  llm_meta: LLMMetaDTO
+}
+
+export interface AskHistoryEntryDTO {
+  stat_id: string
+  ts: number
+  query: string
+  scope: string
+  sandbox_run_id: string
+  expected_output_type: string
+  ok: boolean
+}
+
+export async function askData(
+  pid: string, query: string, scope: string = 'all',
+): Promise<AskResponseDTO> {
+  return (await api.post(`/projects/${pid}/ask`,
+    { query, scope }, { timeout: 240_000 })).data
+}
+
+export async function getAskHistory(pid: string): Promise<AskHistoryEntryDTO[]> {
+  return (await api.get(`/projects/${pid}/ask/history`)).data
 }
 
 export interface OutlineNodeDTO {

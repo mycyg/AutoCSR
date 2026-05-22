@@ -47,6 +47,10 @@ async def generate(pid: str, body: dict = Body(default_factory=dict)) -> dict[st
             leaf_limit = int(leaf_limit)
         except Exception:
             leaf_limit = None
+    enable_tools = body.get("enable_tools")
+    if enable_tools is not None:
+        enable_tools = bool(enable_tools)
+    max_tool_turns = int(body.get("max_tool_turns") or 5)
 
     async def _runner() -> None:
         try:
@@ -56,7 +60,10 @@ async def generate(pid: str, body: dict = Body(default_factory=dict)) -> dict[st
                                                 reason="report.generate")
             except Exception:
                 pass
-            report = await write_all(pid, harmonize=harmonize, leaf_limit=leaf_limit)
+            report = await write_all(
+                pid, harmonize=harmonize, leaf_limit=leaf_limit,
+                enable_tools=enable_tools, max_tool_turns=max_tool_turns,
+            )
             try:
                 from app.state import default_machine, ProjectState
                 target = ProjectState.harmonized if report.harmonized else ProjectState.writing

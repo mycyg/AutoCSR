@@ -113,3 +113,51 @@ def get_stat(pid: str, stat_id: str) -> dict[str, Any]:
 def delete_stat(pid: str, stat_id: str) -> dict[str, bool]:
     _ensure_project(pid)
     return {"ok": delete_block(pid, stat_id)}
+
+
+# ---------------------------------------------------------------------------
+# M8: natural language data Q&A
+# ---------------------------------------------------------------------------
+
+
+@router.post("/projects/{pid}/ask")
+async def ask_data(pid: str, body: dict = Body(...)) -> dict[str, Any]:
+    """Run the analyst agent and return the resulting StatBlock + run id."""
+    _ensure_project(pid)
+    from app.agents.analyst_agent import AnalystAgent
+    from app.schemas.agent import AgentInput
+
+    query = (body.get("query") or "").strip()
+    if not query:
+        raise HTTPException(status_code=400, detail="query required")
+    scope = body.get("scope") or "all"
+    parquet_paths = body.get("parquet_paths") or []
+    timeout = int(body.get("sandbox_timeout_s") or 60)
+    mem_mb = int(body.get("sandbox_mem_mb") or 1024)
+
+    agent = AnalystAgent()
+    ai = AgentInput(
+        project_id=pid,
+        payload={
+            "query": query,
+            "scope": scope,
+            "parquet_paths": parquet_paths,
+            "sandbox_timeout_s": timeout,
+            "sandbox_mem_mb": mem_mb,
+        },
+        meta={"caller": "/ask"},
+    )
+    try:
+        ao = await agent.run(ai)
+    except Exception as e:  # noqa: BLE001
+        await publish(pid, "analyst.error", {"msg": str(e)[:300]})
+        raise HTTPException(status_code=500, detail=f"analyst failed: {e}")
+    return ao.result or {}
+
+
+@router.get("/projects/{pid}/ask/history")
+def ask_history(pid: str) -> list[dict[str, Any]]:
+    _ensure_project(pid)
+    from app.agents.analyst_agent import list_ask_history
+
+    return list_ask_history(pid)

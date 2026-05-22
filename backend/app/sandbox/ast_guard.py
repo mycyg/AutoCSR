@@ -25,9 +25,9 @@ from dataclasses import dataclass, field
 # Modules a typical analysis snippet legitimately needs.
 ALLOWED_IMPORTS: set[str] = {
     "pandas", "numpy", "scipy", "matplotlib", "matplotlib.pyplot",
-    "plotly", "plotly.express", "plotly.graph_objects",
+    "plotly", "plotly.express", "plotly.graph_objects", "plotly.io",
     "lifelines", "statsmodels", "statsmodels.api",
-    "seaborn", "sklearn",
+    "seaborn", "sklearn", "tabulate",
 }
 
 # Small subset of the stdlib that is harmless for data work.
