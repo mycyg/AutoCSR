@@ -231,6 +231,8 @@ async def run_tool_loop(
                     max_tokens=policy.max_tokens,
                     temperature=policy.temperature,
                     reasoning_effort=policy.reasoning_effort,
+                    project_id=ctx.project_id or None,
+                    caller_agent="tool_loop",
                 )
 
             t0 = time.time()

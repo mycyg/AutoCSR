@@ -21,6 +21,7 @@ from app.ingestion.define_importer import import_define
 from app.ingestion.protocol_importer import import_protocol
 from app.ingestion.sap_importer import import_sap
 from app.projects.manager import ensure_project_access
+from app.server.upload_utils import ensure_child_path, sanitize_upload_filename
 
 logger = logging.getLogger("autocsr.ingestion.routes")
 router = APIRouter(tags=["ingest"])
@@ -29,8 +30,8 @@ router = APIRouter(tags=["ingest"])
 def _save_upload(pid: str, kind: str, upload: UploadFile) -> Path:
     raw_dir = data_dir() / "projects" / pid / "raw" / "aux"
     raw_dir.mkdir(parents=True, exist_ok=True)
-    safe_name = (upload.filename or f"{kind}.bin").replace("\\", "_").replace("/", "_")
-    target = raw_dir / safe_name
+    safe_name = sanitize_upload_filename(upload.filename, f"{kind}.bin")
+    target = ensure_child_path(raw_dir, safe_name)
     with target.open("wb") as f:
         f.write(upload.file.read())
     return target

@@ -443,6 +443,24 @@ def _gather_analysis_summary(project_id: str) -> str:
     return "\n".join(rows)
 
 
+def _gather_hallucination_summary(project_id: str) -> tuple[str, int]:
+    try:
+        from app.safety.hallucination_guard import project_scan
+        findings = project_scan(project_id)
+    except Exception:
+        findings = []
+    if not findings:
+        return "（未发现幻觉风险项。）", 0
+    rows = ["| 节点 | 严重级别 | 原因 | 摘录 |", "| --- | --- | --- | --- |"]
+    for f in findings:
+        node_id = str(getattr(f, "node_id", "") or "")
+        severity = str(getattr(f, "severity", "") or "")
+        reason = str(getattr(f, "reason", "") or "").replace("|", "/")[:160]
+        excerpt = str(getattr(f, "text_excerpt", "") or "").replace("|", "/")[:160]
+        rows.append(f"| {node_id} | {severity} | {reason} | {excerpt} |")
+    return "\n".join(rows), len(findings)
+
+
 # ---------------------------------------------------------------------------
 # References chapter
 # ---------------------------------------------------------------------------
@@ -583,6 +601,7 @@ def build_docx(
     include_appendix_analysis: bool = True,
     include_compliance_note: bool = True,
     include_toc: bool = True,
+    include_hallucination_warnings: bool = False,
     template_config: DocxTemplateConfig | None = None,
     progress_cb: callable | None = None,
 ) -> ExportResult:
@@ -675,6 +694,19 @@ def build_docx(
 
         if progress_cb and idx % 5 == 0:
             progress_cb(f"section:{idx + 1}/{len(nodes)}")
+
+    # ---- Optional hallucination warning summary -----------------------------
+    if include_hallucination_warnings:
+        if progress_cb:
+            progress_cb("hallucination_warnings")
+        hallu_md, hallu_count = _gather_hallucination_summary(project_id)
+        doc.add_paragraph(style="Heading 1").add_run("Hallucination Warnings / 幻觉检查摘要")
+        intro = doc.add_paragraph()
+        intro.add_run(
+            f"本节汇总导出时检测到的潜在幻觉风险项（共 {hallu_count} 条）。"
+            "这些内容需要人工复核后再用于正式提交。"
+        )
+        _render_markdown_into_doc(doc, hallu_md, base_level=2)
 
     # ---- References ----------------------------------------------------------
     if progress_cb:

@@ -4,6 +4,7 @@
  */
 import { useTheme } from '@/composables/useTheme'
 import { useI18n } from 'vue-i18n'
+import { Moon, Sunny } from '@element-plus/icons-vue'
 
 const { isDark, toggleTheme } = useTheme()
 const { t } = useI18n()
@@ -13,7 +14,10 @@ const { t } = useI18n()
   <el-button text class="theme-toggle"
               :aria-label="isDark ? t('theme.to_light') : t('theme.to_dark')"
               @click="toggleTheme">
-    <span aria-hidden="true">{{ isDark ? '☀' : '☾' }}</span>
+    <el-icon aria-hidden="true">
+      <Sunny v-if="isDark" />
+      <Moon v-else />
+    </el-icon>
   </el-button>
 </template>
 

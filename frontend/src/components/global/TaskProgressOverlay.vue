@@ -6,7 +6,8 @@
  * card stack bottom-right with title / progress / ETA / Stop button.
  *
  * Supported events:
- *   - writer.section_start / section_done / report.done
+ *   - writer.section_start / section_done / writer.report_done / writer.section_error
+ *   - analysis.start / analysis.done / analysis.error
  *   - cleansing.applying / cleansing.apply_done
  *   - ingest.worker_start / ingest.worker_done
  *   - tlf.start / tlf.progress / tlf.done
@@ -22,7 +23,7 @@ import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import { connectProjectWS, type WSEvent } from '@/api/ws'
-import { cancelTask } from '@/api/rest'
+import { cancelTask, type TaskEventDTO } from '@/api/rest'
 
 interface TaskRow {
   id: string            // local key
@@ -68,6 +69,10 @@ function autoDrop(id: string, ms = 4000): void {
 }
 
 function onEvent(ev: WSEvent): void {
+  if (ev.type === 'task.event') {
+    onTaskEvent((ev.payload || {}) as unknown as TaskEventDTO)
+    return
+  }
   const p = (ev.payload || {}) as Record<string, any>
   switch (ev.type) {
     case 'writer.section_start':
@@ -88,6 +93,50 @@ function onEvent(ev: WSEvent): void {
     case 'report.done':
       upsert('report', { phase: t('progress.done'), progress: 100, status: 'done' })
       autoDrop('report')
+      break
+    case 'writer.report_done':
+      upsert('report', { phase: t('progress.done'), progress: 100, status: 'done' })
+      autoDrop('report')
+      break
+    case 'writer.section_error':
+    case 'writer.report_error':
+      upsert('report', {
+        title: t('progress.writer.title'),
+        phase: String(p.error || 'error'),
+        progress: 100,
+        status: 'error',
+        cancellable: false,
+      })
+      autoDrop('report', 8000)
+      break
+
+    case 'analysis.start':
+      upsert('analysis', {
+        title: t('steps.analyze'),
+        phase: String(p.mode || 'running'),
+        progress: 25,
+        cancellable: false,
+      })
+      break
+    case 'analysis.done':
+      upsert('analysis', {
+        title: t('steps.analyze'),
+        phase: t('progress.done'),
+        progress: 100,
+        status: 'done',
+        cancellable: false,
+      })
+      autoDrop('analysis')
+      break
+    case 'analysis.error':
+      upsert('analysis', {
+        title: t('steps.analyze'),
+        phase: String(p.error || 'error'),
+        progress: 100,
+        status: 'error',
+        cancellable: false,
+      })
+      autoDrop('analysis', 8000)
       break
 
     case 'cleansing.applying':
@@ -157,6 +206,49 @@ function onEvent(ev: WSEvent): void {
   }
 }
 
+function onTaskEvent(p: TaskEventDTO): void {
+  if (!p.task_id) return
+  const id = p.task_id
+  const status: TaskRow['status'] = p.status === 'queued' ? 'running' : p.status
+  const startedAt = p.started_at ? new Date(p.started_at).getTime() : undefined
+  upsert(id, {
+    taskId: p.cancellable ? p.task_id : undefined,
+    title: taskEventTitle(p, id),
+    phase: taskEventPhase(p),
+    progress: Math.max(0, Math.min(100, Number(p.progress ?? (status === 'done' || status === 'error' ? 100 : 20)))),
+    status,
+    cancellable: !!p.cancellable,
+    startedAt: Number.isFinite(startedAt) && startedAt ? startedAt : undefined,
+  })
+  if (status === 'done') autoDrop(id)
+  if (status === 'error' || status === 'cancelled') autoDrop(id, 8000)
+}
+
+function taskEventTitle(p: TaskEventDTO, fallback: string): string {
+  if (p.kind?.startsWith('export.')) {
+    const fmt = p.kind.slice('export.'.length)
+    const label = fmt === 'md_bundle' ? 'Markdown bundle' : fmt.toUpperCase()
+    return t('progress.export.title', { format: label })
+  }
+  return p.label || p.kind || fallback
+}
+
+function taskEventPhase(p: TaskEventDTO): string {
+  if (p.error) return p.error
+  const phase = p.phase || p.status || ''
+  const map: Record<string, string> = {
+    queued: t('progress.queued'),
+    running: t('progress.running'),
+    start: t('progress.starting'),
+    starting: t('progress.starting'),
+    progress: t('progress.running'),
+    done: t('progress.done'),
+    error: t('progress.error'),
+    cancelled: t('progress.cancelled'),
+  }
+  return map[phase] || phase
+}
+
 function connect(): void {
   wsClose?.()
   wsClose = null
@@ -174,7 +266,11 @@ async function onStop(task: TaskRow): Promise<void> {
     return
   }
   try {
-    await cancelTask(task.taskId)
+    const ok = await cancelTask(task.taskId)
+    if (!ok) {
+      ElMessage.info(t('progress.cancel_not_supported'))
+      return
+    }
     upsert(task.id, { status: 'cancelled', phase: t('progress.cancelled') })
     autoDrop(task.id)
   } catch {
@@ -198,7 +294,7 @@ function etaText(task: TaskRow): string {
       <div class="head">
         <span class="title">{{ task.title }}</span>
         <span class="phase">{{ task.phase }}</span>
-        <el-button v-if="task.status === 'running'" link size="small"
+        <el-button v-if="task.status === 'running' && task.cancellable && task.taskId" link size="small"
                     :aria-label="$t('progress.stop_aria')"
                     @click="onStop(task)">×</el-button>
       </div>

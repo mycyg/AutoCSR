@@ -49,6 +49,7 @@
   blockquote { color: var(--fg-mute); border-left: 3px solid var(--border); padding-left: 12px; margin-left: 0; }
   .chart-container { width: 100%; min-height: 320px; margin: 16px 0; }
   .citation { font-size: 13px; color: var(--fg-mute); margin: 4px 0; }
+  .warning-box { border: 1px solid #f59e0b; background: #fffbeb; padding: 12px 14px; border-radius: 8px; margin: 16px 0; }
   .badge { display: inline-block; padding: 2px 8px; font-size: 11px;
             background: var(--accent); color: #fff; border-radius: 10px; }
   @media print {
@@ -99,6 +100,26 @@
 </section>
 {% endfor %}
 </main>
+
+{% if hallucination_rows %}
+<section id="hallucination-warnings" class="warning-box">
+  <h1>Hallucination Warnings / 幻觉检查摘要</h1>
+  <p>These findings require human review before formal submission.</p>
+  <table>
+    <thead><tr><th>Section</th><th>Severity</th><th>Reason</th><th>Excerpt</th></tr></thead>
+    <tbody>
+      {% for row in hallucination_rows %}
+      <tr>
+        <td><code>{{ row[0] | e }}</code></td>
+        <td>{{ row[1] | e }}</td>
+        <td>{{ row[2] | e }}</td>
+        <td>{{ row[3] | e }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}
 
 <section id="references">
   <h1>References</h1>

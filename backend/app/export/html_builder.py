@@ -124,6 +124,23 @@ def _gather_analysis_rows(project_id: str) -> list[tuple[str, str, str, str]]:
     return rows or [("(none)", "", "", "")]
 
 
+def _gather_hallucination_rows(project_id: str) -> list[tuple[str, str, str, str]]:
+    try:
+        from app.safety.hallucination_guard import project_scan
+        findings = project_scan(project_id)
+    except Exception:
+        findings = []
+    rows: list[tuple[str, str, str, str]] = []
+    for f in findings:
+        rows.append((
+            str(getattr(f, "node_id", "") or ""),
+            str(getattr(f, "severity", "") or ""),
+            str(getattr(f, "reason", "") or "")[:180],
+            str(getattr(f, "text_excerpt", "") or "")[:180],
+        ))
+    return rows
+
+
 def _charts_for_section(project_id: str, draft: SectionDraft | None) -> list[dict]:
     """Return chart configs referenced from the section. Skips silently if
     the StatBlock has no chart_json field."""
@@ -175,6 +192,7 @@ def build_html(
     project_id: str,
     *,
     include_compliance_note: bool = True,
+    include_hallucination_warnings: bool = False,
     progress_cb: Callable[[str], None] | None = None,
 ) -> HtmlExportResult:
     from jinja2 import Environment, FileSystemLoader, select_autoescape
@@ -213,6 +231,10 @@ def build_html(
     citations = _gather_unique_citations(drafts)
     cleansing_rows, rule_count = _gather_cleansing_rows(project_id)
     analysis_rows = _gather_analysis_rows(project_id)
+    hallucination_rows = (
+        _gather_hallucination_rows(project_id)
+        if include_hallucination_warnings else []
+    )
 
     if progress_cb:
         progress_cb("rendering")
@@ -237,6 +259,7 @@ def build_html(
         citations=citations,
         cleansing_rows=cleansing_rows,
         analysis_rows=analysis_rows,
+        hallucination_rows=hallucination_rows,
     )
 
     out_path = _exports_dir(project_id) / f"CSR_{now.strftime('%Y%m%d_%H%M%S')}.html"

@@ -17,6 +17,7 @@ from app.analysis.advanced.subgroup import subgroup_analysis
 from app.analysis.advanced.tlf_exporter import export_tlf, list_tlf_exports
 from app.analysis.store import save as save_block
 from app.config import data_dir
+from app.server.upload_utils import ensure_project_file
 from app.server.ws import publish
 
 logger = logging.getLogger("autocsr.analysis.advanced")
@@ -28,7 +29,10 @@ def _ensure_project(pid: str) -> None:
         raise HTTPException(status_code=404, detail=f"project {pid} not found")
 
 
-def _resolve_parquet(pid: str, file_id: str | None) -> str | None:
+def _resolve_parquet(pid: str, file_id: str | None,
+                      explicit: str | None = None) -> str | None:
+    if explicit:
+        return str(ensure_project_file(pid, explicit, subdir="processed"))
     proc_dir = data_dir() / "projects" / pid / "processed"
     if not proc_dir.exists():
         return None
@@ -91,7 +95,7 @@ async def run_subgroup(pid: str, body: dict = Body(...)) -> dict[str, Any]:
     group_col = body.get("group_col")
     subgroup_cols = body.get("subgroup_cols") or []
     file_id = body.get("file_id")
-    parquet = body.get("parquet_path") or _resolve_parquet(pid, file_id)
+    parquet = _resolve_parquet(pid, file_id, body.get("parquet_path"))
     if not parquet or not outcome_col or not group_col or not subgroup_cols:
         raise HTTPException(status_code=400,
                             detail="outcome_col, group_col, subgroup_cols and a resolvable parquet are required")
@@ -114,7 +118,7 @@ async def run_sensitivity(pid: str, body: dict = Body(...)) -> dict[str, Any]:
     group_col = body.get("group_col")
     methods = body.get("methods") or ["itt", "pp", "locf", "mmrm"]
     file_id = body.get("file_id")
-    parquet = body.get("parquet_path") or _resolve_parquet(pid, file_id)
+    parquet = _resolve_parquet(pid, file_id, body.get("parquet_path"))
     if not parquet or not outcome_col or not group_col:
         raise HTTPException(status_code=400,
                             detail="outcome_col, group_col and a resolvable parquet are required")
@@ -135,7 +139,10 @@ async def run_sensitivity(pid: str, body: dict = Body(...)) -> dict[str, Any]:
 @router.post("/projects/{pid}/analysis/consort")
 async def run_consort(pid: str, body: dict = Body(...)) -> dict[str, Any]:
     _ensure_project(pid)
-    parquets = body.get("parquet_paths") or _all_processed_parquets(pid)
+    parquets = [
+        str(ensure_project_file(pid, p, subdir="processed"))
+        for p in (body.get("parquet_paths") or [])
+    ] or _all_processed_parquets(pid)
     if not parquets:
         raise HTTPException(status_code=400, detail="no processed parquet files available")
     block = await asyncio.to_thread(
@@ -156,7 +163,7 @@ async def run_baseline_balance(pid: str, body: dict = Body(...)) -> dict[str, An
     vars_ = body.get("vars") or []
     file_id = body.get("file_id")
     threshold = float(body.get("threshold") or 0.1)
-    parquet = body.get("parquet_path") or _resolve_parquet(pid, file_id)
+    parquet = _resolve_parquet(pid, file_id, body.get("parquet_path"))
     if not parquet or not group_col or not vars_:
         raise HTTPException(status_code=400,
                             detail="group_col, vars and a resolvable parquet are required")

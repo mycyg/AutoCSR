@@ -46,6 +46,16 @@ def test_blocks_open_call():
     assert not res.ok
 
 
+def test_allows_relative_artifact_write_open():
+    code = (
+        "import json\n"
+        "with open('chart.json', 'w', encoding='utf-8') as f:\n"
+        "    f.write(json.dumps({'ok': True}))\n"
+    )
+    res = check(code)
+    assert res.ok, res.violations
+
+
 def test_syntax_error_short_circuits():
     res = check("def foo(:\n")
     assert not res.ok

@@ -37,9 +37,17 @@ def _deep_merge(base: dict, override: dict) -> dict:
 # Sensitive fields: env > yaml. Keep narrow until vision_llm/embedding land in M2+.
 _ENV_OVERRIDES: list[tuple[str, list[str]]] = [
     ("LLM_API_KEY", ["llm", "api_key"]),
+    ("AUTOCSR_LLM_API_KEY", ["llm", "api_key"]),
     ("LLM_BASE_URL", ["llm", "base_url"]),
+    ("AUTOCSR_LLM_BASE_URL", ["llm", "base_url"]),
     ("LLM_MODEL", ["llm", "model"]),
+    ("AUTOCSR_LLM_MODEL", ["llm", "model"]),
+    ("AUTOCSR_JWT_SECRET", ["auth", "jwt_secret"]),
 ]
+
+
+def _parse_bool_env(value: str) -> bool:
+    return value.strip().lower() in {"1", "true", "yes", "on"}
 
 
 def _apply_env_overrides(cfg: dict[str, Any]) -> dict[str, Any]:
@@ -53,6 +61,11 @@ def _apply_env_overrides(cfg: dict[str, Any]) -> dict[str, Any]:
                 node[k] = {}
             node = node[k]
         node[path[-1]] = val
+    auth_dev = os.environ.get("AUTOCSR_AUTH_DEV_MODE")
+    if auth_dev is not None:
+        auth = cfg.setdefault("auth", {})
+        if isinstance(auth, dict):
+            auth["dev_mode"] = _parse_bool_env(auth_dev)
     return cfg
 
 

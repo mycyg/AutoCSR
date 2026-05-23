@@ -122,32 +122,52 @@ def _heuristic_extract(text: str) -> ProtocolMetadata:
     )
 
 
-def _llm_extract(text: str) -> ProtocolMetadata | None:
+def _llm_extract(text: str, project_id: str | None = None) -> ProtocolMetadata | None:
     """Best-effort LLM extraction. Returns None on any failure so we can
     fall back to the heuristic path."""
     try:
-        from app.llm.ark_client import call_llm  # type: ignore
+        from app.llm.ark_client import responses_json
+        from app.llm.policy import for_role
     except Exception:
-        try:
-            from app.llm.client import call_llm  # type: ignore
-        except Exception:
-            return None
+        return None
+    schema = {
+        "type": "object",
+        "additionalProperties": False,
+        "required": [
+            "study_id", "phase", "indication", "treatment", "endpoints",
+            "population", "design_type", "sample_size", "extra_notes",
+        ],
+        "properties": {
+            "study_id": {"type": "string"},
+            "phase": {"type": "string"},
+            "indication": {"type": "string"},
+            "treatment": {"type": "string"},
+            "endpoints": {"type": "array", "items": {"type": "string"}},
+            "population": {"type": "string"},
+            "design_type": {"type": "string"},
+            "sample_size": {"anyOf": [{"type": "integer"}, {"type": "null"}]},
+            "extra_notes": {"type": "string"},
+        },
+    }
     excerpt = text[:8000]
     user_prompt = (
         "Protocol excerpt:\n```\n" + excerpt + "\n```\n\n"
         "Respond with ONLY the JSON object."
     )
+    policy = for_role("analyst")
     try:
-        resp = call_llm(
-            system=SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": user_prompt}],
-            response_format={"type": "json_object"},
+        obj = responses_json(
+            [{"role": "system", "content": SYSTEM_PROMPT},
+             {"role": "user", "content": user_prompt}],
+            schema,
+            temperature=0.0,
+            timeout=policy.timeout,
+            max_tokens=min(policy.max_tokens, 2000),
+            reasoning_effort=policy.reasoning_effort,
+            project_id=project_id,
+            caller_agent="protocol_importer",
         )
-        raw = resp.get("text") or resp.get("content") or ""
-        if not raw:
-            return None
-        obj = json.loads(raw)
-        return ProtocolMetadata(**obj)
+        return ProtocolMetadata.model_validate(obj)
     except Exception as e:
         logger.warning("protocol_llm_extract_failed: %s", e)
         return None
@@ -176,7 +196,7 @@ def import_protocol(project_id: str, pdf_path: str | Path,
     meta: ProtocolMetadata | None = None
     used_mock = _is_mock()
     if not used_mock:
-        meta = _llm_extract(text)
+        meta = _llm_extract(text, project_id)
         if meta is None:
             used_mock = True
     if meta is None:

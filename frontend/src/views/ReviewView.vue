@@ -10,6 +10,7 @@ import {
 } from '@/api/rest'
 import HallucinationPanel from '@/components/global/HallucinationPanel.vue'
 import { handleApiError } from '@/utils/errors'
+import { reportDeepLink } from '@/utils/deepLink'
 
 const props = defineProps<{ id: string }>()
 const router = useRouter()
@@ -97,7 +98,11 @@ function gotoSection(issue: ReviewIssueDTO): void {
     ElMessage.info('此 issue 未绑定具体章节')
     return
   }
-  router.push(`/p/${props.id}/report?node_id=${encodeURIComponent(nodeId)}`)
+  const range = issue.location?.char_range
+  const highlight = Array.isArray(range) && range.length === 2
+    ? `range:${range[0]}-${range[1]}`
+    : `issue:${issue.id}`
+  router.push(reportDeepLink(props.id, nodeId, { panel: 'comments', highlight }))
 }
 
 const grouped = computed(() => {
@@ -168,6 +173,7 @@ const counts = computed(() => ({
             <div class="msg">{{ iss.message }}</div>
             <div v-if="iss.suggestion" class="sug">建议：{{ iss.suggestion }}</div>
             <div class="ops">
+              <el-button v-if="iss.location?.node_id" size="small" plain @click="gotoSection(iss)">跳转章节</el-button>
               <el-button size="small" type="primary" plain @click="openTaskDlg(iss.id)">转任务</el-button>
             </div>
           </div>
@@ -183,6 +189,7 @@ const counts = computed(() => ({
             <div class="msg">{{ iss.message }}</div>
             <div v-if="iss.suggestion" class="sug">建议：{{ iss.suggestion }}</div>
             <div class="ops">
+              <el-button v-if="iss.location?.node_id" size="small" plain @click="gotoSection(iss)">跳转章节</el-button>
               <el-button size="small" type="primary" plain @click="openTaskDlg(iss.id)">转任务</el-button>
             </div>
           </div>
@@ -198,6 +205,7 @@ const counts = computed(() => ({
             <div class="msg">{{ iss.message }}</div>
             <div v-if="iss.suggestion" class="sug">建议：{{ iss.suggestion }}</div>
             <div class="ops">
+              <el-button v-if="iss.location?.node_id" size="small" plain @click="gotoSection(iss)">跳转章节</el-button>
               <el-button size="small" type="primary" plain @click="openTaskDlg(iss.id)">转任务</el-button>
             </div>
           </div>
@@ -284,37 +292,47 @@ const counts = computed(() => ({
 </template>
 
 <style scoped>
-.review-view { height: calc(100vh - 56px); display: flex; flex-direction: column; }
+.review-view { height: calc(100vh - 56px); display: flex; flex-direction: column; background: var(--color-bg); }
 .hallucination-wrap { flex: 1; overflow: auto; padding: 16px; }
 .topbar { display: flex; align-items: center; gap: 10px; padding: 10px 16px;
-  background: #fff; border-bottom: 1px solid #e5e7eb; flex-wrap: wrap; }
-.topbar .ts { color: #6b7280; font-size: 12px; }
+  background: var(--color-surface); border-bottom: 1px solid var(--color-border); flex-wrap: wrap; }
+.topbar .ts { color: var(--color-text-mute); font-size: 12px; }
 .topbar .counts { display: flex; gap: 4px; }
 .topbar .checkers { display: flex; gap: 10px; margin-left: auto; }
-.chk { font-size: 12px; color: #6b7280; display: inline-flex; gap: 4px; align-items: center; }
-.chk .dot { width: 8px; height: 8px; border-radius: 50%; background: #9ca3af; }
+.chk { font-size: 12px; color: var(--color-text-mute); display: inline-flex; gap: 4px; align-items: center; }
+.chk .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--color-text-faint); }
 .chk .dot.ok { background: #67c23a; }
 .chk .dot.fail { background: #f56c6c; }
 .body { flex: 1; display: grid; grid-template-columns: 1fr 280px; gap: 0; overflow: hidden; }
 .main { padding: 12px 16px; overflow: auto; }
-.side { padding: 12px; background: #fff; border-left: 1px solid #e5e7eb; overflow: auto; }
-.side h4 { margin: 0 0 8px 0; color: #1f2937; font-size: 13px; }
-.empty { color: #9ca3af; padding: 8px; font-size: 12px; }
+.side { padding: 12px; background: var(--color-surface); border-left: 1px solid var(--color-border); overflow: auto; }
+.side h4 { margin: 0 0 8px 0; color: var(--color-text-strong); font-size: 13px; }
+.empty { color: var(--color-text-faint); padding: 8px; font-size: 12px; }
 .sev-title.error { color: #f56c6c; font-weight: 600; }
 .sev-title.warn { color: #e6a23c; font-weight: 600; }
 .sev-title.info { color: #909399; font-weight: 600; }
-.issue { padding: 10px 12px; background: #fafbfc; border-radius: 6px;
-  border: 1px solid #e5e7eb; margin-bottom: 8px; }
+.issue { padding: 10px 12px; background: var(--color-surface-2); border-radius: 6px;
+  border: 1px solid var(--color-border); margin-bottom: 8px; }
 .issue.muted { opacity: 0.55; }
 .issue .head { display: flex; gap: 8px; align-items: center; margin-bottom: 4px; }
-.issue .loc { color: #6b7280; font-size: 12px; }
-.issue .msg { font-size: 13px; color: #1f2937; line-height: 1.5; }
-.issue .sug { font-size: 12px; color: #6b7280; margin-top: 4px; }
+.issue .loc { color: var(--color-text-mute); font-size: 12px; }
+.issue .msg { font-size: 13px; color: var(--color-text-strong); line-height: 1.5; }
+.issue .sug { font-size: 12px; color: var(--color-text-mute); margin-top: 4px; }
 .issue .ops { margin-top: 6px; display: flex; gap: 6px; }
-.hist { padding: 6px 8px; border-radius: 4px; margin-bottom: 4px; cursor: pointer; }
-.hist:hover { background: #f3f4f6; }
-.hist.active { background: #eef4ff; }
-.hist .ts { font-size: 11px; color: #6b7280; }
+.hist { padding: 6px 8px; border-radius: 4px; margin-bottom: 4px; }
+.hist:hover { background: var(--color-surface-3); }
+.hist.active { background: var(--color-primary-soft); }
+.hist .ts { font-size: 11px; color: var(--color-text-mute); }
 .hist .badges { display: flex; gap: 4px; margin-top: 2px; align-items: center; }
-.hist .cnt { font-family: monospace; color: #6b7280; font-size: 11px; }
+.hist .cnt { font-family: monospace; color: var(--color-text-mute); font-size: 11px; }
+@media (max-width: 767px) {
+  .review-view { height: calc(100dvh - 48px); }
+  .topbar { padding: 8px 10px; align-items: stretch; }
+  .topbar :deep(.el-radio-group) { width: 100%; overflow-x: auto; flex-wrap: nowrap; }
+  .topbar .checkers { width: 100%; margin-left: 0; overflow-x: auto; padding-bottom: 2px; }
+  .body { grid-template-columns: 1fr; overflow: auto; }
+  .main { overflow: visible; padding: 10px; }
+  .side { border-left: 0; border-top: 1px solid var(--color-border); max-height: 240px; }
+  .issue .ops { flex-wrap: wrap; }
+}
 </style>

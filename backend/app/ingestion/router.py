@@ -107,11 +107,15 @@ def _llm_tiebreak(file_name: str, sample_text: str) -> tuple[IngestType, float] 
         },
         "required": ["ingest_type", "confidence"],
     }
-    sys_msg = (
-        "You classify clinical-trial artefacts for an ICH E3 CSR pipeline. "
-        "Pick ONE of: structured_data, messy_tabular, pdf_form, scan_crf, "
-        "handwriting, literature_doc. Output JSON only."
-    )
+    try:
+        from app.i18n.loader import load_prompt
+        sys_msg = load_prompt("router", "en")
+    except Exception:
+        sys_msg = (
+            "You classify clinical-trial artefacts for an ICH E3 CSR pipeline. "
+            "Pick ONE of: structured_data, messy_tabular, pdf_form, scan_crf, "
+            "handwriting, literature_doc. Output JSON only."
+        )
     user_msg = (
         f"filename: {file_name}\n"
         f"first 1.2k chars:\n---\n{sample_text}\n---\n"

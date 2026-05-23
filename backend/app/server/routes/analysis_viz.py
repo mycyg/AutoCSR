@@ -23,6 +23,7 @@ from app.auth.middleware import get_current_user
 from app.auth.models import User
 from app.config import data_dir
 from app.projects.manager import ensure_project_access
+from app.server.upload_utils import ensure_project_file
 from app.server.ws import publish
 
 logger = logging.getLogger("autocsr.analysis.viz")
@@ -32,7 +33,7 @@ router = APIRouter(tags=["analysis"])
 def _resolve_parquet(pid: str, file_id: str | None,
                        explicit: str | None) -> str | None:
     if explicit:
-        return explicit
+        return str(ensure_project_file(pid, explicit, subdir="processed"))
     proc_dir = data_dir() / "projects" / pid / "processed"
     if not proc_dir.exists():
         return None

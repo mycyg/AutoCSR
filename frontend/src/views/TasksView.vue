@@ -10,6 +10,7 @@ import EmptyState from '@/components/global/EmptyState.vue'
 import SignChainPanel from '@/components/collab/SignChainPanel.vue'
 import { handleApiError } from '@/utils/errors'
 import { useI18n } from 'vue-i18n'
+import { reportDeepLink } from '@/utils/deepLink'
 const { t } = useI18n()
 const signChainTaskId = ref<string | null>(null)
 
@@ -83,7 +84,10 @@ function gotoNode(task: ReviewTaskDTO): void {
     ElMessage.info('任务未绑定章节')
     return
   }
-  router.push(`/p/${props.id}/report?node_id=${encodeURIComponent(task.node_id)}`)
+  const highlight = task.source === 'comment' && task.source_ref
+    ? `comment:${task.source_ref}`
+    : `task:${task.id}`
+  router.push(reportDeepLink(props.id, task.node_id, { panel: 'comments', highlight }))
 }
 
 async function submitNew(): Promise<void> {
@@ -109,10 +113,6 @@ async function submitNew(): Promise<void> {
 
 const severityType: Record<string, string> = {
   error: 'danger', warn: 'warning', info: 'info',
-}
-
-const severityIcon: Record<string, string> = {
-  error: '🚨', warn: '⚠', info: 'ℹ',
 }
 
 function dueClass(due?: string | null): string {
@@ -157,30 +157,30 @@ function openSignChain(task: ReviewTaskDTO): void {
     <div v-else-if="mode === 'kanban'" class="kanban" v-loading="loading">
       <div v-for="status in ['open', 'in_progress', 'resolved', 'wont_fix']" :key="status" class="column">
         <h3>{{ status }} <span class="count">{{ columns[status].length }}</span></h3>
-        <div v-for="t in columns[status]" :key="t.id" class="task-card" @click="gotoNode(t)">
-          <div class="head">
-            <span class="sev-icon" :title="t.severity" aria-hidden="true">
-              {{ severityIcon[t.severity] }}
-            </span>
+        <article v-for="t in columns[status]" :key="t.id" class="task-card">
+          <button type="button" class="task-open" @click="gotoNode(t)">
+            <div class="head">
+              <span class="sev-dot" :class="t.severity" :title="t.severity" aria-hidden="true"></span>
             <el-tag :type="severityType[t.severity]" size="small">{{ t.severity }}</el-tag>
             <span class="assignee">@{{ t.assignee }}</span>
+            </div>
+            <div class="title">{{ t.title || t.body.slice(0, 60) }}</div>
+            <div class="meta">
+              <span v-if="t.node_id" class="chip">§ {{ t.node_id }}</span>
+              <span v-if="t.due_date" class="chip" :class="dueClass(t.due_date)">
+                {{ new Date(t.due_date).toLocaleDateString() }}
+              </span>
+              <span class="chip">{{ t.source }}</span>
+            </div>
+          </button>
+          <div class="actions">
+            <el-button v-if="status === 'open'" size="small" type="primary" link aria-label="start" @click="onStatus(t, 'in_progress')">Start</el-button>
+            <el-button v-if="status === 'in_progress'" size="small" type="success" link aria-label="resolve" @click="onStatus(t, 'resolved')">Done</el-button>
+            <el-button v-if="status === 'open' || status === 'in_progress'" size="small" link aria-label="wont fix" @click="onStatus(t, 'wont_fix')">Drop</el-button>
+            <el-button v-if="status === 'resolved' || status === 'wont_fix'" size="small" link aria-label="reopen" @click="onReopen(t)">Reopen</el-button>
+            <el-button size="small" link :aria-label="$t('sign_chain.title')" :title="$t('sign_chain.title')" @click="openSignChain(t)">Sign</el-button>
           </div>
-          <div class="title">{{ t.title || t.body.slice(0, 60) }}</div>
-          <div class="meta">
-            <span v-if="t.node_id" class="chip">§ {{ t.node_id }}</span>
-            <span v-if="t.due_date" class="chip" :class="dueClass(t.due_date)">
-              {{ new Date(t.due_date).toLocaleDateString() }}
-            </span>
-            <span class="chip">{{ t.source }}</span>
-          </div>
-          <div class="actions" @click.stop>
-            <el-button v-if="status === 'open'" size="small" type="primary" link aria-label="start" @click="onStatus(t, 'in_progress')">▶</el-button>
-            <el-button v-if="status === 'in_progress'" size="small" type="success" link aria-label="resolve" @click="onStatus(t, 'resolved')">✓</el-button>
-            <el-button v-if="status === 'open' || status === 'in_progress'" size="small" link aria-label="wont fix" @click="onStatus(t, 'wont_fix')">×</el-button>
-            <el-button v-if="status === 'resolved' || status === 'wont_fix'" size="small" link aria-label="reopen" @click="onReopen(t)">↻</el-button>
-            <el-button size="small" link :aria-label="$t('sign_chain.title')" :title="$t('sign_chain.title')" @click="openSignChain(t)">✍</el-button>
-          </div>
-        </div>
+        </article>
       </div>
     </div>
 
@@ -236,30 +236,47 @@ function openSignChain(task: ReviewTaskDTO): void {
 </template>
 
 <style scoped>
-.tasks-view { padding: 16px; }
+.tasks-view { padding: 16px; min-height: calc(100vh - 56px); background: var(--color-bg); }
 .topbar { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
 .kanban { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-.column { background: #f3f4f6; border-radius: 6px; padding: 8px; min-height: 200px; }
-.column h3 { margin: 0 0 8px; font-size: 13px; color: #374151; }
-.count { color: #6b7280; font-weight: normal; }
-.task-card { background: white; border: 1px solid #e5e7eb; padding: 8px; margin-bottom: 6px;
-              border-radius: 4px; cursor: pointer; }
-.task-card:hover { border-color: #93c5fd; }
+.column { background: var(--color-surface-2); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 8px; min-height: 200px; }
+.column h3 { margin: 0 0 8px; font-size: 13px; color: var(--color-text-strong); }
+.count { color: var(--color-text-mute); font-weight: normal; }
+.task-card { background: var(--color-surface); border: 1px solid var(--color-border); padding: 8px; margin-bottom: 6px;
+              border-radius: var(--radius-sm); }
+.task-card:hover { border-color: var(--color-primary); }
+.task-open {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+}
 .head { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
-.assignee { font-size: 11px; color: #6b7280; }
-.title { font-size: 13px; color: #111827; margin-bottom: 4px; }
+.assignee { font-size: 11px; color: var(--color-text-mute); }
+.title { font-size: 13px; color: var(--color-text-strong); margin-bottom: 4px; }
 .meta { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 4px; }
 .chip { font-size: 10px; padding: 2px 6px; background: var(--color-primary-soft); color: var(--color-primary); border-radius: 3px; }
 .chip.due-overdue { background: #fee2e2; color: #991b1b; font-weight: 600; }
 .chip.due-soon    { background: #fef3c7; color: #92400e; }
 .chip.due-future  { background: var(--color-surface-3); color: var(--color-text-mute); }
 .chip.due-none    { background: var(--color-surface-3); color: var(--color-text-faint); }
-.actions { display: flex; gap: 4px; }
-.sev-icon { font-size: 12px; }
+.actions { display: flex; gap: 4px; flex-wrap: wrap; }
+.sev-dot { width: 8px; height: 8px; border-radius: 999px; background: var(--color-info); display: inline-block; }
+.sev-dot.error { background: var(--color-error); }
+.sev-dot.warn { background: var(--color-warn); }
+.sev-dot.info { background: var(--color-primary); }
 @media (max-width: 1023px) {
   .kanban { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 767px) {
+  .tasks-view { min-height: calc(100dvh - 48px); padding: 12px; }
+  .topbar :deep(.el-select) { width: 100% !important; }
   .kanban { grid-template-columns: 1fr; }
+  :deep(.el-table) { min-width: 720px; }
+  :deep(.el-drawer) { width: min(380px, 100vw) !important; }
+  :deep(.el-dialog) { width: calc(100vw - 24px) !important; }
 }
 </style>

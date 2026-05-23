@@ -21,7 +21,7 @@ cd AutoCSR
 # Backend (Python ≥ 3.11)
 python -m venv backend/.venv
 source backend/.venv/bin/activate          # Windows: backend\.venv\Scripts\activate
-pip install -r backend/requirements.txt
+pip install -e "backend[test]"
 
 # Frontend (Node ≥ 18)
 cd frontend && npm install && npm run build && cd ..
@@ -45,7 +45,7 @@ The repo's `settings.example.yaml` lists every knob with sane defaults.
 
 ```bash
 # Backend
-cd backend && uvicorn app.server.main:app --host 0.0.0.0 --port 8765
+cd backend && uvicorn app.server.main:app --host 0.0.0.0 --port 8766
 
 # Frontend (separate shell, repo root)
 cd frontend && npm run preview -- --port 5174

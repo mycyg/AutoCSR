@@ -220,6 +220,86 @@ export async function getProject(id: string): Promise<ProjectDTO> {
   return (await api.get<ProjectDTO>(`/projects/${id}`)).data
 }
 
+export interface WorkbenchStepSummaryDTO {
+  done?: number
+  pending?: number
+  error?: number
+  info?: number
+}
+
+export interface WorkbenchDTO {
+  project: ProjectDTO
+  steps: Record<string, WorkbenchStepSummaryDTO>
+  current_step: string
+  next_action: { step: string; label: string; href: string }
+  metrics: {
+    files: number
+    stats: number
+    drafts: number
+    open_tasks: number
+    exports: number
+    review_issues: number
+  }
+  risks: { error: number; warn: number; info: number; hallucination: number }
+  tasks: Array<{
+    id: string
+    title: string
+    status: string
+    severity: 'error' | 'warn' | 'info'
+    assignee: string
+    node_id: string | null
+    href: string
+    updated_at: string
+  }>
+  exports: ExportEntryDTO[]
+  activity: Array<{ kind: string; label: string; ts?: string | null; href: string; severity?: string | null }>
+  generated_at: string
+}
+
+export interface SearchHitDTO {
+  id: string
+  type: 'section' | 'draft' | 'stat' | 'task' | 'review' | 'export'
+  title: string
+  snippet: string
+  href: string
+  node_id?: string | null
+  severity?: 'error' | 'warn' | 'info' | null
+}
+
+export interface TaskEventDTO {
+  task_id: string
+  kind: string
+  status: 'queued' | 'running' | 'done' | 'error' | 'cancelled'
+  phase: string
+  label: string
+  progress?: number | null
+  cancellable: boolean
+  node_id?: string | null
+  href?: string | null
+  severity?: string | null
+  started_at?: string | null
+  finished_at?: string | null
+  error?: string | null
+}
+
+export async function getWorkbench(pid: string): Promise<WorkbenchDTO> {
+  return (await api.get<WorkbenchDTO>(`/projects/${pid}/workbench`)).data
+}
+
+export async function searchProject(
+  pid: string,
+  q: string,
+  params: { types?: string[]; limit?: number } = {},
+): Promise<SearchHitDTO[]> {
+  return (await api.get<SearchHitDTO[]>(`/projects/${pid}/search`, {
+    params: {
+      q,
+      limit: params.limit,
+      types: params.types?.join(','),
+    },
+  })).data
+}
+
 export async function uploadFiles(pid: string, files: File[]): Promise<{ uploaded: { file_id: string; filename: string }[] }> {
   const fd = new FormData()
   for (const f of files) fd.append('files', f, f.name)
@@ -549,6 +629,7 @@ export interface ExportOptions {
   include_toc?: boolean
   include_appendix_cleansing?: boolean
   include_appendix_analysis?: boolean
+  include_hallucination_warnings?: boolean
 }
 
 export interface ExportResultDTO {

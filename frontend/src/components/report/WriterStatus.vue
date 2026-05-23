@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import type { ReportStatusDTO } from '@/api/rest'
 import AgentStatus from './AgentStatus.vue'
 import Terminology from './Terminology.vue'
@@ -15,6 +15,7 @@ const props = defineProps<{
   outlineTitle?: string | null
   status: ReportStatusDTO | null
   terminology: Record<string, string>
+  activeTab?: string | null
 }>()
 
 const emit = defineEmits<{
@@ -26,12 +27,18 @@ const emit = defineEmits<{
 }>()
 
 const tab = ref('chat')
+
+watch(() => props.activeTab, (next) => {
+  if (next && ['plan', 'chat', 'comments', 'markers', 'diff', 'status', 'terms'].includes(next)) {
+    tab.value = next
+  }
+}, { immediate: true })
 </script>
 
 <template>
   <div class="writer-status">
     <el-tabs v-model="tab" class="tabs">
-      <el-tab-pane label="Plan" name="plan">
+      <el-tab-pane label="Plan" name="plan" lazy>
         <PlanPanel :project-id="projectId" :node-id="nodeId"
                    :outline-title="outlineTitle"
                    @refined="emit('refined')" />

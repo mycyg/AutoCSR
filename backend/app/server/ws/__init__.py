@@ -25,6 +25,11 @@ from typing import Any
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
+from app.auth.jwt_token import decode_token
+from app.auth.middleware import _dev_mode_enabled, _ensure_dev_seed_user
+from app.auth.models import get_user_by_id
+from app.projects.manager import ensure_project_access
+
 logger = logging.getLogger("autocsr.ws")
 router = APIRouter()
 
@@ -47,13 +52,27 @@ async def _remove(pid: str, ws: WebSocket) -> None:
 
 async def publish(project_id: str, event_type: str, payload: dict[str, Any] | None = None) -> None:
     """Fan out one event to all subscribers of a project."""
-    msg = json.dumps({"type": event_type, "payload": payload or {}}, ensure_ascii=False)
+    payload = payload or {}
+    messages = [
+        json.dumps({"type": event_type, "payload": payload}, ensure_ascii=False),
+    ]
+    try:
+        from app.server.task_events import normalize_task_event
+        normalized = normalize_task_event(project_id, event_type, payload)
+        if normalized is not None:
+            messages.append(json.dumps({
+                "type": "task.event",
+                "payload": normalized.model_dump(),
+            }, ensure_ascii=False))
+    except Exception:
+        logger.debug("task_event_normalize_failed", exc_info=True)
     dead: list[WebSocket] = []
     async with _LOCK:
         targets = list(_SUBS.get(project_id, set()))
     for ws in targets:
         try:
-            await ws.send_text(msg)
+            for msg in messages:
+                await ws.send_text(msg)
         except Exception:
             dead.append(ws)
     for ws in dead:
@@ -71,6 +90,25 @@ def publish_sync(project_id: str, event_type: str, payload: dict[str, Any] | Non
 
 @router.websocket("/ws/{pid}")
 async def project_ws(ws: WebSocket, pid: str) -> None:
+    try:
+        token = ws.query_params.get("token") or ""
+        user = None
+        if token:
+            claims = decode_token(token)
+            if claims.get("typ") != "access":
+                raise ValueError("not an access token")
+            user = get_user_by_id(str(claims.get("sub") or ""))
+            if user is None:
+                raise ValueError("user not found")
+        elif _dev_mode_enabled():
+            uid = ws.headers.get("x-user-id") or "demo_author"
+            user = _ensure_dev_seed_user(uid)
+        if user is None:
+            raise ValueError("authentication required")
+        ensure_project_access(user, pid, "read")
+    except Exception:
+        await ws.close(code=1008)
+        return
     await ws.accept()
     await _add(pid, ws)
     logger.info("ws subscribed pid=%s", pid)

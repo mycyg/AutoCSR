@@ -14,6 +14,7 @@ import { askData, getAskHistory, type AskHistoryEntryDTO, type AskResponseDTO } 
 import { connectProjectWS } from '@/api/ws'
 import CodeRunCard from '@/components/sandbox/CodeRunCard.vue'
 import EChartsRenderer from '@/components/sandbox/EChartsRenderer.vue'
+import { sanitizeMarkdownHtml } from '@/utils/sanitize'
 
 const props = defineProps<{ projectId: string }>()
 const emit = defineEmits<{ (e: 'stat-block-saved'): void }>()
@@ -129,6 +130,18 @@ function onKeydown(e: KeyboardEvent): void {
 function fmtTs(ts: number): string {
   return new Date(ts * 1000).toLocaleTimeString()
 }
+
+const statusSteps: Array<{ key: AskMessage['status']; label: string }> = [
+  { key: 'pending', label: '规划' },
+  { key: 'code_ready', label: '代码' },
+  { key: 'sandbox_running', label: '运行' },
+  { key: 'done', label: '统计块' },
+]
+
+function statusIndex(status: AskMessage['status']): number {
+  if (status === 'error') return statusSteps.findIndex(s => s.key === 'sandbox_running')
+  return Math.max(0, statusSteps.findIndex(s => s.key === status))
+}
 </script>
 
 <template>
@@ -141,6 +154,13 @@ function fmtTs(ts: number): string {
     <div class="stream">
       <div v-for="m in messages" :key="m.id" class="msg">
         <div class="user">{{ m.query }}</div>
+        <div class="ask-timeline" :class="{ failed: m.status === 'error' }" aria-label="analysis status">
+          <span v-for="(s, i) in statusSteps"
+                :key="s.key"
+                :class="{ active: i <= statusIndex(m.status), current: i === statusIndex(m.status) }">
+            {{ s.label }}
+          </span>
+        </div>
         <div v-if="m.plan" class="plan">{{ m.plan }}</div>
         <div v-if="m.code" class="card-wrap">
           <CodeRunCard
@@ -153,7 +173,8 @@ function fmtTs(ts: number): string {
           />
         </div>
         <div v-if="m.statBlock?.markdown_table" class="md-block">
-          <MdPreview :modelValue="m.statBlock.markdown_table" theme="light" />
+          <MdPreview :modelValue="m.statBlock.markdown_table" theme="light"
+                     :sanitize="sanitizeMarkdownHtml" />
         </div>
         <div v-if="m.chartJson || m.pngUrl" class="chart-block">
           <EChartsRenderer :option="m.chartJson" :png-url="m.pngUrl" :height="320" />
@@ -193,14 +214,44 @@ function fmtTs(ts: number): string {
 </template>
 
 <style scoped>
-.data-ask { border-top: 1px solid #e5e7eb; padding: 16px 28px; background: #fafafa; }
+.data-ask { border-top: 1px solid var(--color-border); padding: 16px 28px; background: var(--color-surface-2); }
 .data-ask header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 12px; }
 .data-ask header h3 { margin: 0; font-size: 15px; color: #1f2937; }
 .muted { color: #9ca3af; font-size: 12px; }
 .stream { display: flex; flex-direction: column; gap: 16px; max-height: 540px; overflow-y: auto; }
 .empty { color: #9ca3af; padding: 20px 0; text-align: center; font-size: 13px; }
-.msg { background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; padding: 12px 16px; }
-.user { font-weight: 600; color: #111827; margin-bottom: 6px; }
+.msg { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 6px; padding: 12px 16px; }
+.user { font-weight: 600; color: var(--color-text-strong); margin-bottom: 6px; }
+.ask-timeline {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin: 8px 0 10px;
+}
+.ask-timeline span {
+  min-height: 26px;
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-mute);
+  background: var(--color-surface-2);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+}
+.ask-timeline span.active {
+  border-color: color-mix(in srgb, var(--color-primary), var(--color-border) 50%);
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+.ask-timeline span.current {
+  box-shadow: inset 0 0 0 1px var(--color-primary);
+}
+.ask-timeline.failed span.current {
+  border-color: var(--color-error);
+  color: var(--color-error);
+  background: color-mix(in srgb, var(--color-error), transparent 90%);
+}
 .plan { color: #4b5563; font-size: 13px; padding: 6px 10px; background: #f3f4f6;
         border-left: 3px solid #6366f1; border-radius: 2px; margin-bottom: 10px; }
 .card-wrap { margin: 8px 0; }

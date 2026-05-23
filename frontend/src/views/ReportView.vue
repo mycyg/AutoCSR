@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useOutlineStore } from '@/stores/outline'
 import { useReportStore } from '@/stores/report'
@@ -13,8 +14,11 @@ import { handleApiError } from '@/utils/errors'
 import { useRecentlyViewed } from '@/composables/useRecentlyViewed'
 import { useResponsive } from '@/composables/useResponsive'
 import { useSwipe } from '@/composables/useTouchGestures'
+import { normalizeNodeQuery, normalizeReportPanel } from '@/utils/deepLink'
 
 const props = defineProps<{ id: string }>()
+const route = useRoute()
+const router = useRouter()
 const { isMobile } = useResponsive()
 const mobileTab = ref<'tree' | 'reader' | 'inspector'>('tree')
 const readerWrap = ref<HTMLElement | null>(null)
@@ -24,6 +28,16 @@ let wsClose: (() => void) | null = null
 let pollTimer: number | null = null
 const halluCounts = ref<Record<string, number>>({})
 const recent = useRecentlyViewed(props.id)
+
+const inspectorPanel = computed(() => {
+  const panel = normalizeReportPanel(route.query.panel)
+  return panel === 'reader' ? null : panel
+})
+
+const deepLinkHighlight = computed(() => {
+  const raw = route.query.highlight
+  return Array.isArray(raw) ? String(raw[0] || '') : String(raw || '')
+})
 
 async function refreshHallucinations(): Promise<void> {
   try {
@@ -36,6 +50,17 @@ async function refreshHallucinations(): Promise<void> {
   } catch { /* no findings or endpoint unavailable */ }
 }
 
+function routeNodeId(): string {
+  return normalizeNodeQuery(route.query as Record<string, unknown>)
+}
+
+async function applyRouteNode(): Promise<void> {
+  const nodeId = routeNodeId()
+  if (!nodeId || !outlineStore.outline) return
+  await reportStore.selectNode(props.id, nodeId)
+  if (isMobile.value) mobileTab.value = inspectorPanel.value ? 'inspector' : 'reader'
+}
+
 onMounted(async () => {
   try {
     await outlineStore.load(props.id)
@@ -45,6 +70,7 @@ onMounted(async () => {
   await reportStore.refreshStatus(props.id)
   await reportStore.refreshDrafts(props.id)
   await reportStore.loadTerminology(props.id)
+  await applyRouteNode()
   void refreshHallucinations()
   wsClose = connectProjectWS(props.id, (ev) => reportStore.handleWS(props.id, ev))
   // Light fallback poll so the user gets updates even if WS is asleep
@@ -53,6 +79,10 @@ onMounted(async () => {
         || reportStore.status?.current_phase === 'error') return
     void reportStore.refreshStatus(props.id)
   }, 3000)
+})
+
+watch(() => [route.query.node, route.query.node_id, route.query.panel, props.id], () => {
+  void applyRouteNode()
 })
 
 onUnmounted(() => {
@@ -108,6 +138,9 @@ async function onStart(): Promise<void> {
 
 async function onSelect(id: string): Promise<void> {
   await reportStore.selectNode(props.id, id)
+  const query: Record<string, any> = { ...route.query, node: id }
+  delete query.node_id
+  void router.replace({ path: route.path, query })
 }
 
 async function onRegenerate(extra?: string): Promise<void> {
@@ -221,6 +254,7 @@ useSwipe(readerWrap, {
           :node-id="reportStore.selectedNodeId"
           :draft="reportStore.currentDraft"
           :outline-title="outlineNode?.title"
+          :highlight="deepLinkHighlight"
           compact
           @regenerate="(extra) => onRegenerate(extra)" />
         <WriterStatus v-else
@@ -229,6 +263,7 @@ useSwipe(readerWrap, {
           :outline-title="outlineNode?.title"
           :status="reportStore.status"
           :terminology="reportStore.terminology"
+          :active-tab="inspectorPanel"
           @save-terminology="onSaveTerminology"
           @patch-applied="onPatchApplied"
           @rolled-back="onRolledBack"
@@ -254,10 +289,11 @@ useSwipe(readerWrap, {
           <div v-if="recent.items.value && recent.items.value.length" class="recent-list">
             <h4>★ {{ $t('report.recently_viewed') }}</h4>
             <ul>
-              <li v-for="r in (recent.items.value || []).slice(0, 5)" :key="r.node_id"
-                  @click="onSelect(r.node_id)">
+              <li v-for="r in (recent.items.value || []).slice(0, 5)" :key="r.node_id">
+                <button type="button" @click="onSelect(r.node_id)">
                 <span class="rid">{{ r.node_id }}</span>
                 <span class="rtitle">{{ r.title }}</span>
+                </button>
               </li>
             </ul>
           </div>
@@ -270,6 +306,7 @@ useSwipe(readerWrap, {
           :node-id="reportStore.selectedNodeId"
           :draft="reportStore.currentDraft"
           :outline-title="outlineNode?.title"
+          :highlight="deepLinkHighlight"
           @regenerate="(extra) => onRegenerate(extra)" />
       </el-main>
 
@@ -280,6 +317,7 @@ useSwipe(readerWrap, {
           :outline-title="outlineNode?.title"
           :status="reportStore.status"
           :terminology="reportStore.terminology"
+          :active-tab="inspectorPanel"
           @save-terminology="onSaveTerminology"
           @patch-applied="onPatchApplied"
           @rolled-back="onRolledBack"
@@ -308,11 +346,22 @@ useSwipe(readerWrap, {
   color: var(--color-text-mute); font-weight: 600;
 }
 .recent-list ul { list-style: none; margin: 0; padding: 0; }
-.recent-list li {
-  padding: 4px 6px; cursor: pointer; border-radius: 4px;
-  display: flex; gap: 6px; align-items: center; font-size: var(--font-size-sm);
+.recent-list li { margin: 0; }
+.recent-list button {
+  width: 100%;
+  min-height: 32px;
+  padding: 4px 6px;
+  cursor: pointer;
+  border-radius: 4px;
+  border: 0;
+  background: transparent;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: var(--font-size-sm);
+  text-align: left;
 }
-.recent-list li:hover { background: var(--color-surface-3); }
+.recent-list button:hover { background: var(--color-surface-3); }
 .recent-list .rid { font-family: ui-monospace, monospace; color: var(--color-text-mute); font-size: var(--font-size-xs); min-width: 40px; }
 .recent-list .rtitle { color: var(--color-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @media (max-width: 1279px) {

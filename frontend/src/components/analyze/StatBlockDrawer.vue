@@ -5,6 +5,7 @@ import 'md-editor-v3/lib/preview.css'
 import type { StatBlockDTO } from '@/api/rest'
 import SubgroupForest from '@/components/analyze/SubgroupForest.vue'
 import ConsortFlow from '@/components/analyze/ConsortFlow.vue'
+import { sanitizeMarkdownHtml } from '@/utils/sanitize'
 
 const props = defineProps<{ open: boolean; block: StatBlockDTO | null }>()
 const emit = defineEmits<{ (e: 'update:open', v: boolean): void }>()
@@ -89,7 +90,8 @@ const consortPayload = computed(() => {
             · {{ paged.total }} rows · page {{ page }}/{{ paged.pages }}
           </span>
         </h4>
-        <MdPreview :modelValue="paged.text" :theme="'light'" />
+        <MdPreview :modelValue="paged.text" :theme="'light'"
+                   :sanitize="sanitizeMarkdownHtml" />
         <el-pagination v-if="paged.pages > 1" :total="paged.total"
                        :page-size="20" :current-page="page"
                        layout="prev, pager, next" small

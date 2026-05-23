@@ -79,9 +79,18 @@ def _safe_id(node_id: str) -> str:
     return re.sub(r"[^0-9A-Za-z._-]", "_", node_id)
 
 
+def _hallucination_findings(project_id: str) -> list[dict[str, Any]]:
+    try:
+        from app.safety.hallucination_guard import project_scan
+        return [f.model_dump() for f in project_scan(project_id)]
+    except Exception:
+        return []
+
+
 def build_markdown_bundle(
     project_id: str,
     *,
+    include_hallucination_warnings: bool = False,
     progress_cb: Callable[[str], None] | None = None,
 ) -> MdBundleResult:
     outline = load_outline(project_id)
@@ -122,6 +131,15 @@ def build_markdown_bundle(
         "under `assets/<stat_id>.json`. Each entry follows the ECharts "
         "options schema and can be rehydrated client-side."
     )
+    findings = _hallucination_findings(project_id) if include_hallucination_warnings else []
+    if include_hallucination_warnings:
+        readme_lines.extend([
+            "",
+            "## Hallucination warnings",
+            "",
+            f"- Findings: {len(findings)}",
+            "- Details: `hallucination_warnings.json`",
+        ])
 
     readme = "\n".join(readme_lines)
 
@@ -190,6 +208,12 @@ def build_markdown_bundle(
         if not asset_files:
             zf.writestr("assets/.gitkeep", ""); n_files += 1
         zf.writestr("citations.json", citations_json); n_files += 1
+        if include_hallucination_warnings:
+            zf.writestr(
+                "hallucination_warnings.json",
+                json.dumps(findings, ensure_ascii=False, indent=2),
+            )
+            n_files += 1
 
     size = out_path.stat().st_size
     if progress_cb:

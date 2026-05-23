@@ -15,6 +15,7 @@
  */
 import { ref } from 'vue'
 import { triggerShortcut } from '@/composables/useShortcuts'
+import { Document, Link, Operation, QuestionFilled, Reading, VideoPlay } from '@element-plus/icons-vue'
 
 const videoOpen = ref(false)
 const faqOpen = ref(false)
@@ -56,15 +57,15 @@ function onCommand(cmd: string): void {
 
 <template>
   <el-dropdown trigger="click" @command="onCommand">
-    <el-button text class="help-trigger" :aria-label="$t('help.menu_aria')">?</el-button>
+    <el-button text class="help-trigger" :icon="QuestionFilled" :aria-label="$t('help.menu_aria')" />
     <template #dropdown>
       <el-dropdown-menu>
-        <el-dropdown-item command="shortcuts">⌨ {{ $t('help.shortcuts') }}</el-dropdown-item>
-        <el-dropdown-item command="tour">🎬 {{ $t('help.tour') }}</el-dropdown-item>
-        <el-dropdown-item command="video">▶ {{ $t('help.video') }}</el-dropdown-item>
-        <el-dropdown-item command="faq">❓ {{ $t('help.faq_title') }}</el-dropdown-item>
-        <el-dropdown-item divided command="docs">📖 {{ $t('help.docs') }}</el-dropdown-item>
-        <el-dropdown-item command="changelog">📝 {{ $t('help.changelog') }}</el-dropdown-item>
+        <el-dropdown-item command="shortcuts"><el-icon><Operation /></el-icon>{{ $t('help.shortcuts') }}</el-dropdown-item>
+        <el-dropdown-item command="tour"><el-icon><VideoPlay /></el-icon>{{ $t('help.tour') }}</el-dropdown-item>
+        <el-dropdown-item command="video"><el-icon><VideoPlay /></el-icon>{{ $t('help.video') }}</el-dropdown-item>
+        <el-dropdown-item command="faq"><el-icon><QuestionFilled /></el-icon>{{ $t('help.faq_title') }}</el-dropdown-item>
+        <el-dropdown-item divided command="docs"><el-icon><Reading /></el-icon>{{ $t('help.docs') }}</el-dropdown-item>
+        <el-dropdown-item command="changelog"><el-icon><Document /></el-icon>{{ $t('help.changelog') }}</el-dropdown-item>
       </el-dropdown-menu>
     </template>
   </el-dropdown>
@@ -73,18 +74,20 @@ function onCommand(cmd: string): void {
   <el-dialog v-model="videoOpen" :title="$t('help.video')" width="560" align-center>
     <p class="muted">{{ $t('help.video_desc') }}</p>
     <div class="video-placeholder" role="img" :aria-label="$t('help.video_placeholder_aria')">
-      <span class="play" aria-hidden="true">▶</span>
+      <el-icon class="play" aria-hidden="true"><VideoPlay /></el-icon>
       <span class="cap">{{ $t('help.video_placeholder') }}</span>
     </div>
     <ul class="video-links">
       <li>
         <a :href="VIDEO_URLS.youtube" target="_blank" rel="noopener">
-          🔗 YouTube — {{ $t('help.video_search') }}
+          <el-icon aria-hidden="true"><Link /></el-icon>
+          YouTube — {{ $t('help.video_search') }}
         </a>
       </li>
       <li>
         <a :href="VIDEO_URLS.bilibili" target="_blank" rel="noopener">
-          🔗 Bilibili — {{ $t('help.video_search') }}
+          <el-icon aria-hidden="true"><Link /></el-icon>
+          Bilibili — {{ $t('help.video_search') }}
         </a>
       </li>
     </ul>

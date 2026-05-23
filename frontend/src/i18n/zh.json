@@ -38,6 +38,7 @@
     "confirm": "确认",
     "warning": "警告",
     "open": "打开",
+    "download": "下载",
     "run": "运行",
     "generate": "生成"
   },
@@ -172,7 +173,11 @@
     "empty_title": "暂无任务",
     "empty_desc": "从 review 的 issue 转换，或在此手动新建任务",
     "delete": "删除任务",
-    "delete_confirm": "确认删除任务「{name}」？此操作不可撤销。"
+    "delete_confirm": "确认删除任务「{name}」？此操作不可撤销。",
+    "status_open": "未处理",
+    "status_in_progress": "处理中",
+    "status_resolved": "已解决",
+    "status_wont_fix": "不处理"
   },
   "audit": {
     "title": "审计日志",
@@ -217,7 +222,29 @@
     "ectd_open": "导出 eCTD M5 包",
     "delete_confirm": "确认删除导出文件「{name}」？",
     "multi_grid_aria": "多格式导出选项",
-    "generate_format": "生成 {fmt} 文件"
+    "multi_title": "多格式导出",
+    "multi_hint": "同一份报告可导出为 PDF、HTML、PPTX 和 Markdown bundle，覆盖打印、在线浏览、汇报和研发协作。",
+    "generate_format": "生成 {fmt} 文件",
+    "warning_unsupported": "该格式暂不支持幻觉警告",
+    "phase_starting": "启动中",
+    "phase_progress": "生成中",
+    "phase_done": "已完成",
+    "phase_error": "失败",
+    "phase_loading_outline": "加载大纲",
+    "phase_writing_sections": "生成章节",
+    "phase_references": "整理引用",
+    "phase_appendix_a": "生成清洗附录",
+    "phase_appendix_b": "生成分析附录",
+    "phase_saving": "保存文件",
+    "phase_section": "章节 {value}",
+    "backup_title": "项目备份与恢复",
+    "backup_hint": "将项目数据打包为 zip；导入到当前环境时会分配新的项目 ID。",
+    "backup_button": "备份项目",
+    "restore_button": "导入项目 zip",
+    "tlf_title": "TLF 包（Table-Listing-Figure）",
+    "tlf_hint": "把项目内所有 StatBlock 打成 RTF、CSV 和 define-XML zip，供监管 QC 复核。",
+    "tlf_generate": "生成 TLF zip",
+    "tlf_empty": "尚无 TLF 包导出记录"
   },
   "shortcuts": {
     "title": "快捷键",
@@ -246,10 +273,38 @@
     "title": "全局搜索",
     "placeholder": "搜索章节、术语、统计块…",
     "section": "章节",
+    "draft": "草稿",
     "term": "术语",
     "stat": "统计块",
+    "task": "任务",
+    "review": "审查",
+    "export": "导出",
     "empty": "暂无匹配",
     "recent": "最近搜索"
+  },
+  "workbench": {
+    "subtitle": "从数据上传到审查导出，一屏掌握当前状态、风险和下一步行动。",
+    "workflow": "CSR 工作流",
+    "workflow_hint": "每一步都可直接进入，当前建议动作会在首页置顶。",
+    "open_tasks": "待处理任务",
+    "risk_review": "风险与审查",
+    "risk_hint": "聚合 reviewer、幻觉检查和未关闭问题。",
+    "activity": "最近活动",
+    "activity_hint": "草稿、任务和导出会按时间汇总在这里。",
+    "continue_step": "继续：{step}",
+    "step_meta_done": "{done} 已完成",
+    "step_meta_error": "{done} 已完成 · {error} 错误",
+    "risk_error": "错误",
+    "risk_warn": "警告",
+    "risk_info": "提示",
+    "risk_hallucination": "幻觉风险",
+    "export_count": "{n} 个导出",
+    "metrics": {
+      "files": "文件",
+      "stats": "统计块",
+      "drafts": "草稿",
+      "risks": "风险"
+    }
   },
   "onboarding": {
     "aria": "新手引导",
@@ -317,6 +372,10 @@
   },
   "progress": {
     "done": "完成",
+    "queued": "排队中",
+    "running": "运行中",
+    "starting": "启动中",
+    "error": "失败",
     "cancelled": "已取消",
     "cancel_not_supported": "此长任务暂不支持取消",
     "stop_aria": "停止任务",
@@ -325,6 +384,7 @@
     "ingest": { "title": "正在解析上传文件" },
     "tlf": { "title": "正在生成 TLF 包" },
     "ectd": { "title": "正在打包 eCTD" },
+    "export": { "title": "正在导出 {format}" },
     "review": { "title": "正在运行三审" }
   },
   "errors": {

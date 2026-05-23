@@ -28,6 +28,8 @@ services:
       - LLM_API_KEY=${LLM_API_KEY:-}
       - LLM_BASE_URL=${LLM_BASE_URL:-}
       - LLM_MODEL=${LLM_MODEL:-}
+      - AUTOCSR_JWT_SECRET=${AUTOCSR_JWT_SECRET:-}
+      - AUTOCSR_AUTH_DEV_MODE=${AUTOCSR_AUTH_DEV_MODE:-false}
       - AUTOCSR_QUEUE_BACKEND=${AUTOCSR_QUEUE_BACKEND:-arq}
       - AUTOCSR_REDIS_URL=redis://redis:6379/0
     depends_on:
@@ -52,6 +54,8 @@ services:
       - LLM_API_KEY=${LLM_API_KEY:-}
       - LLM_BASE_URL=${LLM_BASE_URL:-}
       - LLM_MODEL=${LLM_MODEL:-}
+      - AUTOCSR_JWT_SECRET=${AUTOCSR_JWT_SECRET:-}
+      - AUTOCSR_AUTH_DEV_MODE=${AUTOCSR_AUTH_DEV_MODE:-false}
       - AUTOCSR_QUEUE_BACKEND=arq
       - AUTOCSR_REDIS_URL=redis://redis:6379/0
     depends_on:
@@ -84,8 +88,6 @@ services:
     container_name: autocsr-redis
     restart: unless-stopped
     command: ["redis-server", "--appendonly", "yes"]
-    ports:
-      - "6379:6379"
     volumes:
       - redis-data:/data
     healthcheck:

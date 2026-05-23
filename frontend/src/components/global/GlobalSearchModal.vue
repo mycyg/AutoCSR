@@ -2,21 +2,11 @@
 import { computed, nextTick, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useShortcuts } from '@/composables/useShortcuts'
-import { useOutlineStore } from '@/stores/outline'
-import { useReportStore } from '@/stores/report'
+import { searchProject, type SearchHitDTO } from '@/api/rest'
 import { useI18n } from 'vue-i18n'
-
-interface Hit {
-  kind: 'section' | 'stat'
-  label: string
-  hint?: string
-  href: string
-}
 
 const route = useRoute()
 const router = useRouter()
-const outlineStore = useOutlineStore()
-const reportStore = useReportStore()
 const { t } = useI18n()
 
 const RECENT_KEY = 'autocsr_recent_searches'
@@ -25,6 +15,13 @@ const visible = ref(false)
 const q = ref('')
 const inputRef = ref<HTMLInputElement | null>(null)
 const recent = ref<string[]>(loadRecent())
+const hits = ref<SearchHitDTO[]>([])
+const loading = ref(false)
+const selected = ref(0)
+let timer: number | null = null
+let seq = 0
+
+const projectId = computed(() => (route.params.id as string | undefined) || '')
 
 function loadRecent(): string[] {
   try {
@@ -33,6 +30,7 @@ function loadRecent(): string[] {
     return Array.isArray(arr) ? arr.slice(0, MAX_RECENT) : []
   } catch { return [] }
 }
+
 function saveRecent(term: string): void {
   const cleaned = term.trim()
   if (!cleaned) return
@@ -41,135 +39,240 @@ function saveRecent(term: string): void {
   try { window.localStorage.setItem(RECENT_KEY, JSON.stringify(next)) } catch { /* ignore */ }
 }
 
-const projectId = computed(() => (route.params.id as string | undefined) || '')
+function hitLabel(hit: SearchHitDTO): string {
+  const map: Record<string, string> = {
+    section: t('search.section'),
+    draft: t('search.draft'),
+    stat: t('search.stat'),
+    task: t('search.task'),
+    review: t('search.review'),
+    export: t('search.export'),
+  }
+  return map[hit.type] || hit.type
+}
 
-const allHits = computed<Hit[]>(() => {
+async function runSearch(term = q.value): Promise<void> {
   const pid = projectId.value
-  if (!pid) return []
-  const out: Hit[] = []
-  // Outline section titles — walk the tree
-  const outline = outlineStore.outline
-  if (outline && Array.isArray(outline.root_sections)) {
-    const walk = (n: { id: string; title: string; children?: any[] }): void => {
-      out.push({
-        kind: 'section',
-        label: `${n.id}  ${n.title}`,
-        hint: t('search.section'),
-        href: `/p/${pid}/report?node=${encodeURIComponent(n.id)}`,
-      })
-      for (const c of n.children || []) walk(c)
-    }
-    for (const root of outline.root_sections) walk(root)
+  if (!pid) {
+    hits.value = []
+    return
   }
-  // Section drafts as a fallback for projects without an outline yet
-  if (!out.length && Array.isArray(reportStore.drafts)) {
-    for (const d of reportStore.drafts) {
-      out.push({
-        kind: 'section',
-        label: `${d.node_id}`,
-        hint: t('search.section'),
-        href: `/p/${pid}/report?node=${encodeURIComponent(d.node_id)}`,
-      })
+  const mySeq = ++seq
+  loading.value = true
+  try {
+    const rows = await searchProject(pid, term, { limit: 40 })
+    if (mySeq === seq) {
+      hits.value = rows
+      selected.value = rows.length ? 0 : -1
     }
+  } catch {
+    if (mySeq === seq) {
+      hits.value = []
+      selected.value = -1
+    }
+  } finally {
+    if (mySeq === seq) loading.value = false
   }
-  return out
-})
+}
 
-const filtered = computed<Hit[]>(() => {
-  const term = q.value.trim().toLowerCase()
-  if (!term) return allHits.value.slice(0, 30)
-  return allHits.value.filter(h => h.label.toLowerCase().includes(term)).slice(0, 30)
-})
+function scheduleSearch(): void {
+  if (timer !== null) window.clearTimeout(timer)
+  timer = window.setTimeout(() => void runSearch(), 180)
+}
 
 useShortcuts({ search: () => { visible.value = true } })
 
 watch(visible, async (v) => {
   if (v) {
     q.value = ''
+    await runSearch('')
     await nextTick()
     inputRef.value?.focus()
   }
 })
 
-function pick(h: Hit): void {
-  saveRecent(q.value)
+watch(projectId, () => {
+  if (visible.value) void runSearch('')
+})
+
+watch(q, scheduleSearch)
+
+function pick(hit?: SearchHitDTO): void {
+  const target = hit || hits.value[selected.value]
+  if (!target) return
+  saveRecent(q.value || target.title)
   visible.value = false
-  router.push(h.href)
+  router.push(target.href)
 }
 
-function onEnter(): void {
-  if (filtered.value.length > 0) pick(filtered.value[0])
+async function confirmPick(): Promise<void> {
+  if (timer !== null) {
+    window.clearTimeout(timer)
+    timer = null
+  }
+  if (loading.value || !hits.value.length) {
+    await runSearch(q.value)
+  }
+  pick()
+}
+
+function move(delta: number): void {
+  if (!hits.value.length) return
+  selected.value = (selected.value + delta + hits.value.length) % hits.value.length
 }
 
 function useRecent(term: string): void {
   q.value = term
+  void runSearch(term)
   inputRef.value?.focus()
 }
 </script>
 
 <template>
-  <el-dialog v-model="visible" :title="$t('search.title')" width="560" align-center>
+  <el-dialog v-model="visible" :title="$t('search.title')" width="680" class="search-dialog" align-center>
     <el-input
       ref="inputRef"
       v-model="q"
       :placeholder="$t('search.placeholder')"
       autofocus
       clearable
-      @keyup.enter="onEnter"
+      @keydown.down.prevent="move(1)"
+      @keydown.up.prevent="move(-1)"
+      @keydown.enter.prevent="confirmPick"
     />
-    <ul class="hits">
-      <li v-for="h in filtered" :key="h.kind + ':' + h.href" @click="pick(h)">
-        <span class="kind">{{ h.hint }}</span>
-        <span class="label">{{ h.label }}</span>
-      </li>
-      <li v-if="!filtered.length" class="empty">{{ $t('search.empty') }}</li>
-    </ul>
+
+    <div class="hits" role="listbox" :aria-label="$t('search.title')">
+      <button v-for="(h, i) in hits"
+              :key="h.id"
+              type="button"
+              class="hit"
+              :class="{ active: i === selected, [h.severity || '']: !!h.severity }"
+              role="option"
+              :aria-selected="i === selected"
+              @mouseenter="selected = i"
+              @click="pick(h)">
+        <span class="kind">{{ hitLabel(h) }}</span>
+        <span class="main">
+          <strong>{{ h.title }}</strong>
+          <small>{{ h.snippet }}</small>
+        </span>
+        <span v-if="h.node_id" class="node">{{ h.node_id }}</span>
+      </button>
+      <div v-if="loading" class="state">{{ $t('common.loading') }}</div>
+      <div v-else-if="!hits.length" class="state">{{ $t('search.empty') }}</div>
+    </div>
+
     <div v-if="!q && recent.length" class="recent">
       <div class="rh">{{ $t('search.recent') }}</div>
-      <span v-for="r in recent" :key="r" class="rterm" @click="useRecent(r)">{{ r }}</span>
+      <button v-for="r in recent" :key="r" type="button" class="rterm" @click="useRecent(r)">
+        {{ r }}
+      </button>
     </div>
   </el-dialog>
 </template>
 
 <style scoped>
+:deep(.search-dialog) {
+  width: min(680px, calc(100vw - 24px));
+}
 .hits {
   margin: 12px 0 0;
-  padding: 0;
-  list-style: none;
-  max-height: 320px;
+  max-height: min(420px, 54vh);
   overflow-y: auto;
+  display: grid;
+  gap: 6px;
 }
-.hits li {
-  display: flex;
+.hit {
+  width: 100%;
+  min-height: 48px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 10px;
-  padding: 8px 10px;
-  border-radius: 6px;
+  padding: 9px 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-text);
+  text-align: left;
   cursor: pointer;
-  color: #1f2937;
-  font-size: 13px;
 }
-.hits li:hover { background: #f3f4f6; }
-.hits li.empty { color: #9ca3af; cursor: default; font-size: 12px; padding: 12px 4px; }
-.hits li.empty:hover { background: transparent; }
+.hit:hover,
+.hit.active {
+  background: var(--color-primary-soft);
+  border-color: color-mix(in srgb, var(--color-primary), var(--color-border) 60%);
+}
+.hit.error { border-left: 3px solid var(--color-error); }
+.hit.warn { border-left: 3px solid var(--color-warn); }
+.hit.info { border-left: 3px solid var(--color-primary); }
 .kind {
-  font-size: 11px;
-  color: #6b7280;
-  background: #f3f4f6;
-  padding: 1px 6px;
-  border-radius: 4px;
-  flex: 0 0 auto;
+  font-size: var(--font-size-xs);
+  color: var(--color-primary);
+  background: var(--color-surface-3);
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-weight: 700;
 }
-.label { flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.main {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.main strong,
+.main small,
+.node {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.main strong {
+  color: var(--color-text-strong);
+  font-size: var(--font-size-md);
+}
+.main small,
+.node {
+  color: var(--color-text-mute);
+  font-size: var(--font-size-xs);
+}
+.state {
+  color: var(--color-text-mute);
+  padding: 14px 4px;
+  font-size: var(--font-size-sm);
+}
 .recent {
-  display: flex; gap: 6px; flex-wrap: wrap;
-  margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--color-border);
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-border);
 }
-.rh { font-size: var(--font-size-xs); color: var(--color-text-mute); width: 100%; }
+.rh {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-mute);
+  width: 100%;
+}
 .rterm {
-  font-size: var(--font-size-sm); padding: 2px 8px;
-  background: var(--color-surface-3); border-radius: 10px;
-  color: var(--color-text-mute); cursor: pointer;
+  min-height: 32px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-3);
+  border-radius: 999px;
+  color: var(--color-text-mute);
+  cursor: pointer;
+  padding: 4px 10px;
 }
-.rterm:hover { background: var(--color-primary-soft); color: var(--color-primary); }
+.rterm:hover {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+@media (max-width: 767px) {
+  .hit {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+  .kind,
+  .node {
+    justify-self: start;
+  }
+}
 </style>

@@ -7,15 +7,16 @@
  *
  * Visibility persists in localStorage:
  *   - autocsr_onboarding_done  → never auto-open again
- *   - autocsr_onboarding_seen  → user hit skip / close (still auto-open
- *                                next session unless `_done` is set)
+ *   - autocsr_onboarding_seen  → user hit skip / close
  *
  * Other code can call `triggerOnboarding()` to manually relaunch.
  */
-import { onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
 
 const { t } = useI18n()
+const route = useRoute()
 const visible = ref(false)
 const step = ref(0)
 const dontShow = ref(false)
@@ -62,22 +63,29 @@ function prev(): void {
 }
 
 function maybeAutoOpen(): void {
-  try {
-    if (window.localStorage.getItem('autocsr_onboarding_done') === '1') return
-  } catch { return }
   // Defer so router transitions settle.
-  window.setTimeout(open, 600)
+  window.setTimeout(() => {
+    try {
+      if (window.localStorage.getItem('autocsr_onboarding_done') === '1') return
+      if (window.localStorage.getItem('autocsr_onboarding_seen') === '1') return
+    } catch { return }
+    if (route.path.startsWith('/p/')) return
+    open()
+  }, 600)
 }
 
-onMounted(maybeAutoOpen)
+onMounted(() => {
+  maybeAutoOpen()
+  window.addEventListener('autocsr:onboarding:open', open)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('autocsr:onboarding:open', open)
+})
 
 // Public hook so the help menu / re-launch link can pop it open.
 defineExpose({ open })
 
-// Listen for a global custom event so consumers don't need a ref.
-if (typeof window !== 'undefined') {
-  window.addEventListener('autocsr:onboarding:open', open)
-}
 </script>
 
 <template>

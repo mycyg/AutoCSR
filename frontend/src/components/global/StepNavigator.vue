@@ -111,12 +111,14 @@ function go(step: StepDef): void {
             </div>
           </div>
         </template>
-        <span class="step"
+        <button type="button"
+              class="step"
               :class="{
                 active: activeKey === s.key,
                 disabled: !projectId,
                 'is-current': isCurrent(s.key) && activeKey !== s.key,
               }"
+              :disabled="!projectId"
               @click="go(s)">
           <span class="num">{{ i + 1 }}</span>
           <span class="label">{{ $t(s.i18nKey) }}</span>
@@ -124,7 +126,7 @@ function go(step: StepDef): void {
                     :value="badge(s.key)!.text"
                     :type="badge(s.key)!.type"
                     class="step-badge" />
-        </span>
+        </button>
       </el-tooltip>
     </template>
   </nav>
@@ -133,9 +135,11 @@ function go(step: StepDef): void {
 <style scoped>
 .steps {
   display: flex;
-  gap: 14px;
-  color: #6b7280;
+  gap: 8px;
+  min-width: max-content;
+  color: var(--color-text-muted);
   font-size: 13px;
+  white-space: nowrap;
 }
 .step {
   position: relative;
@@ -145,16 +149,21 @@ function go(step: StepDef): void {
   cursor: pointer;
   padding: 4px 8px;
   border-radius: 12px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
   transition: background 120ms ease;
+  white-space: nowrap;
 }
-.step:hover:not(.disabled) { background: #f3f4f6; color: #1f2937; }
-.step.active { background: #eef4ff; color: #1d4ed8; }
+.step:hover:not(.disabled) { background: var(--color-surface-muted); color: var(--color-text-strong); }
+.step.active { background: var(--color-primary-soft); color: var(--color-primary); }
 .step.is-current::after {
   content: '';
   position: absolute;
   left: 8px; right: 8px; bottom: -3px;
   height: 2px;
-  background: linear-gradient(90deg, #1d4ed8, #38bdf8);
+  background: linear-gradient(90deg, var(--color-primary), var(--color-info));
   border-radius: 2px;
   opacity: 0.7;
 }
@@ -163,13 +172,13 @@ function go(step: StepDef): void {
   display: inline-flex; align-items: center; justify-content: center;
   width: 20px; height: 20px;
   border-radius: 50%;
-  background: #f3f4f6;
+  background: var(--color-surface-muted);
   font-size: 11px;
 }
-.step.active .num { background: #1d4ed8; color: #fff; }
+.step.active .num { background: var(--color-primary); color: #fff; }
 .step-badge { margin-left: 4px; }
 .step-badge :deep(.el-badge__content) { transform: translate(0, 0); position: static; }
-.tip-title { font-weight: 600; color: #1f2937; font-size: 12px; }
-.tip-row { color: #4b5563; font-size: 12px; margin-top: 2px; }
-.tip-hint { color: #1d4ed8; font-size: 12px; margin-top: 4px; }
+.tip-title { font-weight: 600; color: var(--color-text-strong); font-size: 12px; }
+.tip-row { color: var(--color-text); font-size: 12px; margin-top: 2px; }
+.tip-hint { color: var(--color-primary); font-size: 12px; margin-top: 4px; }
 </style>

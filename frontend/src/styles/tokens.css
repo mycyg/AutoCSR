@@ -12,10 +12,10 @@
 
 :root {
   /* Surfaces */
-  --color-bg: #f5f7fa;
+  --color-bg: #f4f8fb;
   --color-surface: #ffffff;
-  --color-surface-2: #fafbfc;
-  --color-surface-3: #f3f4f6;
+  --color-surface-2: #f8fbfd;
+  --color-surface-3: #eef6f8;
 
   /* Text */
   --color-text: #1f2937;
@@ -28,12 +28,12 @@
   --color-border-strong: #d1d5db;
 
   /* Brand + semantic */
-  --color-primary: #2563eb;
-  --color-primary-soft: #eef4ff;
-  --color-success: #10b981;
-  --color-warn: #f59e0b;
-  --color-error: #ef4444;
-  --color-info: #6b7280;
+  --color-primary: #0891b2;
+  --color-primary-soft: #e6f7fb;
+  --color-success: #059669;
+  --color-warn: #d97706;
+  --color-error: #e11d48;
+  --color-info: #2563eb;
 
   /* Spacing scale (4-pt grid) */
   --spacing-xs: 4px;
@@ -61,10 +61,10 @@
 }
 
 :root[data-theme="dark"] {
-  --color-bg: #0f172a;
-  --color-surface: #1e293b;
-  --color-surface-2: #1b2436;
-  --color-surface-3: #273448;
+  --color-bg: #081421;
+  --color-surface: #102235;
+  --color-surface-2: #0d1b2c;
+  --color-surface-3: #163047;
 
   --color-text: #e5e7eb;
   --color-text-strong: #f9fafb;
@@ -74,8 +74,8 @@
   --color-border: #334155;
   --color-border-strong: #475569;
 
-  --color-primary: #60a5fa;
-  --color-primary-soft: #1e3a5c;
+  --color-primary: #67e8f9;
+  --color-primary-soft: #12384a;
   --color-success: #34d399;
   --color-warn: #fbbf24;
   --color-error: #f87171;

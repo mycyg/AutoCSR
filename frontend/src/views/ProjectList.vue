@@ -80,14 +80,18 @@ let searchTimer: number | null = null
 watch([searchQ, tagQ, showArchived, sortBy], () => {
   if (searchTimer !== null) window.clearTimeout(searchTimer)
   searchTimer = window.setTimeout(() => {
-    void store.refresh({
-      search: searchQ.value || undefined,
-      tag: tagQ.value || undefined,
-      archived: showArchived.value ? undefined : false,
-      sort: sortBy.value,
-    })
+    void refreshWithFilters()
   }, 250)
 })
+
+function refreshWithFilters(): Promise<void> {
+  return store.refresh({
+    search: searchQ.value || undefined,
+    tag: tagQ.value || undefined,
+    archived: showArchived.value ? undefined : false,
+    sort: sortBy.value,
+  })
+}
 
 function openCreate(templateId = ''): void {
   form.value = { name: '', principle_id: '', template_id: templateId }
@@ -124,10 +128,10 @@ async function onContext(row: ProjectDTO, action: string): Promise<void> {
   if (action === 'archive') {
     if (!await confirmAction('projects.archive_confirm',
                               { type: 'warning', resource_name: row.name })) return
-    try { await store.update(row.id, { archived: true }); ElMessage.success(t('common.ok')) }
+    try { await store.update(row.id, { archived: true }); await refreshWithFilters(); ElMessage.success(t('common.ok')) }
     catch (e) { handleApiError(e) }
   } else if (action === 'unarchive') {
-    try { await store.update(row.id, { archived: false }); ElMessage.success(t('common.ok')) }
+    try { await store.update(row.id, { archived: false }); await refreshWithFilters(); ElMessage.success(t('common.ok')) }
     catch (e) { handleApiError(e) }
   } else if (action === 'duplicate') {
     try {

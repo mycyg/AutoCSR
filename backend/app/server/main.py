@@ -31,6 +31,7 @@ from app.server.routes import (
     import_aux,
     analysis_viz,
     dashboard as dashboard_routes,
+    workbench,
 )
 from app.server.ws import router as ws_router
 
@@ -93,6 +94,8 @@ def create_app() -> FastAPI:
     # slowapi/Redis are unavailable; deterministic enough for e2e).
     from app.server.middlewares.rate_limit import RateLimitMiddleware
     app.add_middleware(RateLimitMiddleware)
+    from app.server.middlewares.project_access import ProjectAccessMiddleware
+    app.add_middleware(ProjectAccessMiddleware)
 
     # Routes are mounted under /api so the Vite proxy can forward them cleanly.
     app.include_router(health.router, prefix="/api")
@@ -142,6 +145,7 @@ def create_app() -> FastAPI:
     app.include_router(import_aux.router, prefix="/api")
     app.include_router(analysis_viz.router, prefix="/api")
     app.include_router(dashboard_routes.router, prefix="/api")
+    app.include_router(workbench.router, prefix="/api")
     try:
         from app.observability.metrics import router as metrics_router
         app.include_router(metrics_router)

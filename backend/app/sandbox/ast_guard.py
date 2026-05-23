@@ -12,8 +12,8 @@ Allow-list:
 Disallow:
   * ``import os``, ``import subprocess``, ``import socket``, etc.
   * ``__import__``, ``eval``, ``exec``, ``compile``.
-  * ``open(..., 'w'+)`` (write) and any ``open(...)`` with absolute paths
-    that escape the sandbox cwd.
+  * ``open(...)`` with obvious absolute or parent-traversal literal paths.
+    Relative writes are allowed and then constrained by the runtime wrapper.
   * Attribute access like ``foo.os.system`` (string match on the AST attr).
 """
 from __future__ import annotations
@@ -40,7 +40,7 @@ STDLIB_ALLOWED: set[str] = {
 # Functions we never want called.
 BANNED_NAMES: set[str] = {
     "__import__", "eval", "exec", "compile", "globals", "locals",
-    "vars", "input", "open",  # `open` re-allowed via runtime wrapper in executor
+    "vars", "input",
     "breakpoint", "exit", "quit",
 }
 
@@ -103,6 +103,22 @@ def _is_allowed_import(mod: str) -> bool:
     return False
 
 
+def _unsafe_literal_open_path(value: object) -> bool:
+    """Catch obvious static path escapes while leaving dynamic checks to the
+    executor's runtime ``open`` wrapper."""
+    if not isinstance(value, str):
+        return False
+    path = value.strip()
+    if not path:
+        return False
+    normalized = path.replace("\\", "/")
+    if normalized.startswith("/") or normalized.startswith("~/"):
+        return True
+    if len(normalized) >= 2 and normalized[1] == ":":
+        return True
+    return ".." in [part for part in normalized.split("/") if part]
+
+
 def check(code: str) -> GuardResult:
     """Inspect ``code`` and return ok=False with reasons if anything tripped."""
     violations: list[str] = []
@@ -126,7 +142,14 @@ def check(code: str) -> GuardResult:
         elif isinstance(node, ast.Call):
             func = node.func
             if isinstance(func, ast.Name):
-                if func.id in BANNED_NAMES:
+                if func.id == "open":
+                    first_arg = node.args[0] if node.args else None
+                    if (
+                        isinstance(first_arg, ast.Constant)
+                        and _unsafe_literal_open_path(first_arg.value)
+                    ):
+                        violations.append("open_path_escape")
+                elif func.id in BANNED_NAMES:
                     violations.append(f"banned_call:{func.id}")
             elif isinstance(func, ast.Attribute):
                 dotted = _dotted(func)

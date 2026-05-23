@@ -18,6 +18,7 @@ import HelpMenu from '@/components/global/HelpMenu.vue'
 import ThemeToggle from '@/components/global/ThemeToggle.vue'
 import { getBlinding, getLock } from '@/api/rest'
 import { onMounted, ref, watch } from 'vue'
+import { Menu } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -83,7 +84,7 @@ const activeKey = computed(() => {
   if (n.includes('audit')) return 'audit'
   if (n.includes('tasks')) return 'tasks'
   if (n.includes('export')) return 'export'
-  if (n === 'project-detail') return 'intake'
+  if (n === 'project-detail') return 'dashboard'
   return ''
 })
 
@@ -103,9 +104,9 @@ function goCommand(key: string): void {
   <el-container class="autocsr-shell" direction="vertical">
     <a href="#main-content" class="skip-link">{{ $t('a11y.skip_to_content') }}</a>
     <el-header class="autocsr-header" role="banner">
-      <div class="brand" @click="router.push('/')" role="button" tabindex="0"
-            @keyup.enter="router.push('/')"
-            :aria-label="$t('app.title')">{{ $t('app.title') }} · {{ projectName }}</div>
+      <button type="button" class="brand"
+            @click="router.push('/')"
+            :aria-label="$t('app.title')">{{ $t('app.title') }} · {{ projectName }}</button>
       <!-- Desktop step navigator -->
       <div class="step-nav-desktop">
         <StepNavigator :steps="steps" :project-id="projectId" :active-key="activeKey" @go="go" />
@@ -113,7 +114,7 @@ function goCommand(key: string): void {
       <!-- Mobile / tablet dropdown -->
       <div class="step-nav-mobile">
         <el-dropdown trigger="click" @command="goCommand">
-          <el-button text :aria-label="$t('steps.intake')">☰</el-button>
+          <el-button text :icon="Menu" :aria-label="$t('steps.intake')" />
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item v-for="s in steps" :key="s.key" :command="s.key"
@@ -156,18 +157,40 @@ function goCommand(key: string): void {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
   padding: 0 24px;
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
   height: 56px;
+  overflow: hidden;
 }
 .brand {
+  flex: 0 1 240px;
+  min-width: 120px;
   font-weight: 600;
   font-size: var(--font-size-xl);
   color: var(--color-text-strong);
   cursor: pointer;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.step-nav-desktop {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+.step-nav-desktop::-webkit-scrollbar {
+  display: none;
 }
 .actions {
+  flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -205,7 +228,7 @@ function goCommand(key: string): void {
     white-space: nowrap;
   }
   .actions { gap: 4px; }
-  .actions > :nth-child(n+3) { display: none; }
+  .actions > :nth-child(n+2) { display: none; }
 }
 
 /* Skip-to-content link (WCAG 2.4.1). Hidden until focused. */

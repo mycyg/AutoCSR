@@ -173,10 +173,10 @@ _SYSTEM_PROMPT = """你是临床数据分析师。用户用自然语言问数据
    并将任何图表存为本目录下的 PNG（matplotlib）或同时写一份 ECharts/Plotly JSON 到 ./chart.json。
 3. 沙盒环境已经允许 import pandas / numpy / scipy / matplotlib / plotly / statsmodels / lifelines / sklearn / seaborn；
    禁止 import os/sys/subprocess/socket/pathlib/requests/httpx；禁止读项目目录之外的文件。
-4. 代码必须读取下方列出的 parquet 路径（pd.read_parquet）。不要捏造列名，请严格基于 schema。
+4. 代码必须读取下方列出的数据路径（.parquet 用 pd.read_parquet，.csv 用 pd.read_csv）。不要捏造列名，请严格基于 schema。
 5. 若用户问对比/分布，倾向 boxplot 或分组 bar；若问 top-N，输出 top-N 表格。
 6. 图表代码段最终必须显式 `plt.tight_layout(); plt.savefig('chart.png')`；
-   如使用 plotly 则 `import plotly.io as pio; pio.write_image(fig, 'chart.png')` 并将 `pio.to_json(fig)` 写到 './chart.json'。
+   如使用 plotly 则 `import plotly.io as pio; pio.write_image(fig, 'chart.png')` 并用 `open('chart.json', 'w', encoding='utf-8')` 写入 `pio.to_json(fig)`。
 7. **输出严格 JSON**：{"plan": str, "code": str, "expected_output_type": "table|chart|both"}
 """
 
@@ -189,7 +189,7 @@ def _build_user_prompt(
 ) -> str:
     parts: list[str] = []
     parts.append(f"## 用户问题\n{query}\n")
-    parts.append("## 可用数据文件（每列含 dtype + 5 行样例，PII 已遮蔽）")
+    parts.append("## 可用数据文件（每列含 dtype + 5 行样例，PII 已遮蔽；.parquet 用 pd.read_parquet，.csv 用 pd.read_csv）")
     for prof in parquet_profiles:
         if prof.get("error"):
             parts.append(f"- {prof['path']} (load_error: {prof['error']})")
@@ -323,7 +323,8 @@ def _shorten_title(query: str, limit: int = 30) -> str:
 # Async LLM call (wraps sync responses_json in a thread)
 # ---------------------------------------------------------------------------
 
-async def _call_llm(system_msg: str, user_msg: str, policy: _policy.LLMPolicy) -> tuple[dict[str, Any], LLMMeta]:
+async def _call_llm(system_msg: str, user_msg: str, policy: _policy.LLMPolicy,
+                    project_id: str | None = None) -> tuple[dict[str, Any], LLMMeta]:
     import asyncio
 
     def _go() -> dict[str, Any]:
@@ -337,6 +338,8 @@ async def _call_llm(system_msg: str, user_msg: str, policy: _policy.LLMPolicy) -
             max_tokens=policy.max_tokens,
             temperature=policy.temperature,
             reasoning_effort=policy.reasoning_effort,
+            project_id=project_id,
+            caller_agent="analyst",
         )
 
     t0 = time.time()
@@ -437,7 +440,7 @@ class AnalystAgent(BaseAgent):
                     sys_prompt = load_prompt("analyst", _load_project_language(pid))
                 except Exception:
                     sys_prompt = _SYSTEM_PROMPT
-                plan_obj, llm_meta = await _call_llm(sys_prompt, user_msg, policy)
+                plan_obj, llm_meta = await _call_llm(sys_prompt, user_msg, policy, project_id=pid)
             except (ArkError, Exception) as e:  # noqa: BLE001
                 logger.warning("analyst.llm_failed", error=str(e)[:200])
                 # Fallback to mock so the orchestrator stays alive

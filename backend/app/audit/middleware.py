@@ -47,6 +47,13 @@ class AuditMiddleware(BaseHTTPMiddleware):
                 return response
             pid = m.group("pid")
             actor = request.headers.get("X-User-Id") or "anonymous"
+            try:
+                from app.auth.middleware import get_optional_user
+                user = get_optional_user(request)
+                if user is not None:
+                    actor = user.id
+            except Exception:
+                pass
             ip = request.client.host if request.client else None
             # Best-effort resource_type heuristic
             resource_type = _resource_type_from_path(path)

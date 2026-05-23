@@ -38,6 +38,7 @@
     "confirm": "Confirm",
     "warning": "Warning",
     "open": "Open",
+    "download": "Download",
     "run": "Run",
     "generate": "Generate"
   },
@@ -172,7 +173,11 @@
     "empty_title": "No tasks yet",
     "empty_desc": "Convert review issues into tasks or create one manually.",
     "delete": "Delete task",
-    "delete_confirm": "Delete task \"{name}\"? This cannot be undone."
+    "delete_confirm": "Delete task \"{name}\"? This cannot be undone.",
+    "status_open": "Open",
+    "status_in_progress": "In progress",
+    "status_resolved": "Resolved",
+    "status_wont_fix": "Won't fix"
   },
   "audit": {
     "title": "Audit log",
@@ -217,7 +222,29 @@
     "ectd_open": "Export eCTD M5 package",
     "delete_confirm": "Delete export \"{name}\"?",
     "multi_grid_aria": "Multi-format export options",
-    "generate_format": "Generate {fmt} file"
+    "multi_title": "Multi-format export",
+    "multi_hint": "Export the same report as PDF, HTML, PPTX, or Markdown bundle for print, web review, presentations, and dev workflows.",
+    "generate_format": "Generate {fmt} file",
+    "warning_unsupported": "This format does not support hallucination warnings yet",
+    "phase_starting": "Starting",
+    "phase_progress": "Generating",
+    "phase_done": "Done",
+    "phase_error": "Failed",
+    "phase_loading_outline": "Loading outline",
+    "phase_writing_sections": "Writing sections",
+    "phase_references": "Resolving references",
+    "phase_appendix_a": "Building cleansing appendix",
+    "phase_appendix_b": "Building analysis appendix",
+    "phase_saving": "Saving file",
+    "phase_section": "Section {value}",
+    "backup_title": "Project backup and restore",
+    "backup_hint": "Package project data as a zip. Importing it into this host assigns a new project ID.",
+    "backup_button": "Back up project",
+    "restore_button": "Import project zip",
+    "tlf_title": "TLF package (Table-Listing-Figure)",
+    "tlf_hint": "Package all StatBlocks as RTF, CSV, and define-XML zip for regulatory QC.",
+    "tlf_generate": "Generate TLF zip",
+    "tlf_empty": "No TLF exports yet"
   },
   "shortcuts": {
     "title": "Keyboard shortcuts",
@@ -246,10 +273,38 @@
     "title": "Global search",
     "placeholder": "Search sections, terminology, stat blocks…",
     "section": "Section",
+    "draft": "Draft",
     "term": "Term",
     "stat": "Stat block",
+    "task": "Task",
+    "review": "Review",
+    "export": "Export",
     "empty": "No matches",
     "recent": "Recent searches"
+  },
+  "workbench": {
+    "subtitle": "Track the path from source data to review and export with current status, risk, and next action in one place.",
+    "workflow": "CSR workflow",
+    "workflow_hint": "Every step is directly accessible; the recommended next action stays pinned up front.",
+    "open_tasks": "Open tasks",
+    "risk_review": "Risk and review",
+    "risk_hint": "Reviewer findings, hallucination checks, and unresolved issues are grouped here.",
+    "activity": "Recent activity",
+    "activity_hint": "Drafts, tasks, and exports are summarized by time.",
+    "continue_step": "Continue: {step}",
+    "step_meta_done": "{done} done",
+    "step_meta_error": "{done} done · {error} errors",
+    "risk_error": "Error",
+    "risk_warn": "Warning",
+    "risk_info": "Info",
+    "risk_hallucination": "Hallucination",
+    "export_count": "{n} exports",
+    "metrics": {
+      "files": "Files",
+      "stats": "Stat blocks",
+      "drafts": "Drafts",
+      "risks": "Risks"
+    }
   },
   "onboarding": {
     "aria": "Onboarding tour",
@@ -317,6 +372,10 @@
   },
   "progress": {
     "done": "Done",
+    "queued": "Queued",
+    "running": "Running",
+    "starting": "Starting",
+    "error": "Failed",
     "cancelled": "Cancelled",
     "cancel_not_supported": "Cancel is not supported for this task yet",
     "stop_aria": "Stop task",
@@ -325,6 +384,7 @@
     "ingest": { "title": "Parsing uploads" },
     "tlf": { "title": "Packaging TLF" },
     "ectd": { "title": "Packaging eCTD" },
+    "export": { "title": "Exporting {format}" },
     "review": { "title": "Running multi-reviewer" }
   },
   "errors": {

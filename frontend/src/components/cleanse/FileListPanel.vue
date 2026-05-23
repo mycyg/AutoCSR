@@ -50,9 +50,11 @@ function counts(fid: string): { pending: number; accepted: number; rejected: num
     <header><h3>文件</h3></header>
     <div v-for="g in grouped" :key="g.type" class="group">
       <div class="grp-title">{{ g.label }} <span class="grp-count">({{ g.files.length }})</span></div>
-      <div
+      <button
         v-for="f in g.files" :key="f.file_id"
+        type="button"
         class="file" :class="{ active: f.file_id === props.selectedFileId }"
+        :aria-pressed="f.file_id === props.selectedFileId"
         @click="emit('select', f.file_id)"
       >
         <div class="name">{{ f.filename }}</div>
@@ -62,7 +64,7 @@ function counts(fid: string): { pending: number; accepted: number; rejected: num
           <span v-if="counts(f.file_id).rejected" class="pill pill-no">拒绝 {{ counts(f.file_id).rejected }}</span>
           <span v-if="counts(f.file_id).applied" class="pill pill-done">已应用 {{ counts(f.file_id).applied }}</span>
         </div>
-      </div>
+      </button>
     </div>
     <el-empty v-if="!files.length" description="没有可清洗的文件" :image-size="60" />
   </div>
@@ -70,18 +72,20 @@ function counts(fid: string): { pending: number; accepted: number; rejected: num
 
 <style scoped>
 .file-list { padding: 12px; }
-header h3 { font-size: 14px; color: #374151; margin: 4px 0 12px; }
+header h3 { font-size: 14px; color: var(--color-text-strong); margin: 4px 0 12px; }
 .group { margin-bottom: 12px; }
-.grp-title { font-size: 12px; color: #6b7280; padding: 4px 6px; }
-.grp-count { color: #9ca3af; }
+.grp-title { font-size: 12px; color: var(--color-text-mute); padding: 4px 6px; }
+.grp-count { color: var(--color-text-faint); }
 .file {
-  border: 1px solid #e5e7eb; border-radius: 6px; padding: 8px 10px;
-  margin-bottom: 6px; cursor: pointer; background: #fff;
+  width: 100%;
+  border: 1px solid var(--color-border); border-radius: 6px; padding: 8px 10px;
+  margin-bottom: 6px; cursor: pointer; background: var(--color-surface);
   transition: border-color 120ms ease;
+  text-align: left;
 }
-.file:hover { border-color: #93c5fd; }
-.file.active { border-color: #2563eb; background: #eff6ff; }
-.name { font-size: 13px; color: #1f2937; word-break: break-all; }
+.file:hover { border-color: var(--color-primary); }
+.file.active { border-color: var(--color-primary); background: var(--color-primary-soft); }
+.name { font-size: 13px; color: var(--color-text-strong); word-break: break-all; }
 .meta { margin-top: 4px; display: flex; flex-wrap: wrap; gap: 4px; }
 .pill {
   display: inline-block; font-size: 11px; padding: 1px 6px; border-radius: 9px;

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { MdEditor, MdPreview } from 'md-editor-v3'
 import 'md-editor-v3/lib/preview.css'
@@ -12,6 +12,7 @@ import { useRecentlyViewed } from '@/composables/useRecentlyViewed'
 import { useResponsive } from '@/composables/useResponsive'
 import { useLongPress } from '@/composables/useTouchGestures'
 import { handleApiError } from '@/utils/errors'
+import { sanitizeMarkdownHtml } from '@/utils/sanitize'
 const { t } = useI18n()
 const { isMobile } = useResponsive()
 
@@ -21,6 +22,7 @@ const props = defineProps<{
   draft: SectionDraftDTO | null
   outlineTitle?: string
   compact?: boolean
+  highlight?: string
 }>()
 
 const emit = defineEmits<{
@@ -61,9 +63,19 @@ async function refreshVersions(): Promise<void> {
 }
 
 let saveTimer: number | null = null
+function clearSaveTimer(): void {
+  if (saveTimer !== null) {
+    window.clearTimeout(saveTimer)
+    saveTimer = null
+  }
+}
+
 function scheduleSave(): void {
-  if (saveTimer !== null) window.clearTimeout(saveTimer)
-  saveTimer = window.setTimeout(() => { void doSave() }, 500)
+  clearSaveTimer()
+  saveTimer = window.setTimeout(() => {
+    saveTimer = null
+    void doSave()
+  }, 500)
 }
 
 async function doSave(): Promise<void> {
@@ -90,7 +102,7 @@ async function toggleLock(): Promise<void> {
   if (!locked.value) {
     // Lock — flush save first
     if (saveTimer !== null) {
-      window.clearTimeout(saveTimer)
+      clearSaveTimer()
       await doSave()
     }
   }
@@ -185,10 +197,12 @@ function closeCtxMenu(): void { ctxMenuOpen.value = false }
 useLongPress(readerRoot, openCtxMenu, { delay: 500, tolerance: 12 })
 
 const compact = computed(() => !!(props.compact || isMobile.value))
+
+onBeforeUnmount(clearSaveTimer)
 </script>
 
 <template>
-  <div class="chapter-reader" ref="readerRoot" :class="{ 'is-compact': compact }">
+  <div class="chapter-reader" ref="readerRoot" :class="{ 'is-compact': compact }" :data-highlight="props.highlight || ''">
     <div v-if="empty" class="empty">
       <p v-if="nodeId">本节尚无草稿。</p>
       <p v-else>← 在左侧选择章节</p>
@@ -276,9 +290,11 @@ const compact = computed(() => !!(props.compact || isMobile.value))
       </div>
       <Transition name="fade" mode="out-in">
         <MdPreview v-if="locked" :key="nodeId + '-r'" class="md"
-                   :model-value="localMd" :preview-theme="'github'" />
+                   :model-value="localMd" :preview-theme="'github'"
+                   :sanitize="sanitizeMarkdownHtml" />
         <MdEditor v-else :key="nodeId + '-e'" class="md editor"
-                  :model-value="localMd" :preview-theme="'github'" @on-change="onEdit" />
+                  :model-value="localMd" :preview-theme="'github'"
+                  :sanitize="sanitizeMarkdownHtml" @on-change="onEdit" />
       </Transition>
       <!-- M22 — long-press context menu (mobile). -->
       <Teleport to="body">

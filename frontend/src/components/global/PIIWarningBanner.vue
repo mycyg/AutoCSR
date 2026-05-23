@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { connectProjectWS } from '@/api/ws'
 
 const props = defineProps<{ projectId: string }>()
 
@@ -13,29 +14,28 @@ interface Finding {
 const visible = ref(false)
 const findings = ref<Finding[]>([])
 const lastAction = ref<string>('')
-let ws: WebSocket | null = null
+let wsClose: (() => void) | null = null
 
 function connect(): void {
-  const proto = window.location.protocol === 'https:' ? 'wss' : 'ws'
-  ws = new WebSocket(`${proto}://${window.location.host}/ws/${props.projectId}`)
-  ws.onmessage = (ev) => {
-    try {
-      const m = JSON.parse(ev.data)
-      if (m.type === 'safety.pii_detected') {
-        findings.value = m.payload?.findings || []
-        lastAction.value = m.payload?.action || ''
-        visible.value = true
-      }
-    } catch { /* ignore */ }
-  }
-  ws.onclose = () => {
-    setTimeout(connect, 3000)
-  }
+  wsClose?.()
+  wsClose = null
+  findings.value = []
+  visible.value = false
+  if (!props.projectId) return
+  wsClose = connectProjectWS(props.projectId, (m) => {
+    if (m.type === 'safety.pii_detected') {
+      findings.value = (m.payload?.findings as Finding[] | undefined) || []
+      lastAction.value = String(m.payload?.action || '')
+      visible.value = true
+    }
+  })
 }
 
 onMounted(connect)
+watch(() => props.projectId, connect)
 onBeforeUnmount(() => {
-  try { ws?.close() } catch { /* ignore */ }
+  wsClose?.()
+  wsClose = null
 })
 </script>
 

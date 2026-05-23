@@ -6,10 +6,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 
+from app.auth.middleware import get_current_user
+from app.auth.models import User
 from app.config import data_dir
 from app.ingestion.orchestrator import load_entries, stamp_uploaded
+from app.projects.manager import ensure_project_access
+from app.server.upload_utils import ensure_child_path, sanitize_upload_filename
 
 router = APIRouter(tags=["ingest"])
 
@@ -19,7 +23,12 @@ def _project_dir(pid: str) -> Path:
 
 
 @router.post("/projects/{pid}/upload")
-async def upload_files(pid: str, files: list[UploadFile] = File(...)) -> dict[str, Any]:
+async def upload_files(
+    pid: str,
+    files: list[UploadFile] = File(...),
+    user: User = Depends(get_current_user),
+) -> dict[str, Any]:
+    ensure_project_access(user, pid, "write")
     if not _project_dir(pid).exists():
         raise HTTPException(status_code=404, detail=f"project {pid} not found")
     if not files:
@@ -29,8 +38,8 @@ async def upload_files(pid: str, files: list[UploadFile] = File(...)) -> dict[st
         file_id = uuid.uuid4().hex[:12]
         dest_dir = _project_dir(pid) / "raw" / file_id
         dest_dir.mkdir(parents=True, exist_ok=True)
-        safe_name = upload.filename or f"file_{file_id}"
-        dest = dest_dir / safe_name
+        safe_name = sanitize_upload_filename(upload.filename, f"file_{file_id}")
+        dest = ensure_child_path(dest_dir, safe_name)
         data = await upload.read()
         dest.write_bytes(data)
         entry = stamp_uploaded(

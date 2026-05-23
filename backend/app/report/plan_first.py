@@ -149,12 +149,17 @@ def _build_plan_prompt(
     stat_ev: list[dict[str, Any]],
     lit_ev: list[dict[str, Any]],
     requirements: list[str],
+    language: str = "zh",
 ) -> tuple[str, str]:
-    sys = (
-        "你是临床研究报告章节策划师。任务：把一个章节拆成 5-8 个可独立成段的"
-        "「写作点」(point)，每个 point 描述这一段要讲什么（50-150 字）。"
-        "禁止编造 Ref 代码：stat_refs_hint 仅能来自给定的统计证据列表。"
-    )
+    try:
+        from app.i18n.loader import load_prompt
+        sys = load_prompt("plan", language)
+    except Exception:
+        sys = (
+            "你是临床研究报告章节策划师。任务：把一个章节拆成 5-8 个可独立成段的"
+            "「写作点」(point)，每个 point 描述这一段要讲什么（50-150 字）。"
+            "禁止编造 Ref 代码：stat_refs_hint 仅能来自给定的统计证据列表。"
+        )
     parts: list[str] = []
     parts.append(f"## 章节\n- ID: {node.id}\n- 标题: {node.title}\n- 笔记: {node.notes or '(无)'}")
     if requirements:
@@ -208,8 +213,10 @@ def _mock_plan(node: OutlineNode, stat_ev: list[dict[str, Any]],
 async def _call_plan_llm(node: OutlineNode, stat_ev: list[dict[str, Any]],
                           lit_ev: list[dict[str, Any]],
                           requirements: list[str],
-                          policy: _policy.LLMPolicy) -> tuple[dict[str, Any], LLMMeta]:
-    sys_msg, user_msg = _build_plan_prompt(node, stat_ev, lit_ev, requirements)
+                          policy: _policy.LLMPolicy,
+                          project_id: str,
+                          language: str) -> tuple[dict[str, Any], LLMMeta]:
+    sys_msg, user_msg = _build_plan_prompt(node, stat_ev, lit_ev, requirements, language)
     t0 = time.time()
     try:
         def _call() -> dict[str, Any]:
@@ -221,6 +228,8 @@ async def _call_plan_llm(node: OutlineNode, stat_ev: list[dict[str, Any]],
                 max_tokens=policy.max_tokens,
                 temperature=policy.temperature,
                 reasoning_effort=policy.reasoning_effort,
+                project_id=project_id,
+                caller_agent="planner",
             )
         raw = await asyncio.to_thread(_call)
     except (ArkError, Exception) as e:  # noqa: BLE001
@@ -264,8 +273,14 @@ async def make_plan(
         meta = LLMMeta(via="mock")
     else:
         policy = _policy.writer_llm()
+        try:
+            from app.report.orchestrator import _load_project_language
+            language = _load_project_language(project_id)
+        except Exception:
+            language = "zh"
         payload, meta = await _call_plan_llm(node, stat_ev, lit_ev,
-                                              requirements, policy)
+                                              requirements, policy, project_id,
+                                              language)
 
     points: list[PlanPoint] = []
     for raw_p in (payload.get("points") or [])[:ctx.max_points]:

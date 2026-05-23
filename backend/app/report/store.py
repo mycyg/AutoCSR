@@ -8,6 +8,7 @@ Layout per project:
 from __future__ import annotations
 
 import json
+import re
 import threading
 from datetime import datetime, timezone
 from pathlib import Path
@@ -41,12 +42,20 @@ def _chapters_dir(pid: str) -> Path:
 
 def _draft_path(pid: str, node_id: str) -> Path:
     # node ids may contain dots; that's fine on Windows/posix
-    safe = node_id.replace("/", "_")
-    return _chapters_dir(pid) / f"{safe}.json"
+    return _chapters_dir(pid) / f"{_safe_node(node_id)}.json"
 
 
 def _safe_node(node_id: str) -> str:
-    return node_id.replace("/", "_")
+    """Return a filename-safe node id for draft/chat/version files.
+
+    Node ids normally look like ``11.2.3``. User-controlled routes can still
+    pass arbitrary strings, so normalize path separators, drive separators,
+    control chars, and parent traversal tokens before joining under chapters/.
+    """
+    raw = str(node_id or "").strip()
+    safe = re.sub(r"[\x00-\x1f\x7f/\\:]+", "_", raw)
+    safe = safe.replace("..", "__").strip(" .")
+    return safe[:180] or "section"
 
 
 def _version_path(pid: str, node_id: str, version: int) -> Path:

@@ -13,6 +13,7 @@ from app.analysis.store import (
     delete as delete_block, get as get_block, list_blocks, save as save_block, search as search_blocks,
 )
 from app.config import data_dir
+from app.server.upload_utils import ensure_project_file
 from app.server.ws import publish
 
 logger = logging.getLogger("autocsr.analysis.routes")
@@ -131,9 +132,13 @@ async def ask_data(pid: str, body: dict = Body(...)) -> dict[str, Any]:
     if not query:
         raise HTTPException(status_code=400, detail="query required")
     scope = body.get("scope") or "all"
-    parquet_paths = body.get("parquet_paths") or []
-    timeout = int(body.get("sandbox_timeout_s") or 60)
-    mem_mb = int(body.get("sandbox_mem_mb") or 1024)
+    raw_paths = body.get("parquet_paths") or []
+    parquet_paths = [
+        str(ensure_project_file(pid, p, subdir="processed"))
+        for p in raw_paths
+    ]
+    timeout = max(1, min(int(body.get("sandbox_timeout_s") or 60), 120))
+    mem_mb = max(64, min(int(body.get("sandbox_mem_mb") or 1024), 2048))
 
     agent = AnalystAgent()
     ai = AgentInput(

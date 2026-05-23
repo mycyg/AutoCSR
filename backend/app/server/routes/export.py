@@ -60,6 +60,7 @@ async def export_docx_endpoint(pid: str, body: dict = Body(default_factory=dict)
     include_toc = bool(opts.get("include_toc", True))
     include_appendix_cleansing = bool(opts.get("include_appendix_cleansing", True))
     include_appendix_analysis = bool(opts.get("include_appendix_analysis", True))
+    include_hallucination_warnings = bool(opts.get("include_hallucination_warnings", False))
     # Optional one-off template_config override (otherwise persisted config used)
     template_override = opts.get("template_config")
     cfg: DocxTemplateConfig | None = None
@@ -89,6 +90,7 @@ async def export_docx_endpoint(pid: str, body: dict = Body(default_factory=dict)
                 include_appendix_analysis=include_appendix_analysis,
                 include_compliance_note=include_compliance,
                 include_toc=include_toc,
+                include_hallucination_warnings=include_hallucination_warnings,
                 template_config=cfg,
                 progress_cb=_progress,
             )
@@ -219,6 +221,12 @@ async def _run_multi_format(
     builder result dict on success.
     """
     body = body or {}
+    include_hallucination_warnings = bool(body.get("include_hallucination_warnings", False))
+    if include_hallucination_warnings and fmt not in {"html", "md_bundle"}:
+        raise HTTPException(
+            status_code=400,
+            detail=f"include_hallucination_warnings is not supported for {fmt}",
+        )
     loop = asyncio.get_running_loop()
     await publish(pid, f"export.{fmt}.start",
                   {"started_at": datetime.now().isoformat(timespec="seconds")})
@@ -256,6 +264,7 @@ async def _run_multi_format(
                 res = build_html(
                     pid,
                     include_compliance_note=bool(body.get("include_compliance_note", True)),
+                    include_hallucination_warnings=include_hallucination_warnings,
                     progress_cb=_progress,
                 )
                 payload = {
@@ -277,7 +286,11 @@ async def _run_multi_format(
                 }
             elif fmt == "md_bundle":
                 from app.export.markdown_bundle import build_markdown_bundle
-                res = build_markdown_bundle(pid, progress_cb=_progress)
+                res = build_markdown_bundle(
+                    pid,
+                    include_hallucination_warnings=include_hallucination_warnings,
+                    progress_cb=_progress,
+                )
                 payload = {
                     "ok": True, "filename": res.filename,
                     "size_bytes": res.size_bytes,

@@ -4,12 +4,15 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from fastapi import APIRouter, Body, HTTPException, Query, Request
+from fastapi import APIRouter, Body, Depends, HTTPException, Query
 
 from app.audit import (
     list_signatures, load_signature, read_events, sign, verify, verify_chain,
 )
+from app.auth.middleware import get_current_user
+from app.auth.models import User
 from app.config import data_dir
+from app.projects.manager import ensure_project_access
 
 router = APIRouter(tags=["audit"])
 
@@ -32,8 +35,9 @@ def list_events(
     start: str | None = Query(default=None),
     end: str | None = Query(default=None),
     limit: int = Query(default=500),
+    user: User = Depends(get_current_user),
 ) -> list[dict[str, Any]]:
-    _ensure_project(pid)
+    ensure_project_access(user, pid, "read")
     s = _parse_dt(start)
     e = _parse_dt(end)
     events = read_events(pid, start=s, end=e, limit=limit)
@@ -54,8 +58,9 @@ def verify_audit_chain(
     pid: str,
     start: str | None = Query(default=None),
     end: str | None = Query(default=None),
+    user: User = Depends(get_current_user),
 ) -> dict[str, Any]:
-    _ensure_project(pid)
+    ensure_project_access(user, pid, "read")
     s = _parse_dt(start)
     e = _parse_dt(end)
     return verify_chain(pid, start=s, end=e).model_dump()
@@ -76,13 +81,15 @@ def _parse_dt(value: str | None) -> datetime | None:
 
 @router.post("/projects/{pid}/sign")
 async def create_signature(
-    pid: str, request: Request, body: dict = Body(...)
+    pid: str,
+    body: dict = Body(...),
+    user: User = Depends(get_current_user),
 ) -> dict[str, Any]:
-    _ensure_project(pid)
+    ensure_project_access(user, pid, "sign")
     artifact_type = str(body.get("artifact_type") or "").strip()
     artifact_id = str(body.get("artifact_id") or "").strip()
     reason = str(body.get("reason") or "").strip()
-    signer = str(body.get("signer") or request.headers.get("X-User-Id") or "anonymous")
+    signer = user.id
     if not (artifact_type and artifact_id):
         raise HTTPException(
             status_code=400,
@@ -93,14 +100,21 @@ async def create_signature(
 
 
 @router.get("/projects/{pid}/signatures")
-def list_all_signatures(pid: str) -> list[dict[str, Any]]:
-    _ensure_project(pid)
+def list_all_signatures(
+    pid: str,
+    user: User = Depends(get_current_user),
+) -> list[dict[str, Any]]:
+    ensure_project_access(user, pid, "read")
     return [s.model_dump() for s in list_signatures(pid)]
 
 
 @router.get("/projects/{pid}/signatures/{sig_id}")
-def get_signature(pid: str, sig_id: str) -> dict[str, Any]:
-    _ensure_project(pid)
+def get_signature(
+    pid: str,
+    sig_id: str,
+    user: User = Depends(get_current_user),
+) -> dict[str, Any]:
+    ensure_project_access(user, pid, "read")
     s = load_signature(pid, sig_id)
     if s is None:
         raise HTTPException(status_code=404, detail=f"signature {sig_id} not found")
@@ -108,8 +122,12 @@ def get_signature(pid: str, sig_id: str) -> dict[str, Any]:
 
 
 @router.get("/projects/{pid}/signatures/{sig_id}/verify")
-def verify_signature(pid: str, sig_id: str) -> dict[str, Any]:
-    _ensure_project(pid)
+def verify_signature(
+    pid: str,
+    sig_id: str,
+    user: User = Depends(get_current_user),
+) -> dict[str, Any]:
+    ensure_project_access(user, pid, "read")
     s = load_signature(pid, sig_id)
     if s is None:
         raise HTTPException(status_code=404, detail=f"signature {sig_id} not found")

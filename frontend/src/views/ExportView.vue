@@ -16,8 +16,11 @@ import EctdExportDialog from '@/components/global/EctdExportDialog.vue'
 import { confirmAction } from '@/composables/useConfirm'
 import { handleApiError } from '@/utils/errors'
 import { useResponsive } from '@/composables/useResponsive'
+import { Box, Delete, Download, Upload } from '@element-plus/icons-vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{ id: string }>()
+const { t } = useI18n()
 const { isMobile: _isMobile } = useResponsive()
 void _isMobile  // referenced in <style> via :class only — keep the import warm
 const exportStore = useExportStore()
@@ -28,8 +31,8 @@ const opts = ref<ExportOptions>({
   include_toc: true,
   include_appendix_cleansing: true,
   include_appendix_analysis: true,
+  include_hallucination_warnings: false,
 })
-const showHallucinationWarnings = ref(false)
 const ectdDialogOpen = ref(false)
 
 const cfg = ref<DocxTemplateConfigDTO | null>(null)
@@ -140,7 +143,33 @@ const FORMAT_LABEL: Record<MultiExportFormat, string> = {
   pdf: 'PDF', html: 'HTML', pptx: 'PPTX', md_bundle: 'Markdown bundle',
 }
 
+const PHASE_KEYS: Record<string, string> = {
+  starting: 'export.phase_starting',
+  progress: 'export.phase_progress',
+  done: 'export.phase_done',
+  error: 'export.phase_error',
+  loading_outline: 'export.phase_loading_outline',
+  writing_sections: 'export.phase_writing_sections',
+  references: 'export.phase_references',
+  appendix_a: 'export.phase_appendix_a',
+  appendix_b: 'export.phase_appendix_b',
+  saving: 'export.phase_saving',
+}
+
+function phaseLabel(phase: string): string {
+  if (!phase) return ''
+  if (phase.startsWith('section:')) {
+    return t('export.phase_section', { value: phase.slice('section:'.length) })
+  }
+  const key = PHASE_KEYS[phase]
+  return key ? t(key) : phase
+}
+
 async function onExportFormat(format: MultiExportFormat): Promise<void> {
+  if (opts.value.include_hallucination_warnings && !formatSupportsWarnings(format)) {
+    ElMessage.info('Hallucination warnings are supported for HTML and Markdown bundle in multi-format export.')
+    return
+  }
   multiExporting.value[format] = true
   multiPhase.value[format] = 'starting'
   try {
@@ -155,6 +184,10 @@ async function onExportFormat(format: MultiExportFormat): Promise<void> {
   } finally {
     multiExporting.value[format] = false
   }
+}
+
+function formatSupportsWarnings(format: MultiExportFormat): boolean {
+  return format === 'html' || format === 'md_bundle'
 }
 
 // Bridge — WS events for export.<format>.* update phase chips.
@@ -255,7 +288,7 @@ const previewHeadingStyle = computed(() => {
         <el-checkbox v-model="opts.include_toc">{{ $t('export.include_toc') }}</el-checkbox>
         <el-checkbox v-model="opts.include_appendix_cleansing">{{ $t('export.include_appendix_a') }}</el-checkbox>
         <el-checkbox v-model="opts.include_appendix_analysis">{{ $t('export.include_appendix_b') }}</el-checkbox>
-        <el-checkbox v-model="showHallucinationWarnings">
+        <el-checkbox v-model="opts.include_hallucination_warnings">
           {{ $t('export.show_hallucination_warnings') }}
         </el-checkbox>
       </div>
@@ -264,7 +297,7 @@ const previewHeadingStyle = computed(() => {
           {{ exportStore.exporting ? $t('export.generating') : $t('export.generate') }}
         </el-button>
         <span v-if="exportStore.exporting || exportStore.phase !== 'idle'" class="phase">
-          <b>{{ exportStore.phase }}</b>
+          <b>{{ phaseLabel(exportStore.phase) }}</b>
         </span>
       </div>
       <el-progress v-if="exportStore.exporting" :percentage="phaseToPercent(exportStore.phase)"
@@ -360,24 +393,29 @@ const previewHeadingStyle = computed(() => {
 
     <!-- M19 — multi-format export -->
     <div class="panel">
-      <h3>Multi-format export</h3>
-      <p class="hint">同一份报告导出为多种格式 — PDF 给打印 / HTML 给在线浏览 / PPTX 给汇报 / Markdown bundle 给 dev workflow。</p>
+      <h3>{{ $t('export.multi_title') }}</h3>
+      <p class="hint">{{ $t('export.multi_hint') }}</p>
       <div class="multi-grid" role="group" :aria-label="$t('export.multi_grid_aria')">
         <div v-for="fmt in (['pdf','html','pptx','md_bundle'] as MultiExportFormat[])"
               :key="fmt" class="multi-card">
           <div class="multi-card-head">
             <strong>{{ FORMAT_LABEL[fmt] }}</strong>
-            <span v-if="multiPhase[fmt]" class="muted">· {{ multiPhase[fmt] }}</span>
+            <span v-if="multiPhase[fmt]" class="muted">· {{ phaseLabel(multiPhase[fmt]) }}</span>
           </div>
           <el-button type="primary" plain :loading="multiExporting[fmt]"
+                     :disabled="Boolean(opts.include_hallucination_warnings) && !formatSupportsWarnings(fmt)"
                      :aria-label="$t('export.generate_format', { fmt: FORMAT_LABEL[fmt] })"
                      @click="onExportFormat(fmt)">
-            {{ multiExporting[fmt] ? '正在生成…' : '生成 ' + FORMAT_LABEL[fmt] }}
+            {{ multiExporting[fmt] ? $t('export.generating') : $t('export.generate_format', { fmt: FORMAT_LABEL[fmt] }) }}
           </el-button>
+          <span v-if="opts.include_hallucination_warnings && !formatSupportsWarnings(fmt)" class="muted">
+            {{ $t('export.warning_unsupported') }}
+          </span>
           <div v-if="multiLast[fmt]" class="multi-card-last">
             <el-link :href="exportFileDownloadUrl(props.id, multiLast[fmt]!.filename)"
                       type="primary" target="_blank">
-              ⬇ {{ multiLast[fmt]!.filename }}
+              <el-icon aria-hidden="true"><Download /></el-icon>
+              {{ multiLast[fmt]!.filename }}
             </el-link>
             <span class="muted"> ({{ fmtSize(multiLast[fmt]!.size_bytes) }})</span>
           </div>
@@ -387,13 +425,13 @@ const previewHeadingStyle = computed(() => {
 
     <!-- M19 — backup + restore -->
     <div class="panel">
-      <h3>Project backup &amp; restore</h3>
-      <p class="hint">把项目全部数据（raw / processed / chapters / outline / audit / signatures）打包成 zip；导入到当前 host 时会分配新 pid。</p>
+      <h3>{{ $t('export.backup_title') }}</h3>
+      <p class="hint">{{ $t('export.backup_hint') }}</p>
       <div class="trigger">
-        <el-button type="primary" plain @click="onBackup">⬇ 备份项目</el-button>
+        <el-button type="primary" plain :icon="Download" @click="onBackup">{{ $t('export.backup_button') }}</el-button>
         <el-upload :auto-upload="false" :show-file-list="false" accept=".zip"
                    :on-change="onRestoreUpload">
-          <el-button :loading="restoring">⬆ 导入项目 zip</el-button>
+          <el-button :icon="Upload" :loading="restoring">{{ $t('export.restore_button') }}</el-button>
         </el-upload>
       </div>
     </div>
@@ -401,17 +439,17 @@ const previewHeadingStyle = computed(() => {
     <div class="panel">
       <h3>{{ $t('ectd.title') }}</h3>
       <p class="hint">{{ $t('ectd.hint') }}</p>
-      <el-button type="primary" plain @click="ectdDialogOpen = true">
-        📦 {{ $t('export.ectd_open') }}
+      <el-button type="primary" plain :icon="Box" @click="ectdDialogOpen = true">
+        {{ $t('export.ectd_open') }}
       </el-button>
     </div>
 
     <div class="panel">
-      <h3>TLF 包（Table-Listing-Figure）</h3>
-      <p class="hint">把项目内所有 StatBlock 打成 RTF + CSV + define-XML zip 给监管 QC 复核。</p>
+      <h3>{{ $t('export.tlf_title') }}</h3>
+      <p class="hint">{{ $t('export.tlf_hint') }}</p>
       <div class="trigger">
         <el-button type="primary" :loading="tlfBuilding" @click="onBuildTlf">
-          {{ tlfBuilding ? '正在生成…' : '生成 TLF zip' }}
+          {{ tlfBuilding ? $t('export.generating') : $t('export.tlf_generate') }}
         </el-button>
       </div>
       <el-table v-if="tlfHistory.length" :data="tlfHistory" size="small">
@@ -422,11 +460,14 @@ const previewHeadingStyle = computed(() => {
         <el-table-column prop="created_at" label="创建时间" width="220" />
         <el-table-column label="—" width="120">
           <template #default="{ row }">
-            <el-link :href="tlfDownloadUrl(props.id, row.filename)" type="primary" target="_blank">⬇ 下载</el-link>
+            <el-link :href="tlfDownloadUrl(props.id, row.filename)" type="primary" target="_blank">
+              <el-icon aria-hidden="true"><Download /></el-icon>
+              {{ $t('common.download') }}
+            </el-link>
           </template>
         </el-table-column>
       </el-table>
-      <p v-else class="empty">尚无 TLF 包导出记录</p>
+      <p v-else class="empty">{{ $t('export.tlf_empty') }}</p>
     </div>
 
     <div class="panel">
@@ -440,8 +481,10 @@ const previewHeadingStyle = computed(() => {
         <el-table-column prop="created_at" :label="$t('common.created_at')" width="200" />
         <el-table-column label="—" width="200">
           <template #default="{ row }">
-            <el-link :href="downloadUrl(row.filename)" type="primary" target="_blank">⬇</el-link>
-            <el-button type="danger" link size="small" :aria-label="$t('common.delete')" @click="onDelete(row.filename)">×</el-button>
+            <el-link :href="downloadUrl(row.filename)" type="primary" target="_blank" :aria-label="$t('common.download')">
+              <el-icon aria-hidden="true"><Download /></el-icon>
+            </el-link>
+            <el-button type="danger" link size="small" :icon="Delete" :aria-label="$t('common.delete')" @click="onDelete(row.filename)" />
           </template>
         </el-table-column>
       </el-table>

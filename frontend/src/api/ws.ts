@@ -19,7 +19,9 @@ export function connectProjectWS(projectId: string, handler: WSHandler): () => v
 
   function url(): string {
     const host = window.location.host
-    return `${proto}//${host}/ws/${projectId}`
+    const token = localStorage.getItem('autocsr.access_token')
+    const qs = token ? `?token=${encodeURIComponent(token)}` : ''
+    return `${proto}//${host}/ws/${projectId}${qs}`
   }
 
   function open(): void {

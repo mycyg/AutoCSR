@@ -13,10 +13,10 @@ The repo ships a `docker-compose.yml` that stands up:
 
 | Service | Image | Port |
 |---|---|---|
-| `backend` | `autocsr-backend:v2.x` (multi-stage Python 3.11 slim) | 8765 |
-| `worker` | same image, runs `python -m app.queue.arq_app` | — |
-| `frontend` | `autocsr-frontend:v2.x` (nginx + Vite build) | 5174 |
-| `redis` | `redis:7-alpine` | 6379 |
+| `backend` | `autocsr-backend:v2.x` (multi-stage Python 3.11 slim) | 8766 |
+| `worker` | same image, runs `python scripts/run_arq_worker.py` | — |
+| `frontend` | `autocsr-frontend:v2.x` (nginx + Vite build) | 80 |
+| `redis` | `redis:7-alpine` | internal only |
 | `prometheus` (optional) | `prom/prometheus:latest` | 9090 |
 
 ```bash
@@ -25,9 +25,9 @@ git clone https://github.com/your-org/AutoCSR.git
 cd AutoCSR
 
 # Put your LLM key + auth secret in env (or a .env file next to compose).
-export AUTOCSR_LLM_API_KEY="sk-..."
+export LLM_API_KEY="sk-..."
 export AUTOCSR_JWT_SECRET="$(openssl rand -hex 32)"
-export AUTOCSR_TZ="Asia/Shanghai"
+export AUTOCSR_AUTH_DEV_MODE=false
 
 docker compose up -d --build
 ```
@@ -36,7 +36,7 @@ The first build is slow (~5 minutes) because the backend image carries
 pyreadstat / lifelines / matplotlib / reportlab. Subsequent rebuilds
 hit the layer cache.
 
-Open <http://localhost:5174>. Register a new user — the first user in
+Open <http://localhost/>. Register a new user — the first user in
 a fresh DB is auto-elevated to `admin` of a brand-new tenant.
 
 ### Volumes
@@ -44,10 +44,11 @@ a fresh DB is auto-elevated to `admin` of a brand-new tenant.
 | Path inside container | Host mount | Holds |
 |---|---|---|
 | `/app/data` | `./data` | project data, audit, signatures |
-| `/app/backend/app/config` | `./backend/app/config` | `settings.yaml` |
+| `/app/app/config/settings.yaml` | `./backend/app/config/settings.yaml` | runtime settings |
 
-The redis container has no volume by default — the queue is for
-transient task state. Add one if you want zero loss on restart.
+Redis uses an internal Compose network and a named volume for queue
+state. Do not expose port 6379 publicly unless you also add Redis auth
+and bind it to localhost.
 
 ## 2. Local dev (venv + npm)
 
@@ -55,8 +56,8 @@ transient task state. Add one if you want zero loss on restart.
 # Backend
 cd backend
 python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.server.main:app --reload --port 8765
+pip install -e ".[test,queue]"
+uvicorn app.server.main:app --reload --port 8766
 
 # Frontend (separate shell)
 cd frontend && npm install
@@ -74,7 +75,7 @@ A minimal reverse-proxy config that fronts both backend and frontend
 on the same domain:
 
 ```nginx
-upstream autocsr_backend  { server 127.0.0.1:8765; }
+upstream autocsr_backend  { server 127.0.0.1:8766; }
 upstream autocsr_frontend { server 127.0.0.1:5174; }
 
 server {
@@ -131,14 +132,10 @@ All variables read by the backend bootstrap:
 
 | Var | Default | Purpose |
 |---|---|---|
-| `AUTOCSR_DATA_DIR` | `./data` | base path for project files |
-| `AUTOCSR_LLM_API_KEY` | — | overrides `settings.llm.primary.api_key` |
+| `LLM_API_KEY` / `AUTOCSR_LLM_API_KEY` | — | overrides `settings.llm.api_key` |
 | `AUTOCSR_JWT_SECRET` | random ephemeral | **set in production** — invalidates all sessions if changed |
-| `AUTOCSR_TZ` | `Asia/Shanghai` | default project timezone |
+| `AUTOCSR_AUTH_DEV_MODE` | `false` in Compose | enables legacy header fallback when set to `true` |
 | `AUTOCSR_REDIS_URL` | `redis://redis:6379/0` | arq backend |
-| `AUTOCSR_LOG_LEVEL` | `INFO` | uvicorn + structlog |
-| `AUTOCSR_RATE_LIMIT_RPM` | `30` | per-tenant RPM ceiling |
-| `AUTOCSR_AUDIT_ROTATE_MB` | `100` | per-file rotation threshold |
 
 ## 5. Backup & restore
 
@@ -146,11 +143,11 @@ Project-level zip backups (data + audit + signatures) are first-class:
 
 ```bash
 # Trigger a backup over REST
-curl -X POST http://localhost:8765/api/projects/$PID/backup \
+curl -X POST http://localhost:8766/api/projects/$PID/backup \
   -H "Authorization: Bearer $TOKEN" -o my_csr_backup.zip
 
 # Restore into a new project
-curl -X POST http://localhost:8765/api/projects/restore \
+curl -X POST http://localhost:8766/api/projects/restore \
   -H "Authorization: Bearer $TOKEN" \
   -F "file=@my_csr_backup.zip"
 ```
@@ -193,5 +190,5 @@ For real deployment:
 A trivial uptime probe:
 
 ```bash
-curl -fsS http://localhost:8765/api/health || systemctl restart autocsr-backend
+curl -fsS http://localhost:8766/api/health || systemctl restart autocsr-backend
 ```
