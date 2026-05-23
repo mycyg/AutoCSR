@@ -8,7 +8,7 @@ from fastapi import APIRouter, Body, HTTPException
 from app.config import data_dir
 from app.corpus.index import search, fetch_ref, list_blocks
 
-router = APIRouter()
+router = APIRouter(tags=["admin"])
 
 
 @router.post("/projects/{pid}/corpus/search")

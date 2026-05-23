@@ -376,12 +376,27 @@ async def chat_turn(
                 agent_name="chat_editor",
                 ts=_now(),
             ))
+            # M17 — re-run hallucination guard on the patched markdown
+            extra_warnings: list[str] = []
+            try:
+                from app.safety.hallucination_guard import (
+                    mark_provenance_hallucinations,
+                    validate_references_against_corpus,
+                )
+                _hg = validate_references_against_corpus(
+                    new_md, project_id, node_id=updated_draft.node_id,
+                )
+                if _hg:
+                    new_prov = mark_provenance_hallucinations(new_prov, _hg)
+                    extra_warnings.append(f"hallucination:{len(_hg)} unresolved refs")
+            except Exception:
+                pass
             updated_draft = updated_draft.model_copy(update={
                 "markdown": new_md,
                 "citations": citations,
                 "word_count": _wa_word_count(new_md),
                 "generated_at": _now(),
-                "warnings": (updated_draft.warnings or []) + ref_warnings,
+                "warnings": (updated_draft.warnings or []) + ref_warnings + extra_warnings,
                 "status": "draft",
                 "provenance": new_prov,
             })

@@ -29,7 +29,7 @@ from app.config import data_dir
 from app.projects.templates import get_template, list_templates
 from app.schemas.project import Project, ProjectCreate, ProjectUpdate
 
-router = APIRouter()
+router = APIRouter(tags=["projects"])
 
 _LOCK = threading.RLock()
 

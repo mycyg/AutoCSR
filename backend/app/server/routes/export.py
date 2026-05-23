@@ -37,7 +37,7 @@ from app.export.template_uploader import (
 from app.server.ws import publish
 
 logger = logging.getLogger("autocsr.export.routes")
-router = APIRouter()
+router = APIRouter(tags=["export"])
 
 
 def _ensure_project(pid: str) -> None:

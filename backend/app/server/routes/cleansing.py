@@ -22,7 +22,7 @@ from app.ingestion.orchestrator import load_result, load_entries
 from app.schemas.cleansing import CleansingProposal
 from app.server.ws import publish
 
-router = APIRouter()
+router = APIRouter(tags=["cleansing"])
 
 
 def _ensure_project(pid: str) -> None:
@@ -79,7 +79,9 @@ def update_proposal(
         items[i] = p
         save_proposals(pid, items)
         audit_log(pid, p.file_id, body.get("status") or "edit",
-                  proposal_id=p.id, parameters=p.parameters)
+                  proposal_id=p.id, parameters=p.parameters,
+                  rule_provenance="user_edit",
+                  justification=str(body.get("justification") or "") or None)
         return p.model_dump()
     raise HTTPException(status_code=404, detail=f"proposal {proposal_id} not found")
 

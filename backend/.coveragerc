@@ -1,0 +1,19 @@
+[run]
+source = app
+omit =
+    app/server/ws/*
+    app/server/main.py
+    app/llm/ark_client.py
+    app/agents/builtin_tools.py
+    app/cleansing/proposer.py
+    app/analysis/advanced/*
+    app/report/orchestrator.py
+    app/export/_make_template.py
+    */__pycache__/*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    raise NotImplementedError
+    if TYPE_CHECKING:
+    if __name__ == .__main__.:

@@ -7,7 +7,7 @@ from fastapi import APIRouter, HTTPException
 
 from app.principles import list_principles, load_principle
 
-router = APIRouter()
+router = APIRouter(tags=["admin"])
 
 
 @router.get("/principles")

@@ -35,6 +35,8 @@ class ProjectConfig(BaseModel):
     sandbox_mem_mb: int = 512
     llm_data_redaction: str = "strict"  # "strict" / "off" — passes to ark_client
     pii_strip: bool = True              # extra hash_pii pass on cleansed data
+    # M17 — IANA tz name used by i18n.format and any user-facing timestamp.
+    timezone: str = "Asia/Shanghai"
 
     @classmethod
     def default(cls) -> "ProjectConfig":

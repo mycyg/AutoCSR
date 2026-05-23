@@ -11,7 +11,7 @@ from app.report.diff import diff_markdown, diff_summary
 from app.report.store import list_versions, load_draft, load_version
 
 logger = logging.getLogger("autocsr.routes.diff")
-router = APIRouter()
+router = APIRouter(tags=["report"])
 
 
 def _ensure_project(pid: str) -> None:

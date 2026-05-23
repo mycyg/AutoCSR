@@ -12,7 +12,7 @@ from app.collab.tasks import TaskComment
 from app.collab.users import ensure_dev_seed, get_user, list_users
 from app.config import data_dir
 
-router = APIRouter()
+router = APIRouter(tags=["collab"])
 
 
 def _ensure_project(pid: str) -> None:
@@ -201,3 +201,57 @@ def _parse_dt(value: Any) -> datetime | None:
         return datetime.fromisoformat(s)
     except Exception:
         return None
+
+
+# ---------------------------------------------------------------------------
+# Sign chain (M17)
+# ---------------------------------------------------------------------------
+
+@router.post("/projects/{pid}/tasks/{tid}/sign_chain/init")
+def sign_chain_init(pid: str, tid: str, body: dict = Body(default_factory=dict)) -> dict[str, Any]:
+    _ensure_project(pid)
+    from app.collab.sign_chain import init_chain
+    chain = body.get("chain")
+    try:
+        updated = init_chain(pid, tid, chain=chain)
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except (ValueError, TypeError) as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return updated.model_dump()
+
+
+@router.post("/projects/{pid}/tasks/{tid}/sign_chain/advance")
+def sign_chain_advance(pid: str, tid: str, request: Request,
+                         body: dict = Body(...)) -> dict[str, Any]:
+    _ensure_project(pid)
+    from app.collab.sign_chain import advance_chain, OutOfOrderError
+    role = str(body.get("role") or "").strip()
+    reason = str(body.get("reason") or "")
+    signer = (
+        str(body.get("signer_user_id") or "").strip()
+        or request.headers.get("X-User-Id")
+        or ""
+    )
+    if not role or not signer:
+        raise HTTPException(status_code=400, detail="role and signer_user_id required")
+    try:
+        step = advance_chain(pid, tid, role=role,
+                              signer_user_id=signer, reason=reason)
+    except OutOfOrderError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return step.model_dump()
+
+
+@router.get("/projects/{pid}/tasks/{tid}/sign_chain")
+def sign_chain_get(pid: str, tid: str) -> dict[str, Any]:
+    _ensure_project(pid)
+    from app.collab.sign_chain import get_chain, chain_summary
+    chain = get_chain(pid, tid)
+    if chain is None:
+        raise HTTPException(status_code=404, detail=f"task {tid} not found")
+    return chain_summary(pid, tid) or {"steps": []}

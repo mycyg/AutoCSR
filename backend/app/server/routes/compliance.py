@@ -10,7 +10,7 @@ from app.config import data_dir
 from app.state import blinding as _blinding
 from app.state import lock as _lock
 
-router = APIRouter()
+router = APIRouter(tags=["audit"])
 
 
 def _ensure_project(pid: str) -> None:

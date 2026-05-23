@@ -57,6 +57,10 @@ class Provenance(BaseModel):
     confidence: float = 1.0
     agent_name: str | None = None
     ts: datetime | None = None
+    # M17 — hallucination guard: True when the surrounding ranges contain
+    # at least one unresolved Ref<...>. Older drafts on disk that lack the
+    # field default to False so they still validate.
+    hallucination: bool = False
 
 
 class SectionDraft(BaseModel):

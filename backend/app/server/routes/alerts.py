@@ -31,7 +31,7 @@ from app.ingestion.orchestrator import load_entries, load_result
 from app.report.store import list_drafts
 
 logger = logging.getLogger("autocsr.routes.alerts")
-router = APIRouter()
+router = APIRouter(tags=["review"])
 
 # project_id -> {"counts": {...}, "items": [...]}
 _CACHE: dict[str, dict[str, Any]] = {}

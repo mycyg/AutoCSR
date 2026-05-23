@@ -17,7 +17,7 @@ from app.config.project_config import (
 )
 from app.state import default_machine
 
-router = APIRouter()
+router = APIRouter(tags=["admin"])
 
 
 def _ensure_project(pid: str) -> None:

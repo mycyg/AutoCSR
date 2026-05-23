@@ -51,6 +51,9 @@ class ReviewTask(BaseModel):
     comments: list[TaskComment] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime
+    # M17 — optional ordered signature chain (see app.collab.sign_chain).
+    # Older tasks on disk lack the field; default keeps them loadable.
+    sign_chain: list[dict] | None = None
 
 
 _LOCK_GUARD = threading.Lock()
@@ -70,6 +73,11 @@ def _path(pid: str) -> Path:
     p = data_dir() / "projects" / pid / "tasks.jsonl"
     p.parent.mkdir(parents=True, exist_ok=True)
     return p
+
+
+# Public alias for sister modules (e.g. sign_chain) that need the raw
+# storage path under the same per-project lock semantics.
+tasks_path = _path
 
 
 def _now() -> datetime:
@@ -324,7 +332,7 @@ def _find_issue(pid: str, issue_id: str) -> dict | None:
             for iss in data.get("issues") or []:
                 if iss.get("id") == issue_id:
                     return iss
-        for key in ("statistician", "medical", "regulatory"):
+        for key in ("statistician", "medical", "regulatory", "completeness"):
             inner = data.get(key) or {}
             for iss in inner.get("issues") or []:
                 if iss.get("id") == issue_id:

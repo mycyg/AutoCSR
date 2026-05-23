@@ -23,7 +23,7 @@ from app.schemas.outline import OutlineNode
 from app.server.ws import publish
 
 logger = logging.getLogger("autocsr.report.routes")
-router = APIRouter()
+router = APIRouter(tags=["report"])
 
 
 def _ensure_project(pid: str) -> None:

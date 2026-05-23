@@ -7,7 +7,7 @@ from fastapi import APIRouter, Body, HTTPException, Query
 
 from app.coding import dictionary
 
-router = APIRouter()
+router = APIRouter(tags=["admin"])
 
 
 @router.get("/coding/systems")

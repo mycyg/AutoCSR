@@ -11,7 +11,7 @@ from fastapi import APIRouter, HTTPException, UploadFile, File
 from app.config import data_dir
 from app.ingestion.orchestrator import load_entries, stamp_uploaded
 
-router = APIRouter()
+router = APIRouter(tags=["ingest"])
 
 
 def _project_dir(pid: str) -> Path:

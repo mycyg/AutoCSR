@@ -10,7 +10,7 @@ from app.ingestion.orchestrator import (
     kick_off, project_status, load_result, load_entries,
 )
 
-router = APIRouter()
+router = APIRouter(tags=["ingest"])
 
 
 @router.post("/projects/{pid}/ingest")

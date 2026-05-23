@@ -13,7 +13,7 @@ from app.agents.reviewer_agent import (
 from app.config import data_dir
 
 logger = logging.getLogger("autocsr.routes.review")
-router = APIRouter()
+router = APIRouter(tags=["review"])
 
 
 def _ensure_project(pid: str) -> None:

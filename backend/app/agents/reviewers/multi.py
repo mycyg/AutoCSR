@@ -11,6 +11,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from app.agents.reviewers.completeness import CompletenessReviewer
 from app.agents.reviewers.medical import MedicalReviewer
 from app.agents.reviewers.regulatory import RegulatoryReviewer
 from app.agents.reviewers.statistician import StatisticianReviewer
@@ -39,6 +40,9 @@ class MultiReviewResult(BaseModel):
     statistician: ReviewResult
     medical: ReviewResult
     regulatory: ReviewResult
+    # M17 — completeness checker. Optional so older snapshots on disk
+    # (saved before M17) still validate.
+    completeness: ReviewResult | None = None
     combined_count: dict[str, int] = Field(default_factory=dict)
     created_at: datetime
 
@@ -70,26 +74,28 @@ async def _run_one(agent_cls, pid: str, label: str) -> ReviewResult:
 
 async def run_multi_review(project_id: str) -> MultiReviewResult:
     await publish(project_id, "review.start", {
-        "checkers": ["statistician", "medical", "regulatory"],
+        "checkers": ["statistician", "medical", "regulatory", "completeness"],
         "mode": "multi",
     })
-    stat_rr, med_rr, reg_rr = await asyncio.gather(
+    stat_rr, med_rr, reg_rr, comp_rr = await asyncio.gather(
         _run_one(StatisticianReviewer, project_id, "statistician"),
         _run_one(MedicalReviewer, project_id, "medical"),
         _run_one(RegulatoryReviewer, project_id, "regulatory"),
+        _run_one(CompletenessReviewer, project_id, "completeness"),
     )
+    all_rr = (stat_rr, med_rr, reg_rr, comp_rr)
     combined = {
         "errors": sum(
             sum(1 for i in r.issues if i.severity == "error" and not i.ignored)
-            for r in (stat_rr, med_rr, reg_rr)
+            for r in all_rr
         ),
         "warns": sum(
             sum(1 for i in r.issues if i.severity == "warn" and not i.ignored)
-            for r in (stat_rr, med_rr, reg_rr)
+            for r in all_rr
         ),
         "infos": sum(
             sum(1 for i in r.issues if i.severity == "info" and not i.ignored)
-            for r in (stat_rr, med_rr, reg_rr)
+            for r in all_rr
         ),
     }
     result = MultiReviewResult(
@@ -97,6 +103,7 @@ async def run_multi_review(project_id: str) -> MultiReviewResult:
         statistician=stat_rr,
         medical=med_rr,
         regulatory=reg_rr,
+        completeness=comp_rr,
         combined_count=combined,
         created_at=datetime.now(timezone.utc),
     )

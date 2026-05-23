@@ -51,6 +51,12 @@ class AuditLogEntry(BaseModel):
     snapshot_id: str | None = None
     rows_before: int | None = None
     rows_after: int | None = None
+    # M17 — provenance of the rule and (when relevant) a human-readable
+    # justification. Defaults preserve old-record validation.
+    rule_provenance: Literal[
+        "llm_suggestion", "user_edit", "merged", "imported_pipeline",
+    ] = "llm_suggestion"
+    justification: str | None = None
 
 
 class Snapshot(BaseModel):

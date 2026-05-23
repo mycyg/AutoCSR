@@ -25,6 +25,9 @@ def log(project_id: str, file_id: str, action: str, **detail: Any) -> AuditLogEn
         snapshot_id=detail.pop("snapshot_id", None),
         rows_before=detail.pop("rows_before", None),
         rows_after=detail.pop("rows_after", None),
+        # M17 — explicit provenance tag + optional justification text.
+        rule_provenance=detail.pop("rule_provenance", "llm_suggestion"),
+        justification=detail.pop("justification", None),
         detail=detail,
     )
     line = entry.model_dump_json()

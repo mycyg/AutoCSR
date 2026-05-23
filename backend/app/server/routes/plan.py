@@ -17,7 +17,7 @@ from app.report.writer_agent import WriterContext
 from app.server.ws import publish
 
 logger = logging.getLogger("autocsr.routes.plan")
-router = APIRouter()
+router = APIRouter(tags=["report"])
 
 
 def _ensure_project(pid: str) -> None:

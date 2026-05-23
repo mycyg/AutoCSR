@@ -16,7 +16,7 @@ from app.config import data_dir
 from app.server.ws import publish
 
 logger = logging.getLogger("autocsr.analysis.routes")
-router = APIRouter()
+router = APIRouter(tags=["analysis"])
 
 
 def _ensure_project(pid: str) -> None:

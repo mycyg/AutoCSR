@@ -600,6 +600,21 @@ async def write_section(
         agent_name="writer",
         ts=datetime.now(timezone.utc),
     )]
+    # M17 — flag any Ref<...> the writer invented (unresolved against
+    # the corpus / stat / principle stores). Failure to import / scan is
+    # silent so older e2e harnesses without those modules still pass.
+    try:
+        from app.safety.hallucination_guard import (
+            mark_provenance_hallucinations, validate_references_against_corpus,
+        )
+        _hg = validate_references_against_corpus(
+            markdown, project_id, node_id=outline_node.id,
+        )
+        if _hg:
+            provenance = mark_provenance_hallucinations(provenance, _hg)
+            warnings.append(f"hallucination:{len(_hg)} unresolved refs")
+    except Exception:
+        pass
     draft = SectionDraft(
         node_id=outline_node.id,
         title=outline_node.title,

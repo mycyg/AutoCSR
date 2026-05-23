@@ -16,7 +16,7 @@ from app.outline.store import (
 from app.server.ws import publish
 
 logger = logging.getLogger("autocsr.outline.routes")
-router = APIRouter()
+router = APIRouter(tags=["outline"])
 
 
 def _ensure_project(pid: str) -> None:

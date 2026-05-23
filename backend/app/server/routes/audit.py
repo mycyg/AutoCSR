@@ -11,7 +11,7 @@ from app.audit import (
 )
 from app.config import data_dir
 
-router = APIRouter()
+router = APIRouter(tags=["audit"])
 
 
 def _ensure_project(pid: str) -> None:

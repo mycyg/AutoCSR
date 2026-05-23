@@ -28,7 +28,7 @@ from app.schemas.chat import ChatMessage
 from app.server.ws import publish
 
 logger = logging.getLogger("autocsr.report.chat_routes")
-router = APIRouter()
+router = APIRouter(tags=["report"])
 
 
 def _ensure_project(pid: str) -> None:

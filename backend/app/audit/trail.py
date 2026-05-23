@@ -231,6 +231,13 @@ def make_event(
 
 
 def append_event(project_id: str, event: AuditEvent) -> AuditEvent:
+    # M17 — opportunistic rotation: keep current shard under threshold
+    # so the verifier stays fast. Failures are non-fatal.
+    try:
+        from app.audit.rotation import maybe_rotate_project_audit
+        maybe_rotate_project_audit(project_id, ts=event.ts)
+    except Exception:
+        pass
     saved = _BACKEND.append_event(project_id, event)
     # Best-effort WS notify; never break the underlying mutation.
     try:

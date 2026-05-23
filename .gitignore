@@ -55,3 +55,11 @@ data/projects/*/exports/
 data/projects/*/keys/
 data/projects/*/signatures/
 data/users.json
+
+# V3-A M17 — generated SDKs (regenerate from live openapi.json)
+sdk/ts/
+sdk/py/
+
+# V3-A M17 — pytest-cov artifact
+backend/.coverage
+backend/htmlcov/

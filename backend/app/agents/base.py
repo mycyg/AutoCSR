@@ -106,6 +106,19 @@ class BaseAgent(abc.ABC):
                                **{k: v for k, v in (agent_input.meta or {}).items()
                                   if isinstance(v, (str, int, float, bool))})
         log.info("agent.start")
+        # M17 — Prometheus + error sinks. Both are optional / no-op when
+        # the corresponding modules are missing or misconfigured so the
+        # agent contract is unchanged.
+        try:
+            from app.observability.metrics import (
+                add_llm_tokens, inc_active_projects,
+                inc_agent_run, observe_agent_duration,
+            )
+        except Exception:
+            add_llm_tokens = inc_active_projects = None  # type: ignore[assignment]
+            inc_agent_run = observe_agent_duration = None  # type: ignore[assignment]
+        if inc_active_projects is not None:
+            inc_active_projects(1)
         t0 = time.time()
         try:
             out = await self._run(agent_input)
@@ -113,13 +126,38 @@ class BaseAgent(abc.ABC):
             elapsed = int((time.time() - t0) * 1000)
             log.error("agent.error", error=str(e), kind=type(e).__name__,
                       retryable=getattr(e, "retryable", False), latency_ms=elapsed)
+            if observe_agent_duration is not None:
+                observe_agent_duration(self.name, elapsed / 1000.0)
+                inc_agent_run(self.name, "error")
+                inc_active_projects(-1)
+            try:
+                from app.observability.error_hook import dispatch_error
+                dispatch_error(self.name, e, project_id=pid)
+            except Exception:
+                pass
             raise
         except Exception as e:  # noqa: BLE001
             elapsed = int((time.time() - t0) * 1000)
             log.error("agent.error", error=str(e), kind=type(e).__name__,
                       retryable=False, latency_ms=elapsed)
+            if observe_agent_duration is not None:
+                observe_agent_duration(self.name, elapsed / 1000.0)
+                inc_agent_run(self.name, "error")
+                inc_active_projects(-1)
+            try:
+                from app.observability.error_hook import dispatch_error
+                dispatch_error(self.name, e, project_id=pid)
+            except Exception:
+                pass
             raise
         elapsed = int((time.time() - t0) * 1000)
+        if observe_agent_duration is not None:
+            observe_agent_duration(self.name, elapsed / 1000.0)
+            inc_agent_run(self.name, "ok" if out.ok else "warn")
+            inc_active_projects(-1)
+        if add_llm_tokens is not None and out.llm_meta:
+            add_llm_tokens(out.llm_meta.model or "unknown", "in", out.llm_meta.tokens_in)
+            add_llm_tokens(out.llm_meta.model or "unknown", "out", out.llm_meta.tokens_out)
         log_kwargs: dict[str, Any] = {"latency_ms": elapsed, "ok": out.ok,
                                        "n_warnings": len(out.warnings)}
         if out.llm_meta:

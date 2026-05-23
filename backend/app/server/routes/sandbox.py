@@ -21,7 +21,7 @@ from app.sandbox.executor import (
 )
 from app.server.ws import publish
 
-router = APIRouter()
+router = APIRouter(tags=["admin"])
 
 
 def _ensure_project(pid: str) -> None:

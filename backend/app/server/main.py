@@ -20,6 +20,8 @@ from app.server.routes import (
     coding, analysis_advanced,
     # V2-F M15+M16
     audit, collab, compliance, multi_review,
+    # V3-A M17 — hallucination + eCTD
+    hallucination, ectd,
 )
 from app.server.ws import router as ws_router
 
@@ -29,7 +31,40 @@ logger = get_logger("autocsr.server")
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(title="AutoCSR", version="0.1.0")
+    app = FastAPI(
+        title="AutoCSR API",
+        version="1.0.0",
+        description=(
+            "Open-source ICH E3 / NMPA Clinical Study Report (CSR) generation "
+            "platform. The HTTP surface mirrors the production pipeline: "
+            "ingestion → cleansing → analysis → outline → writer agent → "
+            "harmonize → review → audit / e-sign → DOCX / eCTD export."
+        ),
+        contact={
+            "name": "AutoCSR Maintainers",
+            "url": "https://github.com/autocsr/autocsr",
+        },
+        license_info={
+            "name": "Apache-2.0",
+            "url": "https://www.apache.org/licenses/LICENSE-2.0",
+        },
+        openapi_tags=[
+            {"name": "health", "description": "Liveness + LLM ping."},
+            {"name": "projects", "description": "Project CRUD + tagging + archive."},
+            {"name": "ingest", "description": "Upload + 6-worker ingestion pipeline."},
+            {"name": "cleansing", "description": "Proposal workbench, transformer, audit, pipeline IO."},
+            {"name": "analysis", "description": "Descriptive / inferential / survival / safety + advanced stats + TLF zip."},
+            {"name": "outline", "description": "ICH E3 outline builder + stat_refs binding."},
+            {"name": "report", "description": "Writer orchestrator + chat editor + plan-first + harmonize."},
+            {"name": "review", "description": "Single + multi reviewer (statistician/medical/regulatory/completeness)."},
+            {"name": "export", "description": "DOCX + TLF + eCTD packagers."},
+            {"name": "audit", "description": "Append-only hash-chain audit + ed25519 signatures."},
+            {"name": "safety", "description": "Hallucination guard + PII scan + redaction."},
+            {"name": "collab", "description": "Users + ReviewTasks + Kanban + sign chains."},
+            {"name": "admin", "description": "Sandbox + corpus + principles + diagnostics."},
+            {"name": "observability", "description": "Prometheus /metrics + error sinks."},
+        ],
+    )
 
     app.add_middleware(
         CORSMiddleware,
@@ -78,6 +113,14 @@ def create_app() -> FastAPI:
     # V2-F M16 — multi-reviewer + collab + queue
     app.include_router(multi_review.router, prefix="/api")
     app.include_router(collab.router, prefix="/api")
+    # V3-A M17 — hallucination guard + eCTD packager + Prometheus metrics
+    app.include_router(hallucination.router, prefix="/api")
+    app.include_router(ectd.router, prefix="/api")
+    try:
+        from app.observability.metrics import router as metrics_router
+        app.include_router(metrics_router)
+    except Exception as e:  # noqa: BLE001
+        logger.warning("metrics_router_unavailable: %s", e)
 
     # WebSocket hub (no /api prefix — exposed at /ws/{pid})
     app.include_router(ws_router)
@@ -89,6 +132,28 @@ def create_app() -> FastAPI:
     @app.on_event("startup")
     async def _log_startup() -> None:
         logger.info("server.start", settings=config_summary())
+
+    # M17 — global exception bridge to the pluggable error_hook registry.
+    # HTTPException stays untouched so 4xx aren't broadcast as runtime
+    # errors; everything else is fanned out.
+    from fastapi import HTTPException as _HTTPException
+    from fastapi.responses import JSONResponse as _JSONResponse
+
+    @app.exception_handler(Exception)
+    async def _bridge_to_sinks(request, exc):  # type: ignore[no-redef]
+        if isinstance(exc, _HTTPException):
+            raise exc
+        try:
+            from app.observability.error_hook import dispatch_error
+            dispatch_error("server", exc, path=str(request.url.path),
+                            method=request.method)
+        except Exception:
+            pass
+        logger.exception("unhandled_server_error path=%s", request.url.path)
+        return _JSONResponse(
+            status_code=500,
+            content={"detail": f"internal error: {type(exc).__name__}"},
+        )
 
     return app
 

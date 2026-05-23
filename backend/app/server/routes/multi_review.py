@@ -11,7 +11,7 @@ from app.config import data_dir
 from app.queue import enqueue, get_status
 from app.state.diff_projects import diff_projects
 
-router = APIRouter()
+router = APIRouter(tags=["review"])
 
 
 def _ensure_project(pid: str) -> None:
@@ -74,6 +74,67 @@ def task_cancel(task_id: str) -> dict[str, Any]:
     from app.queue import cancel
     ok = cancel(task_id)
     return {"ok": bool(ok), "id": task_id}
+
+
+# M17 — resume a long-running job from its checkpoint --------------
+@router.post("/tasks/{task_id}/resume")
+async def task_resume(task_id: str, body: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Inspect the checkpoint and resume if any items remain.
+
+    The body may contain ``project_id`` when the checkpoint scope is
+    ambiguous. Otherwise we walk every project on disk to find one.
+    """
+    body = body or {}
+    pid = str(body.get("project_id") or "").strip()
+    from app.queue import checkpoint as _cp
+    from app.config import data_dir
+    cp = None
+    if pid:
+        cp = _cp.load_checkpoint(pid, task_id)
+    else:
+        projects_dir = data_dir() / "projects"
+        if projects_dir.exists():
+            for proj_path in projects_dir.iterdir():
+                if not proj_path.is_dir():
+                    continue
+                maybe = _cp.load_checkpoint(proj_path.name, task_id)
+                if maybe is not None:
+                    cp = maybe
+                    pid = proj_path.name
+                    break
+    if cp is None:
+        raise HTTPException(status_code=404,
+                            detail=f"checkpoint not found for task {task_id}")
+    remaining = max(0, cp.total - len(cp.completed_items))
+    resumed = False
+    # We only fire a background resume when the kind is actually
+    # report.generate AND we have a running event loop. For other kinds
+    # (or when called from a sync context like a unit test), we simply
+    # report the checkpoint state.
+    if cp.status == "running" and remaining > 0 and cp.kind == "report.generate":
+        try:
+            import asyncio
+            from app.report.orchestrator import write_all
+            params = dict(cp.params or {})
+            params.pop("only_phases", None)
+            async def _bg() -> None:
+                try:
+                    await write_all(pid, task_id=task_id, **params)
+                except Exception as exc:  # noqa: BLE001
+                    _cp.mark_error(pid, task_id, f"resume failed: {exc!r}")
+            asyncio.get_running_loop().create_task(_bg())
+            resumed = True
+        except Exception:
+            resumed = False
+    return {
+        "task_id": task_id,
+        "project_id": pid,
+        "status": cp.status,
+        "completed": len(cp.completed_items),
+        "total": cp.total,
+        "remaining": remaining,
+        "resumed": resumed,
+    }
 
 
 # Register queue handler at import time

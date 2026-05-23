@@ -200,6 +200,7 @@ async def write_all(
     leaf_limit: int | None = None,
     enable_tools: bool | None = None,
     max_tool_turns: int = 5,
+    task_id: str | None = None,
 ) -> ReportDraft:
     """Run the full multi-agent writer pipeline.
 
@@ -218,6 +219,28 @@ async def write_all(
         # Keep first N leaves but preserve outline order
         leaves = leaves[:leaf_limit]
     by_id = {n.id: n for n in outline.walk()}
+
+    # M17 — checkpoint scaffolding. ``task_id`` is opt-in (callers pass it
+    # to enable resume on restart). When provided we skip leaves already
+    # recorded as done and write progress after every section.
+    _cp = None
+    if task_id:
+        try:
+            from app.queue import checkpoint as _checkpoint_mod
+            _cp = _checkpoint_mod
+            already_done = set(_cp.load_checkpoint(project_id, task_id).completed_items) \
+                if _cp.load_checkpoint(project_id, task_id) else set()
+            if already_done:
+                leaves = [n for n in leaves if n.id not in already_done]
+            _cp.write_checkpoint(
+                project_id, task_id, kind="report.generate",
+                total=len(leaves) + len(already_done),
+                params={"harmonize": harmonize,
+                         "only_phases": list(only_phases) if only_phases else None,
+                         "leaf_limit": leaf_limit},
+            )
+        except Exception:
+            _cp = None
 
     status_reg.init(project_id, outline.version, len(leaves))
     await publish(project_id, "writer.batch_start", {
@@ -333,6 +356,12 @@ async def write_all(
                     "latency_ms": draft.llm_meta.latency_ms,
                     "warnings": draft.warnings,
                 })
+                if _cp is not None and task_id:
+                    try:
+                        _cp.record_progress(project_id, task_id, node.id,
+                                             kind="report.generate")
+                    except Exception:
+                        pass
                 return draft
 
         results = await asyncio.gather(*[_run_leaf(n) for n in phase_leaves],
@@ -368,6 +397,11 @@ async def write_all(
             pass
     save_report(report)
     status_reg.update(project_id, current_phase="done", harmonized=report.harmonized)
+    if _cp is not None and task_id:
+        try:
+            _cp.mark_done(project_id, task_id)
+        except Exception:
+            pass
     # Invalidate alerts cache so writer errors are reflected in the bar
     try:
         from app.server.routes.alerts import invalidate as _alerts_invalidate

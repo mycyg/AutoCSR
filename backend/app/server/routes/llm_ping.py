@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 from app.llm import ark_client
 from app.llm.policy import for_role
 
-router = APIRouter()
+router = APIRouter(tags=["health"])
 
 
 class PingRequest(BaseModel):

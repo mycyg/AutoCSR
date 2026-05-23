@@ -19,7 +19,7 @@ from app.ingestion.csr_importer import (
 )
 
 logger = logging.getLogger("autocsr.import_csr")
-router = APIRouter()
+router = APIRouter(tags=["projects"])
 
 
 def _ensure_project(pid: str) -> None:
