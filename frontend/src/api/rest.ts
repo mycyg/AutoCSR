@@ -518,6 +518,50 @@ export function exportDownloadUrl(pid: string, filename: string): string {
   return `/api/projects/${pid}/export/docx/${encodeURIComponent(filename)}`
 }
 
+// M19 — multi-format export ------------------------------------------------
+
+export type MultiExportFormat = 'pdf' | 'html' | 'pptx' | 'md_bundle'
+
+export interface MultiExportResultDTO {
+  ok: boolean
+  filename: string
+  size_bytes: number
+  generated_at?: string
+  n_sections?: number
+  n_citations?: number
+  n_charts?: number
+  n_slides?: number
+  n_files?: number
+}
+
+export async function exportFormat(
+  pid: string, format: MultiExportFormat, body: Record<string, unknown> = {},
+): Promise<MultiExportResultDTO> {
+  return (await api.post(`/projects/${pid}/export/${format}`, body,
+    { timeout: 600_000 })).data
+}
+
+export function exportFileDownloadUrl(pid: string, filename: string): string {
+  return `/api/projects/${pid}/export/file/${encodeURIComponent(filename)}`
+}
+
+// ---- M19 backup + restore -----------------------------------------------
+
+export function backupProjectUrl(pid: string): string {
+  return `/api/projects/${pid}/backup`
+}
+
+export async function restoreProject(file: File): Promise<{
+  ok: boolean; new_pid: string; name: string; source_pid: string; files_restored: number;
+}> {
+  const fd = new FormData()
+  fd.append('file', file)
+  return (await api.post(`/projects/restore`, fd, {
+    timeout: 600_000,
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })).data
+}
+
 export async function updateDraftMarkdown(pid: string, nodeId: string, markdown: string): Promise<{ draft: SectionDraftDTO; version: number }> {
   return (await api.put(`/projects/${pid}/report/drafts/${nodeId}/markdown`, { markdown },
     { timeout: 60_000 })).data

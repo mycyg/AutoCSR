@@ -1,0 +1,120 @@
+# AutoCSR Docker Compose stack.
+#
+# Quick start:
+#   cp .env.example .env             # fill in LLM_API_KEY
+#   docker compose up --build
+#
+# Optional Prometheus dashboard:
+#   docker compose --profile monitoring up
+#
+# Notes:
+#   - The backend mounts ./backend/app/config/settings.yaml at runtime so
+#     local edits to settings (queue.backend, llm.base_url, etc.) survive
+#     container restart without rebuilding the image.
+#   - Project data persists under ./data (host bind mount).
+#   - On Windows, Docker Desktop with WSL2 is strongly recommended for
+#     Redis throughput; native Hyper-V works but is slower.
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: autocsr-backend
+    restart: unless-stopped
+    ports:
+      - "8766:8766"
+    environment:
+      - LLM_API_KEY=${LLM_API_KEY:-}
+      - LLM_BASE_URL=${LLM_BASE_URL:-}
+      - LLM_MODEL=${LLM_MODEL:-}
+      - AUTOCSR_QUEUE_BACKEND=${AUTOCSR_QUEUE_BACKEND:-arq}
+      - AUTOCSR_REDIS_URL=redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./data:/app/data
+      - ./backend/app/config/settings.yaml:/app/app/config/settings.yaml:ro
+    networks:
+      - autocsr
+
+  worker:
+    # arq worker — picks long-running jobs off Redis. Same image as backend
+    # so handler implementations stay in lockstep.
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: autocsr-worker
+    restart: unless-stopped
+    command: ["python", "scripts/run_arq_worker.py"]
+    environment:
+      - LLM_API_KEY=${LLM_API_KEY:-}
+      - LLM_BASE_URL=${LLM_BASE_URL:-}
+      - LLM_MODEL=${LLM_MODEL:-}
+      - AUTOCSR_QUEUE_BACKEND=arq
+      - AUTOCSR_REDIS_URL=redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    volumes:
+      - ./data:/app/data
+      - ./backend/app/config/settings.yaml:/app/app/config/settings.yaml:ro
+      - ./scripts/run_arq_worker.py:/app/scripts/run_arq_worker.py:ro
+    networks:
+      - autocsr
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: autocsr-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - autocsr
+
+  redis:
+    image: redis:7-alpine
+    container_name: autocsr-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks:
+      - autocsr
+
+  prometheus:
+    image: prom/prometheus:v2.55.0
+    container_name: autocsr-prometheus
+    restart: unless-stopped
+    profiles: ["monitoring"]
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./deploy/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    depends_on:
+      - backend
+    networks:
+      - autocsr
+
+volumes:
+  redis-data:
+  prometheus-data:
+
+networks:
+  autocsr:
+    driver: bridge

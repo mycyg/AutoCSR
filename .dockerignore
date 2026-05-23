@@ -1,0 +1,53 @@
+# Common
+.git
+.github
+.gitignore
+.dockerignore
+**/__pycache__
+**/*.py[cod]
+**/*$py.class
+**/*.so
+**/.pytest_cache
+**/.mypy_cache
+**/.ruff_cache
+
+# Python local envs
+**/.venv
+**/venv
+**/env
+
+# Node
+**/node_modules
+**/npm-debug.log*
+**/yarn-debug.log*
+frontend/dist
+frontend/.vite
+
+# Editor & OS
+.vscode
+.idea
+*.swp
+.DS_Store
+Thumbs.db
+
+# Project artifacts that should NEVER ship inside a container image.
+data/
+refer/
+sdk/ts/
+sdk/py/
+backend/.coverage
+backend/htmlcov
+backend/build
+backend/dist
+backend/*.egg-info
+
+# Logs
+**/*.log
+logs/
+
+# Local config + secrets (mounted at runtime; never baked in).
+.env
+.env.local
+backend/app/config/settings.yaml
+backend/app/config/settings.*.yaml
+!backend/app/config/settings.example.yaml

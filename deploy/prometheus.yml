@@ -1,0 +1,16 @@
+# Prometheus scrape config — used by the optional `monitoring` profile in
+# docker-compose.yml. Mount as /etc/prometheus/prometheus.yml read-only.
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: autocsr-backend
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["backend:8766"]
+
+  # Self-monitoring.
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]

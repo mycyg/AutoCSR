@@ -63,3 +63,7 @@ sdk/py/
 # V3-A M17 — pytest-cov artifact
 backend/.coverage
 backend/htmlcov/
+backend/coverage.xml
+
+# M19 — project backup zips (transient downloads)
+data/backups/

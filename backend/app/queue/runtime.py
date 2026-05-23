@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 import threading
 import time
 import uuid
@@ -55,6 +56,11 @@ def _now() -> str:
 
 
 def _backend() -> str:
+    # Env override takes precedence so docker-compose can flip the
+    # backend without rebuilding the image.
+    env = (os.environ.get("AUTOCSR_QUEUE_BACKEND") or "").strip().lower()
+    if env in {"inmemory", "arq"}:
+        return env
     seg = settings().get("queue") or {}
     return str(seg.get("backend") or "inmemory").lower()
 
@@ -180,6 +186,14 @@ def list_recent(*, project_id: str | None = None, limit: int = 50) -> list[TaskR
 # arq backend (best-effort, optional)
 # ---------------------------------------------------------------------------
 
+def _redis_url() -> str:
+    env = os.environ.get("AUTOCSR_REDIS_URL")
+    if env:
+        return env
+    seg = settings().get("queue") or {}
+    return str(seg.get("redis_url") or "redis://127.0.0.1:6379/0")
+
+
 def _enqueue_arq(rec: TaskRecord, handler: Handler, payload: dict) -> None:
     """Submit to arq if installed + reachable. Raises on any failure
     so the caller can degrade to inmemory cleanly."""
@@ -187,11 +201,24 @@ def _enqueue_arq(rec: TaskRecord, handler: Handler, payload: dict) -> None:
         from arq.connections import RedisSettings, create_pool  # type: ignore
     except Exception as e:  # noqa: BLE001
         raise RuntimeError(f"arq not installed: {e}")
-    seg = settings().get("queue") or {}
-    url = str(seg.get("redis_url") or "redis://127.0.0.1:6379/0")
-    # Synchronously create + enqueue via a temp loop
+    url = _redis_url()
+
+    # Synchronously create + enqueue via a temp loop. If a loop is already
+    # running (FastAPI handler), schedule on a side-thread to avoid the
+    # "asyncio.run() cannot be called from a running event loop" error.
     async def _go() -> None:
         pool = await create_pool(RedisSettings.from_dsn(url))
-        await pool.enqueue_job(rec.task_type, **payload, _job_id=rec.id)
-        await pool.close()
-    asyncio.run(_go())
+        try:
+            await pool.enqueue_job(rec.task_type, **payload, _job_id=rec.id)
+        finally:
+            await pool.close()
+
+    try:
+        asyncio.get_running_loop()
+        # We're inside an event loop — run in a thread with its own loop.
+        import concurrent.futures as _cf
+        with _cf.ThreadPoolExecutor(max_workers=1) as pool_exec:
+            fut = pool_exec.submit(asyncio.run, _go())
+            fut.result(timeout=10)
+    except RuntimeError:
+        asyncio.run(_go())

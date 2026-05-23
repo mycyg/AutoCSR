@@ -6,8 +6,10 @@ import {
   exportDownloadUrl, getExportTemplateConfig, listExportTemplates,
   patchExportTemplateConfig, uploadExportTemplate,
   listTlfExports, runTlfExport, tlfDownloadUrl,
+  // M19 — multi-format export + backup
+  exportFormat, exportFileDownloadUrl, backupProjectUrl, restoreProject,
   type DocxTemplateConfigDTO, type ExportOptions, type TLFExportRecordDTO,
-  type UploadedTemplateDTO,
+  type UploadedTemplateDTO, type MultiExportFormat, type MultiExportResultDTO,
 } from '@/api/rest'
 import { connectProjectWS } from '@/api/ws'
 import EctdExportDialog from '@/components/global/EctdExportDialog.vue'
@@ -52,7 +54,10 @@ async function onBuildTlf(): Promise<void> {
 
 onMounted(async () => {
   await exportStore.refresh(props.id)
-  wsClose = connectProjectWS(props.id, (ev) => exportStore.handleWS(ev))
+  wsClose = connectProjectWS(props.id, (ev) => {
+    exportStore.handleWS(ev)
+    _handleMultiFormatWS(ev as { type: string; payload: Record<string, unknown> })
+  })
   try {
     cfg.value = await getExportTemplateConfig(props.id)
     uploadedTemplates.value = await listExportTemplates(props.id)
@@ -114,6 +119,76 @@ async function onDelete(filename: string): Promise<void> {
                             { type: 'warning', danger: true, resource_name: filename })) return
   try { await exportStore.remove(props.id, filename) }
   catch (e) { handleApiError(e) }
+}
+
+// M19 — multi-format export ------------------------------------------------
+
+const multiExporting = ref<Record<MultiExportFormat, boolean>>({
+  pdf: false, html: false, pptx: false, md_bundle: false,
+})
+const multiPhase = ref<Record<MultiExportFormat, string>>({
+  pdf: '', html: '', pptx: '', md_bundle: '',
+})
+const multiLast = ref<Record<MultiExportFormat, MultiExportResultDTO | null>>({
+  pdf: null, html: null, pptx: null, md_bundle: null,
+})
+
+const FORMAT_LABEL: Record<MultiExportFormat, string> = {
+  pdf: 'PDF', html: 'HTML', pptx: 'PPTX', md_bundle: 'Markdown bundle',
+}
+
+async function onExportFormat(format: MultiExportFormat): Promise<void> {
+  multiExporting.value[format] = true
+  multiPhase.value[format] = 'starting'
+  try {
+    const r = await exportFormat(props.id, format, { ...opts.value })
+    multiLast.value[format] = r
+    multiPhase.value[format] = 'done'
+    ElMessage.success(`${FORMAT_LABEL[format]}: ${r.filename} (${(r.size_bytes / 1024).toFixed(1)} KB)`)
+    await exportStore.refresh(props.id)
+  } catch (e) {
+    multiPhase.value[format] = 'error'
+    handleApiError(e)
+  } finally {
+    multiExporting.value[format] = false
+  }
+}
+
+// Bridge — WS events for export.<format>.* update phase chips.
+function _handleMultiFormatWS(ev: { type: string; payload: Record<string, unknown> }): void {
+  const m = ev.type.match(/^export\.(pdf|html|pptx|md_bundle)\.(start|progress|done|error)$/)
+  if (!m) return
+  const fmt = m[1] as MultiExportFormat
+  const phase = m[2]
+  if (phase === 'progress') {
+    multiPhase.value[fmt] = String(ev.payload?.phase || 'progress')
+  } else {
+    multiPhase.value[fmt] = phase
+  }
+}
+
+// ---- M19 backup + restore ------------------------------------------------
+
+const restoring = ref(false)
+
+function onBackup(): void {
+  // Trigger a same-tab download by navigating to the backup endpoint —
+  // FileResponse keeps the browser's native filename prompt.
+  window.location.href = backupProjectUrl(props.id)
+}
+
+async function onRestoreUpload(uploadFile: { raw?: File }): Promise<void> {
+  const f = uploadFile.raw
+  if (!f) return
+  restoring.value = true
+  try {
+    const r = await restoreProject(f)
+    ElMessage.success(`Restored as ${r.new_pid} (${r.files_restored} files)`)
+  } catch (e) {
+    handleApiError(e)
+  } finally {
+    restoring.value = false
+  }
 }
 
 function fmtSize(bytes: number): string {
@@ -272,6 +347,45 @@ const previewHeadingStyle = computed(() => {
       </el-collapse-item>
     </el-collapse>
 
+    <!-- M19 — multi-format export -->
+    <div class="panel">
+      <h3>Multi-format export</h3>
+      <p class="hint">同一份报告导出为多种格式 — PDF 给打印 / HTML 给在线浏览 / PPTX 给汇报 / Markdown bundle 给 dev workflow。</p>
+      <div class="multi-grid">
+        <div v-for="fmt in (['pdf','html','pptx','md_bundle'] as MultiExportFormat[])"
+              :key="fmt" class="multi-card">
+          <div class="multi-card-head">
+            <strong>{{ FORMAT_LABEL[fmt] }}</strong>
+            <span v-if="multiPhase[fmt]" class="muted">· {{ multiPhase[fmt] }}</span>
+          </div>
+          <el-button type="primary" plain :loading="multiExporting[fmt]"
+                     @click="onExportFormat(fmt)">
+            {{ multiExporting[fmt] ? '正在生成…' : '生成 ' + FORMAT_LABEL[fmt] }}
+          </el-button>
+          <div v-if="multiLast[fmt]" class="multi-card-last">
+            <el-link :href="exportFileDownloadUrl(props.id, multiLast[fmt]!.filename)"
+                      type="primary" target="_blank">
+              ⬇ {{ multiLast[fmt]!.filename }}
+            </el-link>
+            <span class="muted"> ({{ fmtSize(multiLast[fmt]!.size_bytes) }})</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- M19 — backup + restore -->
+    <div class="panel">
+      <h3>Project backup &amp; restore</h3>
+      <p class="hint">把项目全部数据（raw / processed / chapters / outline / audit / signatures）打包成 zip；导入到当前 host 时会分配新 pid。</p>
+      <div class="trigger">
+        <el-button type="primary" plain @click="onBackup">⬇ 备份项目</el-button>
+        <el-upload :auto-upload="false" :show-file-list="false" accept=".zip"
+                   :on-change="onRestoreUpload">
+          <el-button :loading="restoring">⬆ 导入项目 zip</el-button>
+        </el-upload>
+      </div>
+    </div>
+
     <div class="panel">
       <h3>{{ $t('ectd.title') }}</h3>
       <p class="hint">{{ $t('ectd.hint') }}</p>
@@ -349,4 +463,18 @@ const previewHeadingStyle = computed(() => {
   padding: 16px 22px;
   min-height: 100px;
 }
+.multi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+.multi-card {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.multi-card-head { display: flex; align-items: baseline; gap: 6px; }
+.multi-card-last { font-size: var(--font-size-sm); }
 </style>

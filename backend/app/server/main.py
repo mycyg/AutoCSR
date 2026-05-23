@@ -22,6 +22,8 @@ from app.server.routes import (
     audit, collab, compliance, multi_review,
     # V3-A M17 — hallucination + eCTD
     hallucination, ectd,
+    # M19 — project backup + restore
+    backup,
 )
 from app.server.ws import router as ws_router
 
@@ -80,6 +82,11 @@ def create_app() -> FastAPI:
     # M15 — append-only audit chain for every mutation route.
     app.add_middleware(AuditMiddleware)
 
+    # M19 — per-user / per-route rate limit (token bucket fallback when
+    # slowapi/Redis are unavailable; deterministic enough for e2e).
+    from app.server.middlewares.rate_limit import RateLimitMiddleware
+    app.add_middleware(RateLimitMiddleware)
+
     # Routes are mounted under /api so the Vite proxy can forward them cleanly.
     app.include_router(health.router, prefix="/api")
     app.include_router(llm_ping.router, prefix="/api")
@@ -116,6 +123,8 @@ def create_app() -> FastAPI:
     # V3-A M17 — hallucination guard + eCTD packager + Prometheus metrics
     app.include_router(hallucination.router, prefix="/api")
     app.include_router(ectd.router, prefix="/api")
+    # M19 — project backup + restore
+    app.include_router(backup.router, prefix="/api")
     try:
         from app.observability.metrics import router as metrics_router
         app.include_router(metrics_router)

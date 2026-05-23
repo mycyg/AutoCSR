@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>{{ project_name | e }} — Clinical Study Report</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js" defer></script>
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-alt: #f7f9fc;
+    --fg: #1f2937;
+    --fg-mute: #6b7280;
+    --accent: #2563eb;
+    --border: #e5e7eb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f172a; --bg-alt: #111827;
+      --fg: #e5e7eb; --fg-mute: #94a3b8;
+      --accent: #60a5fa; --border: #1f2937;
+    }
+  }
+  html { background: var(--bg); color: var(--fg); }
+  body {
+    font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei",
+                  Roboto, Arial, sans-serif;
+    max-width: 900px; margin: 0 auto; padding: 32px 24px 96px;
+    line-height: 1.6;
+  }
+  header.cover { text-align: center; padding: 64px 0 48px; border-bottom: 1px solid var(--border); }
+  header.cover h1 { font-size: 32px; margin: 0 0 8px; color: var(--accent); }
+  header.cover .meta { color: var(--fg-mute); font-size: 14px; margin: 4px 0; }
+  nav.toc { background: var(--bg-alt); padding: 16px 24px; border-radius: 8px; margin: 24px 0; }
+  nav.toc ul { list-style: none; padding-left: 0; margin: 4px 0; }
+  nav.toc li { padding: 2px 0; }
+  nav.toc a { color: var(--fg); text-decoration: none; }
+  nav.toc a:hover { color: var(--accent); text-decoration: underline; }
+  h1, h2, h3, h4 { color: var(--accent); margin-top: 1.6em; }
+  h1 { font-size: 24px; border-bottom: 2px solid var(--border); padding-bottom: 6px; }
+  h2 { font-size: 19px; }
+  h3 { font-size: 17px; }
+  h4 { font-size: 15px; }
+  p { margin: 0.6em 0; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 14px; }
+  th, td { border: 1px solid var(--border); padding: 6px 10px; text-align: left; vertical-align: top; }
+  th { background: var(--bg-alt); }
+  code { background: var(--bg-alt); padding: 1px 4px; border-radius: 3px; font-size: 0.92em; }
+  blockquote { color: var(--fg-mute); border-left: 3px solid var(--border); padding-left: 12px; margin-left: 0; }
+  .chart-container { width: 100%; min-height: 320px; margin: 16px 0; }
+  .citation { font-size: 13px; color: var(--fg-mute); margin: 4px 0; }
+  .badge { display: inline-block; padding: 2px 8px; font-size: 11px;
+            background: var(--accent); color: #fff; border-radius: 10px; }
+  @media print {
+    body { max-width: none; padding: 0; }
+    nav.toc, .chart-container { page-break-inside: avoid; }
+    header.cover { page-break-after: always; }
+    h1 { page-break-before: always; }
+  }
+</style>
+</head>
+<body>
+
+<header class="cover">
+  <h1>{{ project_name | e }}</h1>
+  <div class="meta">Clinical Study Report</div>
+  <div class="meta">Version: v{{ version }}</div>
+  <div class="meta">Generated: {{ generated_at }}</div>
+  {% if compliance_note %}
+  <div class="meta"><em>{{ compliance_note | e }}</em></div>
+  {% endif %}
+</header>
+
+<nav class="toc" aria-label="Table of contents">
+  <h2 style="margin-top: 0">Table of Contents</h2>
+  <ul>
+    {% for node in toc %}
+    <li style="margin-left: {{ (node.level - 1) * 16 }}px">
+      <a href="#sec-{{ node.id | replace('.', '-') }}">{{ node.id }}&nbsp;&nbsp;{{ node.title | e }}</a>
+    </li>
+    {% endfor %}
+  </ul>
+</nav>
+
+<main>
+{% for node in sections %}
+<section id="sec-{{ node.id | replace('.', '-') }}">
+  <h{{ node.level if node.level < 5 else 4 }}>{{ node.id }}&nbsp;&nbsp;{{ node.title | e }}</h{{ node.level if node.level < 5 else 4 }}>
+  {% if node.markdown_html %}
+    {{ node.markdown_html | safe }}
+  {% elif not node.has_children %}
+    <p><em>(This section is empty.)</em></p>
+  {% endif %}
+  {% for ch in node.charts %}
+  <div class="chart-container" id="chart-{{ ch.id }}"
+        data-chart='{{ ch.config_json | safe }}'
+        aria-label="Chart for {{ ch.title | e }}"></div>
+  {% endfor %}
+</section>
+{% endfor %}
+</main>
+
+<section id="references">
+  <h1>References</h1>
+  {% if citations %}
+    {% for c in citations %}
+    <p class="citation"><strong>[{{ c.ref_code | e }}]</strong>
+       <span class="badge">{{ c.type }}</span> {{ c.snippet | e }}</p>
+    {% endfor %}
+  {% else %}
+    <p><em>(No resolved citations.)</em></p>
+  {% endif %}
+</section>
+
+<section id="appendix-a">
+  <h1>Appendix A — Cleansing Pipeline Summary</h1>
+  <table>
+    <thead><tr><th>Type</th><th>Count</th></tr></thead>
+    <tbody>
+      {% for row in cleansing_rows %}
+      <tr><td>{{ row[0] | e }}</td><td>{{ row[1] | e }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section id="appendix-b">
+  <h1>Appendix B — Analysis Methods Summary</h1>
+  <table>
+    <thead><tr><th>ID</th><th>Type</th><th>Title</th><th>Source</th></tr></thead>
+    <tbody>
+      {% for row in analysis_rows %}
+      <tr>
+        <td><code>{{ row[0] | e }}</code></td>
+        <td>{{ row[1] | e }}</td>
+        <td>{{ row[2] | e }}</td>
+        <td>{{ row[3] | e }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<script>
+(function () {
+  function init() {
+    if (typeof echarts === 'undefined') {
+      // Fallback rendering when CDN is blocked.
+      document.querySelectorAll('.chart-container').forEach(function (el) {
+        el.innerHTML = '<em style="color:#888">[ECharts unavailable offline]</em>';
+      });
+      return;
+    }
+    document.querySelectorAll('.chart-container').forEach(function (el) {
+      var raw = el.getAttribute('data-chart');
+      if (!raw) return;
+      try {
+        var cfg = JSON.parse(raw);
+        var chart = echarts.init(el);
+        chart.setOption(cfg);
+        window.addEventListener('resize', function () { chart.resize(); });
+      } catch (e) {
+        el.innerHTML = '<em style="color:#c00">[chart parse error]</em>';
+      }
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+
+</body>
+</html>
