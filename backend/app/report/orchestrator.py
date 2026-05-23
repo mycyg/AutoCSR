@@ -45,6 +45,22 @@ from app.server.ws import publish
 logger = logging.getLogger("autocsr.report.orchestrator")
 
 
+def _load_project_language(project_id: str) -> str:
+    """Best-effort lookup of project.language; defaults to 'zh'."""
+    try:
+        from app.config import data_dir
+        import json as _json
+        p = data_dir() / "projects.json"
+        if not p.exists():
+            return "zh"
+        for item in _json.loads(p.read_text(encoding="utf-8") or "[]"):
+            if item.get("id") == project_id:
+                return str(item.get("language") or "zh").lower()
+    except Exception:
+        pass
+    return "zh"
+
+
 # ---------------------------------------------------------------------------
 # Analyst FuturePool — shared cache of analyst queries across writers
 # ---------------------------------------------------------------------------
@@ -211,6 +227,7 @@ async def write_all(
     })
 
     terminology = load_terminology(project_id) or DEFAULT_TERMINOLOGY
+    project_language = _load_project_language(project_id)
     conf = (settings().get("pipeline") or {})
     max_parallel = int(conf.get("max_parallel_writers", 4) or 4)
     sem = asyncio.Semaphore(max_parallel)
@@ -255,6 +272,7 @@ async def write_all(
                     terminology=terminology,
                     enable_tools=bool(enable_tools),
                     max_tool_turns=int(max_tool_turns),
+                    language=project_language,
                 )
                 if analyst_pool is not None:
                     ctx.analyst_pool = analyst_pool

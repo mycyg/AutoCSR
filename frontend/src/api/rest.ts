@@ -12,11 +12,47 @@ export interface ProjectDTO {
   principle_id: string | null
   created_at: string
   status: string
+  tags?: string[]
+  archived?: boolean
+  last_opened_at?: string | null
+  language?: string
+  notes?: string | null
+  template_id?: string | null
 }
 
 export interface CreateProjectPayload {
   name: string
   principle_id?: string | null
+  language?: string | null
+  notes?: string | null
+  template_id?: string | null
+}
+
+export interface ProjectUpdatePayload {
+  name?: string
+  tags?: string[]
+  archived?: boolean
+  notes?: string | null
+  language?: string | null
+  principle_id?: string | null
+}
+
+export interface ProjectTemplateDTO {
+  id: string
+  name: string
+  description: string
+  principle_id: string | null
+  language: string
+  tags: string[]
+  notes: string | null
+  readme: string | null
+}
+
+export interface ProjectListQuery {
+  search?: string
+  tag?: string
+  archived?: boolean
+  sort?: 'last_opened' | 'created' | 'name'
 }
 
 export interface FileEntryDTO {
@@ -88,11 +124,30 @@ export interface ProposalDTO {
   edited_at: string | null
 }
 
-export async function listProjects(): Promise<ProjectDTO[]> {
-  return (await api.get<ProjectDTO[]>('/projects')).data
+export async function listProjects(q: ProjectListQuery = {}): Promise<ProjectDTO[]> {
+  const params: Record<string, string> = {}
+  if (q.search) params.search = q.search
+  if (q.tag) params.tag = q.tag
+  if (q.archived !== undefined) params.archived = String(q.archived)
+  if (q.sort) params.sort = q.sort
+  return (await api.get<ProjectDTO[]>('/projects', { params })).data
 }
 export async function createProject(payload: CreateProjectPayload): Promise<ProjectDTO> {
   return (await api.post<ProjectDTO>('/projects', payload)).data
+}
+export async function createProjectFromTemplate(
+  templateId: string, name: string,
+): Promise<ProjectDTO> {
+  return (await api.post<ProjectDTO>(`/projects/from_template/${templateId}`, { name })).data
+}
+export async function updateProject(id: string, patch: ProjectUpdatePayload): Promise<ProjectDTO> {
+  return (await api.patch<ProjectDTO>(`/projects/${id}`, patch)).data
+}
+export async function deleteProject(id: string, force = false): Promise<void> {
+  await api.delete(`/projects/${id}`, { params: { force: String(force) } })
+}
+export async function listProjectTemplates(): Promise<ProjectTemplateDTO[]> {
+  return (await api.get<ProjectTemplateDTO[]>('/templates')).data
 }
 export async function getProject(id: string): Promise<ProjectDTO> {
   return (await api.get<ProjectDTO>(`/projects/${id}`)).data
@@ -705,6 +760,103 @@ export async function getAlerts(pid: string): Promise<AlertsPayloadDTO> {
 
 export async function invalidateAlerts(pid: string): Promise<{ ok: boolean }> {
   return (await api.post(`/projects/${pid}/alerts/invalidate`, {})).data
+}
+
+// ---------------------------------------------------------------------------
+// M13 — DOCX templates + CSR reverse import + state summary
+// ---------------------------------------------------------------------------
+
+export interface DocxTemplateConfigDTO {
+  preset: 'standard' | 'pharma' | 'academic' | 'regulatory'
+  fonts: { heading: string; body: string; code: string }
+  sizes: { h1: number; h2: number; h3: number; body: number }
+  colors: { heading: string; body: string; link: string }
+  margins: { top: number; bottom: number; left: number; right: number }
+  line_spacing: number
+  toc_depth: number
+  header_text: string
+  footer_text: string
+  watermark: string
+  show_ai_provenance: boolean
+  custom_template_id: string | null
+}
+
+export interface UploadedTemplateDTO {
+  id: string
+  filename: string
+  path: string
+  placeholders: string[]
+  size_bytes: number
+}
+
+export async function getExportTemplateConfig(pid: string): Promise<DocxTemplateConfigDTO> {
+  return (await api.get(`/projects/${pid}/export/template_config`)).data
+}
+export async function patchExportTemplateConfig(
+  pid: string, patch: Partial<DocxTemplateConfigDTO> & { preset_apply?: string },
+): Promise<DocxTemplateConfigDTO> {
+  return (await api.patch(`/projects/${pid}/export/template_config`, patch)).data
+}
+export async function listExportTemplates(pid: string): Promise<UploadedTemplateDTO[]> {
+  return (await api.get(`/projects/${pid}/export/templates`)).data
+}
+export async function uploadExportTemplate(pid: string, file: File): Promise<UploadedTemplateDTO> {
+  const fd = new FormData()
+  fd.append('file', file, file.name)
+  const r = await api.post(`/projects/${pid}/export/template_upload`, fd, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 120_000,
+  })
+  return r.data
+}
+export async function listExportPresets(): Promise<(DocxTemplateConfigDTO & { id: string })[]> {
+  return (await api.get('/export/presets')).data
+}
+
+export interface ImportCsrSectionDTO {
+  node_id: string
+  title: string
+  level: number
+  markdown: string
+  children: ImportCsrSectionDTO[]
+  word_count: number
+}
+export interface ImportCsrResultDTO {
+  import_id: string
+  project_id: string
+  source_filename: string
+  n_headings: number
+  n_paragraphs: number
+  n_tables: number
+  confidence: number
+  unmapped_paragraphs: number
+  root_sections: ImportCsrSectionDTO[]
+}
+
+export async function importCsrDocx(pid: string, file: File): Promise<ImportCsrResultDTO> {
+  const fd = new FormData()
+  fd.append('file', file, file.name)
+  const r = await api.post(`/projects/${pid}/import/csr`, fd, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 120_000,
+  })
+  return r.data
+}
+export async function commitCsrImport(pid: string, importId: string, principleId?: string): Promise<{
+  ok: boolean; import_id: string; n_outline_nodes: number; n_drafts: number
+}> {
+  return (await api.post(`/projects/${pid}/import/csr/commit`, {
+    import_id: importId,
+    principle_id: principleId || null,
+  })).data
+}
+
+export interface StateSummaryDTO {
+  steps: Record<string, { done?: number; pending?: number; error?: number; info?: number }>
+  current_step: string
+}
+export async function getStateSummary(pid: string): Promise<StateSummaryDTO> {
+  return (await api.get(`/projects/${pid}/state_summary`)).data
 }
 
 export default api

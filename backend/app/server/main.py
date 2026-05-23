@@ -12,7 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import summary as config_summary
 from app.observability.logger import configure_logging, get_logger
 from app.server.routes import (
-    admin, alerts, comments, diff, health, llm_ping, plan, projects,
+    admin, alerts, comments, diff, health, import_csr, llm_ping, plan, projects,
     review, upload, ingest, cleansing, corpus, principles,
     analysis, outline, report, chat, export, sandbox,
 )
@@ -59,6 +59,8 @@ def create_app() -> FastAPI:
     app.include_router(comments.router, prefix="/api")
     app.include_router(diff.router, prefix="/api")
     app.include_router(alerts.router, prefix="/api")
+    # V2-D M13 — CSR reverse-import
+    app.include_router(import_csr.router, prefix="/api")
 
     # WebSocket hub (no /api prefix — exposed at /ws/{pid})
     app.include_router(ws_router)

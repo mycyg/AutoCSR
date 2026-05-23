@@ -130,14 +130,18 @@ def _llm_proposals(profile: DataProfile, ingest: IngestResult) -> list[Cleansing
         },
         "required": ["proposals"],
     }
-    sys_msg = (
-        "You propose cleansing rules for clinical-trial tabular data destined "
-        "for an ICH E3 CSR. Stick to these proposal types: rename_column, "
-        "cast_dtype, unit_convert, normalize_value, split_column, merge_columns, "
-        "derive_column. Be conservative — never propose deletion. Use Chinese "
-        "rationale for Chinese column names, English for English column names. "
-        "Output JSON only."
-    )
+    try:
+        from app.i18n.loader import load_prompt
+        sys_msg = load_prompt("proposer", "en")
+    except Exception:
+        sys_msg = (
+            "You propose cleansing rules for clinical-trial tabular data destined "
+            "for an ICH E3 CSR. Stick to these proposal types: rename_column, "
+            "cast_dtype, unit_convert, normalize_value, split_column, merge_columns, "
+            "derive_column. Be conservative — never propose deletion. Use Chinese "
+            "rationale for Chinese column names, English for English column names. "
+            "Output JSON only."
+        )
     profile_payload = {
         "sheet": profile.sheet,
         "n_rows": profile.n_rows, "n_cols": profile.n_cols,

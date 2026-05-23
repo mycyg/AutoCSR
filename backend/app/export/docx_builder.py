@@ -33,13 +33,15 @@ from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
-from docx.shared import Pt
+from docx.shared import Cm, Pt, RGBColor
 from docx.table import Table
 
 from app.analysis import store as analysis_store
 from app.cleansing import pipeline_io as cleansing_pipeline
 from app.config import data_dir
 from app.export._make_template import create_template
+from app.export.template_engine import DocxTemplateConfig, load_config as load_template_config
+from app.export.template_uploader import open_uploaded
 from app.outline.store import load as load_outline
 from app.report.store import list_drafts, load_report
 from app.schemas.outline import Outline, OutlineNode
@@ -347,6 +349,99 @@ def _exports_dir(project_id: str) -> Path:
     return p
 
 
+# ---------------------------------------------------------------------------
+# DocxTemplateConfig application (M13)
+# ---------------------------------------------------------------------------
+
+
+def _hex_to_rgb(hex_color: str) -> RGBColor:
+    h = hex_color.lstrip("#")
+    if len(h) != 6:
+        return RGBColor(0, 0, 0)
+    try:
+        return RGBColor(int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16))
+    except ValueError:
+        return RGBColor(0, 0, 0)
+
+
+def _apply_template_config(doc: Document, cfg: DocxTemplateConfig) -> None:
+    """Apply fonts / sizes / colors / margins / header/footer / watermark.
+
+    Per-style updates are gentle — we only touch known built-in styles
+    ("Normal", "Heading 1..4", "Title") so callers can safely re-render
+    documents created in earlier M5 runs."""
+    # Page margins
+    for section in doc.sections:
+        section.top_margin = Cm(cfg.margins.top)
+        section.bottom_margin = Cm(cfg.margins.bottom)
+        section.left_margin = Cm(cfg.margins.left)
+        section.right_margin = Cm(cfg.margins.right)
+    # Styles: body font + heading font + colors + sizes + line spacing
+    styles = doc.styles
+    try:
+        normal = styles["Normal"]
+        normal.font.name = cfg.fonts.body
+        normal.font.size = Pt(cfg.sizes.body)
+        normal.font.color.rgb = _hex_to_rgb(cfg.colors.body)
+        # East-Asian font binding so CJK characters also pick the body font
+        rpr = normal.element.get_or_add_rPr()
+        eastAsia = rpr.find(qn("w:rFonts"))
+        if eastAsia is None:
+            eastAsia = OxmlElement("w:rFonts")
+            rpr.append(eastAsia)
+        eastAsia.set(qn("w:eastAsia"), cfg.fonts.body)
+        eastAsia.set(qn("w:ascii"), cfg.fonts.body)
+        eastAsia.set(qn("w:hAnsi"), cfg.fonts.body)
+        # Line spacing
+        normal.paragraph_format.line_spacing = cfg.line_spacing
+    except KeyError:
+        pass
+    heading_sizes = {
+        "Heading 1": cfg.sizes.h1,
+        "Heading 2": cfg.sizes.h2,
+        "Heading 3": cfg.sizes.h3,
+        "Heading 4": max(cfg.sizes.h3 - 1, 10),
+    }
+    for sname, sz in heading_sizes.items():
+        try:
+            style = styles[sname]
+            style.font.name = cfg.fonts.heading
+            style.font.size = Pt(sz)
+            style.font.color.rgb = _hex_to_rgb(cfg.colors.heading)
+            rpr = style.element.get_or_add_rPr()
+            eastAsia = rpr.find(qn("w:rFonts"))
+            if eastAsia is None:
+                eastAsia = OxmlElement("w:rFonts")
+                rpr.append(eastAsia)
+            eastAsia.set(qn("w:eastAsia"), cfg.fonts.heading)
+            eastAsia.set(qn("w:ascii"), cfg.fonts.heading)
+            eastAsia.set(qn("w:hAnsi"), cfg.fonts.heading)
+        except KeyError:
+            continue
+    # Header / footer text + watermark stub (in footer)
+    for section in doc.sections:
+        if cfg.header_text:
+            try:
+                hdr_p = section.header.paragraphs[0] if section.header.paragraphs else section.header.add_paragraph()
+                hdr_p.text = cfg.header_text
+            except Exception:
+                pass
+        footer_parts: list[str] = []
+        if cfg.footer_text:
+            footer_parts.append(cfg.footer_text)
+        if cfg.watermark:
+            # python-docx has no first-class watermark API; we fall back
+            # to a tagged footer line that exporters can post-process if
+            # they want a real WordArt shape later.
+            footer_parts.append(f"[{cfg.watermark}]")
+        if footer_parts:
+            try:
+                ftr_p = section.footer.paragraphs[0] if section.footer.paragraphs else section.footer.add_paragraph()
+                ftr_p.text = "  ·  ".join(footer_parts)
+            except Exception:
+                pass
+
+
 def build_docx(
     project_id: str,
     *,
@@ -354,6 +449,7 @@ def build_docx(
     include_appendix_analysis: bool = True,
     include_compliance_note: bool = True,
     include_toc: bool = True,
+    template_config: DocxTemplateConfig | None = None,
     progress_cb: callable | None = None,
 ) -> ExportResult:
     """Build the final DOCX for one project.
@@ -371,7 +467,15 @@ def build_docx(
     drafts = list_drafts(project_id)
     drafts_by_id: dict[str, SectionDraft] = {d.node_id: d for d in drafts}
 
-    doc = create_template()
+    # M13 — load template config + (optionally) use an uploaded template
+    cfg = template_config or load_template_config(project_id)
+    if cfg.custom_template_id:
+        try:
+            doc = open_uploaded(project_id, cfg.custom_template_id, mapping={})
+        except Exception:
+            doc = create_template()
+    else:
+        doc = create_template()
 
     # ---- Cover placeholders --------------------------------------------------
     proj_name = _project_name(project_id)
@@ -392,6 +496,12 @@ def build_docx(
         "COMPLIANCE_NOTE": compliance,
     }
     _substitute_placeholders(doc, mapping)
+
+    # M13 — apply fonts / sizes / margins / header-footer / watermark.
+    try:
+        _apply_template_config(doc, cfg)
+    except Exception as e:  # noqa: BLE001
+        logger.warning("template_config_apply_failed: %s", e)
 
     if not include_toc:
         # Wipe TOC field paragraph by overwriting with a short note.

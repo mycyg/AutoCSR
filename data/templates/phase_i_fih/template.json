@@ -1,0 +1,9 @@
+{
+  "id": "phase_i_fih",
+  "name": "Phase I 首次人体试验",
+  "description": "Phase I First-in-Human 试验模板：重点强化安全性 / PK / SAD-MAD 设计描述。",
+  "principle_id": "ich_e3",
+  "language": "zh",
+  "tags": ["phase_i", "fih", "safety"],
+  "notes": "Phase I FIH：剂量递增 (SAD/MAD)、DLT、MTD、PK/PD、初步安全性是重点；安全性章节扩展。"
+}

@@ -1,8 +1,12 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useExportStore } from '@/stores/export'
-import { exportDownloadUrl, type ExportOptions } from '@/api/rest'
+import {
+  exportDownloadUrl, getExportTemplateConfig, listExportTemplates,
+  patchExportTemplateConfig, uploadExportTemplate,
+  type DocxTemplateConfigDTO, type ExportOptions, type UploadedTemplateDTO,
+} from '@/api/rest'
 import { connectProjectWS } from '@/api/ws'
 
 const props = defineProps<{ id: string }>()
@@ -16,9 +20,17 @@ const opts = ref<ExportOptions>({
   include_appendix_analysis: true,
 })
 
+const cfg = ref<DocxTemplateConfigDTO | null>(null)
+const uploadedTemplates = ref<UploadedTemplateDTO[]>([])
+const savingCfg = ref(false)
+
 onMounted(async () => {
   await exportStore.refresh(props.id)
   wsClose = connectProjectWS(props.id, (ev) => exportStore.handleWS(ev))
+  try {
+    cfg.value = await getExportTemplateConfig(props.id)
+    uploadedTemplates.value = await listExportTemplates(props.id)
+  } catch { /* harmless */ }
 })
 
 onUnmounted(() => {
@@ -26,10 +38,45 @@ onUnmounted(() => {
   exportStore.reset()
 })
 
+const fontOptions = [
+  'SimSun', 'SimHei', 'Microsoft YaHei', 'KaiTi',
+  'Arial', 'Times New Roman', 'Calibri', 'Cambria',
+  'Helvetica', 'Georgia',
+]
+
+async function saveCfg(patch: Partial<DocxTemplateConfigDTO> & { preset_apply?: string }): Promise<void> {
+  savingCfg.value = true
+  try {
+    cfg.value = await patchExportTemplateConfig(props.id, patch)
+  } catch (e) {
+    ElMessage.error(e instanceof Error ? e.message : String(e))
+  } finally {
+    savingCfg.value = false
+  }
+}
+
+async function applyPreset(name: string): Promise<void> {
+  await saveCfg({ preset_apply: name })
+  ElMessage.success(name)
+}
+
+async function onUploadTemplate(uploadFile: { raw?: File }): Promise<void> {
+  const f = uploadFile.raw
+  if (!f) return
+  try {
+    const rec = await uploadExportTemplate(props.id, f)
+    uploadedTemplates.value = [...uploadedTemplates.value, rec]
+    await saveCfg({ custom_template_id: rec.id })
+    ElMessage.success(rec.filename)
+  } catch (e) {
+    ElMessage.error(e instanceof Error ? e.message : String(e))
+  }
+}
+
 async function onExport(): Promise<void> {
   try {
     const r = await exportStore.trigger(props.id, opts.value)
-    ElMessage.success(`已生成 ${r.filename} (${(r.size_bytes / 1024).toFixed(1)} KB)`)
+    ElMessage.success(`${r.filename} (${(r.size_bytes / 1024).toFixed(1)} KB)`)
   } catch (e) {
     ElMessage.error(e instanceof Error ? e.message : String(e))
   }
@@ -37,7 +84,7 @@ async function onExport(): Promise<void> {
 
 async function onDelete(filename: string): Promise<void> {
   try {
-    await ElMessageBox.confirm(`删除 ${filename}？`, '确认', { type: 'warning' })
+    await ElMessageBox.confirm(filename, '?', { type: 'warning' })
   } catch { return }
   await exportStore.remove(props.id, filename)
 }
@@ -70,53 +117,148 @@ function phaseToPercent(phase: string): number {
   }
   return 0
 }
+
+const previewStyle = computed(() => {
+  if (!cfg.value) return {}
+  return {
+    fontFamily: cfg.value.fonts.body,
+    fontSize: `${cfg.value.sizes.body}pt`,
+    lineHeight: cfg.value.line_spacing,
+    color: cfg.value.colors.body,
+  }
+})
+const previewHeadingStyle = computed(() => {
+  if (!cfg.value) return {}
+  return {
+    fontFamily: cfg.value.fonts.heading,
+    fontSize: `${cfg.value.sizes.h2}pt`,
+    color: cfg.value.colors.heading,
+    fontWeight: 600,
+  }
+})
 </script>
 
 <template>
   <div class="export-view">
     <div class="panel">
-      <h2>导出 DOCX</h2>
-      <p class="hint">
-        将基于当前章节草稿构建一个符合 ICH E3 排版规范的 Word 文档。
-        生成完成后可在下方历史列表中下载。
-      </p>
+      <h2>{{ $t('export.title') }}</h2>
+      <p class="hint">{{ $t('export.hint') }}</p>
       <div class="options">
         <el-checkbox v-model="opts.include_compliance_note">
-          封面合规声明（清洗 pipeline 摘要）
+          {{ $t('export.include_compliance') }}
         </el-checkbox>
-        <el-checkbox v-model="opts.include_toc">自动目录 (TOC)</el-checkbox>
-        <el-checkbox v-model="opts.include_appendix_cleansing">附录 A · 清洗 pipeline</el-checkbox>
-        <el-checkbox v-model="opts.include_appendix_analysis">附录 B · 分析方法</el-checkbox>
+        <el-checkbox v-model="opts.include_toc">{{ $t('export.include_toc') }}</el-checkbox>
+        <el-checkbox v-model="opts.include_appendix_cleansing">{{ $t('export.include_appendix_a') }}</el-checkbox>
+        <el-checkbox v-model="opts.include_appendix_analysis">{{ $t('export.include_appendix_b') }}</el-checkbox>
       </div>
       <div class="trigger">
         <el-button type="primary" size="large" :loading="exportStore.exporting" @click="onExport">
-          {{ exportStore.exporting ? '正在生成…' : '生成 DOCX' }}
+          {{ exportStore.exporting ? $t('export.generating') : $t('export.generate') }}
         </el-button>
         <span v-if="exportStore.exporting || exportStore.phase !== 'idle'" class="phase">
-          阶段：<b>{{ exportStore.phase }}</b>
+          <b>{{ exportStore.phase }}</b>
         </span>
       </div>
       <el-progress v-if="exportStore.exporting" :percentage="phaseToPercent(exportStore.phase)"
                    :indeterminate="exportStore.phase === 'starting'" :duration="2" />
     </div>
 
+    <el-collapse v-if="cfg" class="panel">
+      <el-collapse-item :title="$t('export.advanced')">
+        <div class="presets">
+          <span class="muted">{{ $t('export.presets') }}:</span>
+          <el-button :type="cfg.preset === 'standard' ? 'primary' : 'default'"
+                     size="small" @click="applyPreset('standard')">{{ $t('export.preset_standard') }}</el-button>
+          <el-button :type="cfg.preset === 'pharma' ? 'primary' : 'default'"
+                     size="small" @click="applyPreset('pharma')">{{ $t('export.preset_pharma') }}</el-button>
+          <el-button :type="cfg.preset === 'academic' ? 'primary' : 'default'"
+                     size="small" @click="applyPreset('academic')">{{ $t('export.preset_academic') }}</el-button>
+          <el-button :type="cfg.preset === 'regulatory' ? 'primary' : 'default'"
+                     size="small" @click="applyPreset('regulatory')">{{ $t('export.preset_regulatory') }}</el-button>
+        </div>
+        <el-form label-width="120" label-position="right" size="small" class="cfg-form">
+          <el-form-item :label="$t('export.heading_font')">
+            <el-select v-model="cfg.fonts.heading" filterable allow-create
+                       @change="(v: string) => saveCfg({ fonts: { ...cfg!.fonts, heading: v } })">
+              <el-option v-for="f in fontOptions" :key="f" :value="f" :label="f" />
+            </el-select>
+          </el-form-item>
+          <el-form-item :label="$t('export.body_font')">
+            <el-select v-model="cfg.fonts.body" filterable allow-create
+                       @change="(v: string) => saveCfg({ fonts: { ...cfg!.fonts, body: v } })">
+              <el-option v-for="f in fontOptions" :key="f" :value="f" :label="f" />
+            </el-select>
+          </el-form-item>
+          <el-form-item :label="$t('export.body_size')">
+            <el-input-number v-model="cfg.sizes.body" :min="8" :max="20"
+                              @change="(v: number | undefined) => saveCfg({ sizes: { ...cfg!.sizes, body: v ?? 11 } })" />
+          </el-form-item>
+          <el-form-item :label="$t('export.line_spacing')">
+            <el-slider v-model="cfg.line_spacing" :min="1" :max="3" :step="0.25"
+                       @change="(v: number | number[]) => saveCfg({ line_spacing: Array.isArray(v) ? v[0] : v })" />
+          </el-form-item>
+          <el-form-item :label="$t('export.toc_depth')">
+            <el-input-number v-model="cfg.toc_depth" :min="1" :max="6"
+                              @change="(v: number | undefined) => saveCfg({ toc_depth: v ?? 3 })" />
+          </el-form-item>
+          <el-form-item :label="$t('export.header_text')">
+            <el-input v-model="cfg.header_text" @change="(v: string) => saveCfg({ header_text: v })" />
+          </el-form-item>
+          <el-form-item :label="$t('export.footer_text')">
+            <el-input v-model="cfg.footer_text" @change="(v: string) => saveCfg({ footer_text: v })" />
+          </el-form-item>
+          <el-form-item :label="$t('export.watermark')">
+            <el-input v-model="cfg.watermark" placeholder="CONFIDENTIAL"
+                      @change="(v: string) => saveCfg({ watermark: v })" />
+          </el-form-item>
+          <el-form-item :label="$t('export.show_ai_provenance')">
+            <el-switch v-model="cfg.show_ai_provenance"
+                       @change="(v: boolean | string | number) => saveCfg({ show_ai_provenance: !!v })" />
+          </el-form-item>
+        </el-form>
+
+        <div class="upload-row">
+          <el-upload :auto-upload="false" :show-file-list="false" accept=".docx"
+                     :on-change="onUploadTemplate">
+            <el-button>{{ $t('export.upload_template') }}</el-button>
+          </el-upload>
+          <span v-if="cfg.custom_template_id" class="muted">
+            custom: {{ cfg.custom_template_id }}
+            <el-button link size="small" @click="saveCfg({ custom_template_id: null })">×</el-button>
+          </span>
+        </div>
+
+        <div class="preview">
+          <h4>{{ $t('export.preview_title') }}</h4>
+          <div class="preview-page" :style="previewStyle">
+            <div :style="previewHeadingStyle">11.4.2  Demo Heading</div>
+            <p>This is a quick style preview using the configured fonts and sizes.</p>
+            <p v-if="cfg.header_text" class="muted">[header] {{ cfg.header_text }}</p>
+            <p v-if="cfg.footer_text || cfg.watermark" class="muted">
+              [footer] {{ cfg.footer_text }}<span v-if="cfg.watermark"> · [{{ cfg.watermark }}]</span>
+            </p>
+          </div>
+        </div>
+      </el-collapse-item>
+    </el-collapse>
+
     <div class="panel">
-      <h3>历史导出</h3>
+      <h3>{{ $t('export.history') }}</h3>
       <el-table v-if="exportStore.history.length" :data="exportStore.history" size="small">
-        <el-table-column prop="filename" label="文件" />
-        <el-table-column label="大小" width="100">
+        <el-table-column prop="filename" :label="$t('common.name')" />
+        <el-table-column :label="$t('common.size')" width="100">
           <template #default="{ row }">{{ fmtSize(row.size_bytes) }}</template>
         </el-table-column>
-        <el-table-column prop="n_sections" label="章节" width="80" />
-        <el-table-column prop="created_at" label="生成时间" width="200" />
-        <el-table-column label="操作" width="200">
+        <el-table-column prop="n_sections" label="N" width="60" />
+        <el-table-column prop="created_at" :label="$t('common.created_at')" width="200" />
+        <el-table-column label="—" width="200">
           <template #default="{ row }">
-            <el-link :href="downloadUrl(row.filename)" type="primary" target="_blank">下载</el-link>
-            <el-button type="danger" link size="small" @click="onDelete(row.filename)">删除</el-button>
+            <el-link :href="downloadUrl(row.filename)" type="primary" target="_blank">⬇</el-link>
+            <el-button type="danger" link size="small" @click="onDelete(row.filename)">×</el-button>
           </template>
         </el-table-column>
       </el-table>
-      <p v-else class="empty">尚无历史导出。</p>
+      <p v-else class="empty">{{ $t('export.no_history') }}</p>
     </div>
   </div>
 </template>
@@ -131,4 +273,17 @@ function phaseToPercent(phase: string): number {
 .trigger { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
 .phase { color: #6b7280; font-size: 12px; }
 .empty { color: #9ca3af; padding: 12px 0; }
+.presets { display: flex; gap: 8px; align-items: center; margin: 8px 0 14px; }
+.cfg-form { max-width: 520px; }
+.muted { color: #9ca3af; font-size: 12px; }
+.upload-row { display: flex; gap: 12px; align-items: center; margin: 8px 0 12px; }
+.preview { margin-top: 12px; }
+.preview h4 { margin: 0 0 6px; font-size: 13px; color: #6b7280; }
+.preview-page {
+  background: #fafafa;
+  border: 1px dashed #d1d5db;
+  border-radius: 6px;
+  padding: 16px 22px;
+  min-height: 100px;
+}
 </style>

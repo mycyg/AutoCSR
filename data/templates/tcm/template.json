@@ -1,0 +1,9 @@
+{
+  "id": "tcm",
+  "name": "中药临床试验 (CDE TCM)",
+  "description": "依据 CDE《中药新药临床研究一般原则》组织的中药试验模板。",
+  "principle_id": "cde_tcm",
+  "language": "zh",
+  "tags": ["tcm", "cde", "chinese_medicine"],
+  "notes": "中药试验：增加病-证结合诊断、组方与道地药材、安全性长期观察、中医证候疗效评价等章节。"
+}

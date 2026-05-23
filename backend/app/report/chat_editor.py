@@ -136,8 +136,19 @@ def _apply_one_patch(markdown: str, op: str, target: Any, after: str) -> tuple[s
 # Prompt
 # ---------------------------------------------------------------------------
 
-def _build_system_prompt(section_title: str, current_markdown: str, style: str) -> str:
-    return f"""你是 CSR (ICH E3) 章节编辑助手。仅修改当前章节内容；不得编造引用代码。
+def _build_system_prompt(section_title: str, current_markdown: str, style: str,
+                          language: str = "zh") -> str:
+    try:
+        from app.i18n.loader import render_prompt
+        return render_prompt(
+            "editor",
+            language=language,
+            section_title=section_title,
+            current_markdown=current_markdown,
+            style=style[:1200],
+        )
+    except Exception:
+        return f"""你是 CSR (ICH E3) 章节编辑助手。仅修改当前章节内容；不得编造引用代码。
 
 ## 当前章节
 标题: {section_title}
@@ -150,29 +161,9 @@ def _build_system_prompt(section_title: str, current_markdown: str, style: str) 
 ## 风格摘要
 {style[:1200]}
 
-## 可用工具
-- read_current(): 返回当前 markdown（你已经看到，无需调用）
-- apply_patch(op, target?, after): 修改章节，op 取值：
-    - "replace_section"        — 用 after 覆盖整段（用于大改）
-    - "insert_paragraph"       — 在 paragraph index=target 处插入新段（0 表示插到首段前；-1 追加到末尾；段按空行分割）
-    - "replace_paragraph"      — 替换第 target 段（int，0-based）
-    - "patch_field"            — target 是正则或字面量，after 是替换文本（仅替换第一次匹配）
-- search_corpus(query, types?, top_k?): 检索 corpus（types 子集 of literature/stat/principle）
-- respond(message): 仅回复用户，不改章节
-
 ## 输出协议
 **只输出 JSON**，结构：
-```
-{{
-  "actions": [
-    {{"tool": "apply_patch" | "search_corpus" | "respond", "args": {{...}}}}
-  ]
-}}
-```
-- 至少包含一条 respond，向用户解释你做了什么。
-- 优先用最小改动（replace_paragraph / patch_field）而不是 replace_section。
-- 修改后保留所有 [Ref<...>] 引用标记；不要新建无法解析的 Ref。
-- 不要包含 ```json 包裹；直接输出 JSON 对象。
+{{"actions": [{{"tool": "apply_patch" | "search_corpus" | "respond", "args": {{...}}}}]}}
 """
 
 
@@ -253,8 +244,13 @@ async def chat_turn(
     if not pre_versions:
         draft_store.snapshot_draft(project_id, draft)
 
+    try:
+        from app.report.orchestrator import _load_project_language
+        _lang = _load_project_language(project_id)
+    except Exception:
+        _lang = "zh"
     sys_msg = _build_system_prompt(
-        draft.title or node_id, draft.markdown, _read_style_guide(),
+        draft.title or node_id, draft.markdown, _read_style_guide(), _lang,
     )
 
     # 3) Call the LLM (or mock)

@@ -1,0 +1,9 @@
+{
+  "id": "standard_ich_e3",
+  "name": "标准 ICH E3 CSR",
+  "description": "通用 ICH E3 临床研究报告模板，适用于 II/III 期常规试验。",
+  "principle_id": "ich_e3",
+  "language": "zh",
+  "tags": ["ich_e3", "standard"],
+  "notes": "默认 ICH E3 章节骨架；写作时遵循 16 节标准结构。"
+}

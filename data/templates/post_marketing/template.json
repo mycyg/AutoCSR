@@ -1,0 +1,9 @@
+{
+  "id": "post_marketing",
+  "name": "上市后研究 (Phase IV)",
+  "description": "上市后真实世界 / Phase IV 研究模板，强调长期安全性与暴露监测。",
+  "principle_id": "ich_e3",
+  "language": "zh",
+  "tags": ["phase_iv", "post_marketing", "rwe"],
+  "notes": "上市后研究：突出长期安全性、罕见事件、暴露量、人群代表性、特殊人群亚组。"
+}

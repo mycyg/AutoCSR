@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { MdPreview } from 'md-editor-v3'
 import 'md-editor-v3/lib/preview.css'
 import type { StatBlockDTO } from '@/api/rest'
@@ -10,6 +10,34 @@ const emit = defineEmits<{ (e: 'update:open', v: boolean): void }>()
 const visible = computed({
   get: () => props.open,
   set: (v: boolean) => emit('update:open', v),
+})
+
+const PAGE_SIZE = 20
+const page = ref(1)
+
+watch(() => props.block?.ref_code, () => { page.value = 1 })
+
+const paged = computed(() => {
+  const md = props.block?.markdown_table || ''
+  if (!md.trim()) return { text: '_no table_', total: 0, pages: 1 }
+  const lines = md.split(/\r?\n/)
+  // Detect a GFM-style table: header line + separator (---) + body rows
+  const headerIdx = lines.findIndex((ln) => /^\s*\|.*\|\s*$/.test(ln))
+  const sepIdx = headerIdx >= 0 && /^\s*\|[\s:-|]+\|\s*$/.test(lines[headerIdx + 1] || '')
+    ? headerIdx + 1 : -1
+  if (sepIdx < 0) return { text: md, total: 0, pages: 1 }
+  const header = lines.slice(headerIdx, sepIdx + 1)
+  const body = lines.slice(sepIdx + 1).filter((ln) => /^\s*\|/.test(ln))
+  const tail = lines.slice(sepIdx + 1 + body.length)
+  const pages = Math.max(1, Math.ceil(body.length / PAGE_SIZE))
+  if (page.value > pages) page.value = pages
+  const start = (page.value - 1) * PAGE_SIZE
+  const slice = body.slice(start, start + PAGE_SIZE)
+  return {
+    text: [...lines.slice(0, headerIdx), ...header, ...slice, ...tail].join('\n'),
+    total: body.length,
+    pages,
+  }
 })
 
 function refCopy(): void {
@@ -32,8 +60,16 @@ function refCopy(): void {
     </template>
     <div v-if="block" class="body">
       <section class="card">
-        <h4>渲染后表格</h4>
-        <MdPreview :modelValue="block.markdown_table || '_no table_'" :theme="'light'" />
+        <h4>渲染后表格
+          <span v-if="paged.total > 20" class="muted">
+            · {{ paged.total }} rows · page {{ page }}/{{ paged.pages }}
+          </span>
+        </h4>
+        <MdPreview :modelValue="paged.text" :theme="'light'" />
+        <el-pagination v-if="paged.pages > 1" :total="paged.total"
+                       :page-size="20" :current-page="page"
+                       layout="prev, pager, next" small
+                       @current-change="(v: number) => page = v" />
       </section>
       <section class="card">
         <h4>原始结果（result_json）</h4>
@@ -79,4 +115,5 @@ function refCopy(): void {
 .srcs { margin-top: 8px; color: #4b5563; font-size: 12px; }
 .srcs .src { display: inline-block; margin-right: 8px; }
 .notes { margin-top: 8px; color: #6b7280; font-size: 12px; }
+.muted { color: #9ca3af; font-weight: normal; font-size: 12px; }
 </style>

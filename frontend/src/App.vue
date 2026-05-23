@@ -1,21 +1,31 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import GlobalAlertBar from '@/components/global/GlobalAlertBar.vue'
+import LanguageSwitch from '@/components/global/LanguageSwitch.vue'
+import StepNavigator from '@/components/global/StepNavigator.vue'
+import ShortcutsHelpModal from '@/components/global/ShortcutsHelpModal.vue'
+import GlobalSearchModal from '@/components/global/GlobalSearchModal.vue'
 
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 const projectId = computed(() => (route.params.id as string | undefined) || '')
-const projectName = computed(() => (projectId.value ? `Project ${projectId.value.slice(0, 8)}` : 'AutoCSR'))
+const projectName = computed(() => (
+  projectId.value
+    ? `${t('app.project_prefix')} ${projectId.value.slice(0, 8)}`
+    : t('app.title')
+))
 
 const steps = [
-  { key: 'intake', label: '上传', path: 'intake', enabled: true },
-  { key: 'cleanse', label: '清洗', path: 'cleanse', enabled: true },
-  { key: 'analyze', label: '分析', path: 'analyze', enabled: true },
-  { key: 'outline', label: '大纲', path: 'outline', enabled: true },
-  { key: 'report', label: '撰写', path: 'report', enabled: true },
-  { key: 'review', label: '审查', path: 'review', enabled: true },
-  { key: 'export', label: '导出', path: 'export', enabled: true },
+  { key: 'intake', i18nKey: 'steps.intake', path: 'intake' },
+  { key: 'cleanse', i18nKey: 'steps.cleanse', path: 'cleanse' },
+  { key: 'analyze', i18nKey: 'steps.analyze', path: 'analyze' },
+  { key: 'outline', i18nKey: 'steps.outline', path: 'outline' },
+  { key: 'report', i18nKey: 'steps.report', path: 'report' },
+  { key: 'review', i18nKey: 'steps.review', path: 'review' },
+  { key: 'export', i18nKey: 'steps.export', path: 'export' },
 ]
 
 const activeKey = computed(() => {
@@ -32,7 +42,7 @@ const activeKey = computed(() => {
 })
 
 function go(step: typeof steps[number]): void {
-  if (!step.enabled || !projectId.value) return
+  if (!projectId.value) return
   router.push(`/p/${projectId.value}/${step.path}`)
 }
 </script>
@@ -40,24 +50,19 @@ function go(step: typeof steps[number]): void {
 <template>
   <el-container class="autocsr-shell" direction="vertical">
     <el-header class="autocsr-header">
-      <div class="brand" @click="router.push('/')">AutoCSR · {{ projectName }}</div>
-      <nav class="steps">
-        <span v-for="(s, i) in steps" :key="s.key"
-              class="step"
-              :class="{ active: activeKey === s.key, disabled: !s.enabled || !projectId }"
-              @click="go(s)">
-          <span class="num">{{ i + 1 }}</span>
-          <span class="label">{{ s.label }}</span>
-        </span>
-      </nav>
+      <div class="brand" @click="router.push('/')">{{ $t('app.title') }} · {{ projectName }}</div>
+      <StepNavigator :steps="steps" :project-id="projectId" :active-key="activeKey" @go="go" />
       <div class="actions">
-        <el-tag size="small" type="success">V2-C</el-tag>
+        <LanguageSwitch />
+        <el-tag size="small" type="success">V2-D</el-tag>
       </div>
     </el-header>
     <GlobalAlertBar v-if="projectId" :project-id="projectId" />
     <el-main class="autocsr-main">
       <router-view />
     </el-main>
+    <ShortcutsHelpModal />
+    <GlobalSearchModal />
   </el-container>
 </template>
 
@@ -80,46 +85,10 @@ function go(step: typeof steps[number]): void {
   color: #1f2937;
   cursor: pointer;
 }
-.steps {
-  display: flex;
-  gap: 14px;
-  color: #6b7280;
-  font-size: 13px;
-}
-.step {
+.actions {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 12px;
-  transition: background 120ms ease;
-}
-.step:hover:not(.disabled) {
-  background: #f3f4f6;
-  color: #1f2937;
-}
-.step.active {
-  background: #eef4ff;
-  color: #1d4ed8;
-}
-.step.disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
-}
-.step .num {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: #f3f4f6;
-  font-size: 11px;
-}
-.step.active .num {
-  background: #1d4ed8;
-  color: #fff;
+  gap: 8px;
 }
 .autocsr-main {
   padding: 0;

@@ -93,21 +93,36 @@ def _build_harmonize_prompt(
     current_lead: str,
     title: str,
     terms: dict[str, str],
+    language: str = "zh",
 ) -> tuple[str, str]:
-    sys_msg = (
-        "你负责章节衔接与术语统一。**只能**修改当前章节的开头段落（首段，"
-        "不含 H2 标题）让它自然承接上一节末段，并把英文术语统一为指定的中文。"
-        "**严格禁止**：删除或编造 Ref 引用、改写正文其它段落、改变数字、加新事实。"
-        "只输出修改后的开头段落纯文本，不要 markdown 列表、不要 H2、不要解释。"
-    )
+    try:
+        from app.i18n.loader import load_prompt
+        sys_msg = load_prompt("harmonizer", language)
+    except Exception:
+        sys_msg = (
+            "你负责章节衔接与术语统一。**只能**修改当前章节的开头段落（首段，"
+            "不含 H2 标题）让它自然承接上一节末段，并把英文术语统一为指定的中文。"
+            "**严格禁止**：删除或编造 Ref 引用、改写正文其它段落、改变数字、加新事实。"
+            "只输出修改后的开头段落纯文本，不要 markdown 列表、不要 H2、不要解释。"
+        )
     term_lines = "\n".join(f"- {k} -> {v}" for k, v in list(terms.items())[:20])
-    user_msg = (
-        f"## 上一节末段\n{prev_tail[:500]}\n\n"
-        f"## 当前章节标题\n{title}\n\n"
-        f"## 当前章节首段（待改写）\n{current_lead[:600]}\n\n"
-        f"## 术语对照\n{term_lines or '(none)'}\n\n"
-        "请输出改写后的首段（保留原有 Ref 标记，可微调措辞但不得变更数字与事实）："
-    )
+    if (language or "zh").lower().startswith("en"):
+        user_msg = (
+            f"## Previous section tail\n{prev_tail[:500]}\n\n"
+            f"## Current section title\n{title}\n\n"
+            f"## Current opening paragraph (to be rewritten)\n{current_lead[:600]}\n\n"
+            f"## Terminology\n{term_lines or '(none)'}\n\n"
+            "Output the rewritten opening paragraph (preserve [Ref<...>], "
+            "do not change numbers or facts):"
+        )
+    else:
+        user_msg = (
+            f"## 上一节末段\n{prev_tail[:500]}\n\n"
+            f"## 当前章节标题\n{title}\n\n"
+            f"## 当前章节首段（待改写）\n{current_lead[:600]}\n\n"
+            f"## 术语对照\n{term_lines or '(none)'}\n\n"
+            "请输出改写后的首段（保留原有 Ref 标记，可微调措辞但不得变更数字与事实）："
+        )
     return sys_msg, user_msg
 
 
@@ -115,6 +130,7 @@ async def _harmonize_pair(
     prev: SectionDraft | None,
     current: SectionDraft,
     terms: dict[str, str],
+    language: str = "zh",
 ) -> tuple[str, int, int, int]:
     """Return (new_first_paragraph, tokens_in, tokens_out, latency_ms)."""
     import asyncio
@@ -127,7 +143,7 @@ async def _harmonize_pair(
         # In mock mode just normalize terminology deterministically
         return _term_substitute(lead, terms), 0, 0, 0
 
-    sys_msg, user_msg = _build_harmonize_prompt(prev_tail, lead, current.title, terms)
+    sys_msg, user_msg = _build_harmonize_prompt(prev_tail, lead, current.title, terms, language)
     policy = _policy.editor_llm()
     t0 = time.time()
     try:
@@ -183,6 +199,12 @@ async def harmonize(
 ) -> ReportDraft:
     by_id = by_id or {n.id: n for n in outline.walk()}
     terms = load_terminology(project_id) or DEFAULT_TERMINOLOGY
+    # M13: pick the project's language for harmonizer prompt
+    try:
+        from app.report.orchestrator import _load_project_language
+        language = _load_project_language(project_id)
+    except Exception:
+        language = "zh"
     leaves = _ordered_leaves(outline)
     drafts_dict = report.drafts
     prev: SectionDraft | None = None
@@ -199,7 +221,7 @@ async def harmonize(
         if cur is None:
             continue
         try:
-            new_lead, ti, to, ms = await _harmonize_pair(prev, cur, terms)
+            new_lead, ti, to, ms = await _harmonize_pair(prev, cur, terms, language)
         except Exception as e:  # noqa: BLE001
             logger.exception("harmonize pair crashed")
             await publish(project_id, "harmonizer.progress", {

@@ -6,6 +6,7 @@ import 'md-editor-v3/lib/preview.css'
 import 'md-editor-v3/lib/style.css'
 import { listSectionVersions, rollbackSection, updateDraftMarkdown,
          type SectionDraftDTO } from '@/api/rest'
+import { useShortcuts } from '@/composables/useShortcuts'
 
 const props = defineProps<{
   projectId: string
@@ -125,11 +126,24 @@ async function onCopy(): Promise<void> {
   if (!props.draft) return
   try {
     await navigator.clipboard.writeText(localMd.value || props.draft.markdown)
-    ElMessage.success('Markdown 已复制')
+    ElMessage.success('OK')
   } catch {
-    ElMessage.error('复制失败，请手动选取')
+    ElMessage.error('copy failed')
   }
 }
+
+// Cmd/Ctrl+S → save current section (only when unlocked)
+useShortcuts({
+  save: () => {
+    if (!locked.value) {
+      if (saveTimer !== null) {
+        window.clearTimeout(saveTimer)
+        saveTimer = null
+      }
+      void doSave()
+    }
+  },
+})
 </script>
 
 <template>
@@ -180,9 +194,12 @@ async function onCopy(): Promise<void> {
           </ul>
         </el-alert>
       </div>
-      <MdPreview v-if="locked" class="md" :model-value="localMd" :preview-theme="'github'" />
-      <MdEditor v-else class="md editor" :model-value="localMd"
-                :preview-theme="'github'" @on-change="onEdit" />
+      <Transition name="fade" mode="out-in">
+        <MdPreview v-if="locked" :key="nodeId + '-r'" class="md"
+                   :model-value="localMd" :preview-theme="'github'" />
+        <MdEditor v-else :key="nodeId + '-e'" class="md editor"
+                  :model-value="localMd" :preview-theme="'github'" @on-change="onEdit" />
+      </Transition>
       <div v-if="draft.citations?.length" class="cites">
         <h4>引用</h4>
         <ul>
@@ -225,4 +242,8 @@ async function onCopy(): Promise<void> {
 .cites code { background: #eef2ff; color: #1e3a8a; padding: 0 4px; border-radius: 3px; font-family: ui-monospace, monospace; }
 .cites .cite-type { color: #6b7280; margin: 0 6px; }
 .cites .cite-snippet { color: #4b5563; }
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 200ms ease;
+}
+.fade-enter-from, .fade-leave-to { opacity: 0; }
 </style>

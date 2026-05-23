@@ -430,7 +430,14 @@ class AnalystAgent(BaseAgent):
             policy = _policy.analyst_llm()
             try:
                 user_msg = _build_user_prompt(query, profiles, stat_idx, scope_block)
-                plan_obj, llm_meta = await _call_llm(_SYSTEM_PROMPT, user_msg, policy)
+                # M13 — localize system prompt by project language
+                try:
+                    from app.i18n.loader import load_prompt
+                    from app.report.orchestrator import _load_project_language
+                    sys_prompt = load_prompt("analyst", _load_project_language(pid))
+                except Exception:
+                    sys_prompt = _SYSTEM_PROMPT
+                plan_obj, llm_meta = await _call_llm(sys_prompt, user_msg, policy)
             except (ArkError, Exception) as e:  # noqa: BLE001
                 logger.warning("analyst.llm_failed", error=str(e)[:200])
                 # Fallback to mock so the orchestrator stays alive

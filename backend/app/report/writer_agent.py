@@ -51,6 +51,7 @@ class WriterContext(BaseModel):
     terminology: dict[str, str] = Field(default_factory=dict)
     extra_instructions: str = ""           # optional override for regenerate / editor
     max_words: int = 600                   # target upper bound; prompt only, soft
+    language: str = "zh"                   # M13 — drives prompt template language
     # M9 — tool loop knobs
     enable_tools: bool = False             # when True, writer drives an LLM ↔ tool loop
     max_tool_turns: int = 5
@@ -225,39 +226,83 @@ def _build_prompt(
     requirements: list[str],
     style_guide: str,
 ) -> tuple[str, str]:
-    sys_msg = (
-        "你是临床研究报告（CSR / ICH E3）的章节作者。严格遵循以下风格指南，"
-        "所有数字必须有引用，禁止编造任何 Ref 代码或数据。\n\n"
-        f"{style_guide}\n\n"
-        f"## 项目术语对照\n{_format_terminology(ctx.terminology)}\n"
-    )
+    lang = (ctx.language or "zh").lower()
+    # M13 — load the localized system prompt with fallback.
+    try:
+        from app.i18n.loader import render_prompt
+        sys_msg = render_prompt(
+            "writer",
+            language=lang,
+            style_guide=style_guide,
+            terminology_block=_format_terminology(ctx.terminology),
+        )
+    except Exception:
+        sys_msg = (
+            "你是临床研究报告（CSR / ICH E3）的章节作者。严格遵循以下风格指南，"
+            "所有数字必须有引用，禁止编造任何 Ref 代码或数据。\n\n"
+            f"{style_guide}\n\n"
+            f"## 项目术语对照\n{_format_terminology(ctx.terminology)}\n"
+        )
+
     parts: list[str] = []
-    parts.append(f"## 当前章节\n- ID: {node.id}\n- 标题: {node.title}\n- 层级: H{node.level + 1}")
+    if lang.startswith("en"):
+        labels = {
+            "section": "Current section",
+            "id": "ID", "title": "Title", "level": "Level",
+            "parent": "Parent summary", "prev": "Previous section tail",
+            "req": "Hard requirements (from principle)",
+            "notes": "Writing notes", "stat": "Statistical evidence",
+            "lit": "Literature evidence",
+            "extra": "Rewrite extra instructions",
+            "out_header": "Output requirements",
+            "out_md": "- Use Markdown for the section body (**start at H2**, **do NOT** repeat the H1 title).",
+            "out_len": f"- Aim for {ctx.max_words // 2}~{ctx.max_words} words.",
+            "out_cite": "- Cite at least one piece of evidence; place [Ref<...>] right after every number.",
+            "out_fence": "- Do not wrap output in a ```markdown fence — emit raw markdown only.",
+            "out_no_refs_section": "- Do not append a 'References' list — all citations live inline as [Ref<...>].",
+        }
+    else:
+        labels = {
+            "section": "当前章节",
+            "id": "ID", "title": "标题", "level": "层级",
+            "parent": "父章节摘要", "prev": "前一节末句",
+            "req": "硬性要求（来自原则）",
+            "notes": "写作提示", "stat": "统计证据",
+            "lit": "文献证据",
+            "extra": "重写补充说明",
+            "out_header": "输出要求",
+            "out_md": "- 用 Markdown 写本节正文（**从 H2 开始**，**不要**重复 H1 标题）。",
+            "out_len": f"- 篇幅约 {ctx.max_words // 2}~{ctx.max_words} 字（中文计字）。",
+            "out_cite": "- 至少引用 1 处证据；每处数字后紧跟 [Ref<...>]。",
+            "out_fence": "- 不要输出 ```markdown 代码块，仅纯 markdown 文本。",
+            "out_no_refs_section": "- 不要在末尾追加额外的「参考文献」列表，引用通过行内 [Ref<...>] 表达。",
+        }
+    parts.append(f"## {labels['section']}\n- {labels['id']}: {node.id}\n- {labels['title']}: {node.title}\n- {labels['level']}: H{node.level + 1}")
     if ctx.parent_summary:
-        parts.append(f"\n## 父章节摘要\n{ctx.parent_summary[:600]}")
+        parts.append(f"\n## {labels['parent']}\n{ctx.parent_summary[:600]}")
     if ctx.sibling_tail:
-        parts.append(f"\n## 前一节末句\n{ctx.sibling_tail[:300]}")
+        parts.append(f"\n## {labels['prev']}\n{ctx.sibling_tail[:300]}")
     if requirements:
         bullet = "\n".join(f"- {r}" for r in requirements[:12])
-        parts.append(f"\n## 硬性要求（来自原则）\n{bullet}")
+        parts.append(f"\n## {labels['req']}\n{bullet}")
     if node.notes:
-        parts.append(f"\n## 写作提示\n{node.notes}")
+        parts.append(f"\n## {labels['notes']}\n{node.notes}")
     if stat_ev:
         for i, s in enumerate(stat_ev, 1):
-            parts.append(f"\n## 统计证据 #{i} [{s['ref_code']}] — {s['title']}\n{s['markdown_table']}")
+            parts.append(f"\n## {labels['stat']} #{i} [{s['ref_code']}] — {s['title']}\n{s['markdown_table']}")
     if lit_ev:
-        parts.append("\n## 文献证据")
+        parts.append(f"\n## {labels['lit']}")
         for l in lit_ev:
             parts.append(f"- [{l['ref_code']}]: {l['text']}")
     if ctx.extra_instructions:
-        parts.append(f"\n## 重写补充说明\n{ctx.extra_instructions}")
+        parts.append(f"\n## {labels['extra']}\n{ctx.extra_instructions}")
     parts.append(
-        f"\n## 输出要求\n"
-        f"- 用 Markdown 写本节正文（**从 H2 开始**，**不要**重复 H1 标题）。\n"
-        f"- 篇幅约 {ctx.max_words // 2}~{ctx.max_words} 字（中文计字）。\n"
-        f"- 至少引用 1 处证据；每处数字后紧跟 [Ref<...>]。\n"
-        f"- 不要输出 ```markdown 代码块，仅纯 markdown 文本。\n"
-        f"- 不要在末尾追加额外的「参考文献」列表，引用通过行内 [Ref<...>] 表达。"
+        f"\n## {labels['out_header']}\n"
+        f"{labels['out_md']}\n"
+        f"{labels['out_len']}\n"
+        f"{labels['out_cite']}\n"
+        f"{labels['out_fence']}\n"
+        f"{labels['out_no_refs_section']}"
     )
     return sys_msg, "\n".join(parts)
 
