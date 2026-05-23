@@ -342,3 +342,60 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md#roadmap) for the v2.x
 roadmap (PDF/HTML/PPT export, real OCR vision, treatment-area
 templates, Docker compose, multi-study knowledge base, regulatory
 inquiry tracker, and more).
+
+### v2.0.0 — 2026-05-23
+
+The production deployment + therapeutic depth + multi-tenant release.
+22 milestones total (M1-M22), 19 commits since init, ~70K lines net
+across 435 tracked files. 22 e2e scripts (`m2_e2e_test.py` …
+`m22_e2e_test.py`) and 78 unit tests all passing. New `docs/` folder
+with 6 guides.
+
+**Major increments since v1.0.0**
+
+- **Infrastructure & deployment** — `docker-compose.yml` (backend +
+  frontend + redis + optional prometheus profile), multi-stage
+  `Dockerfile`s, nginx SPA + API/WS reverse proxy; full **arq +
+  Redis** task queue (inmemory mode preserved); rate-limit middleware
+  (token-bucket); project zip backup + restore; GitHub Actions CI
+  with pytest/lint/build/e2e-mock/docker-config jobs.
+- **Multi-format export** — PDF (reportlab), HTML (jinja2 + ECharts
+  interactive), PowerPoint (python-pptx 16:9), Markdown bundle (zip).
+- **Therapeutic area templates** — oncology (RECIST 1.1 / iRECIST,
+  PFS/OS/DOR), rare disease (Bayesian + external control + propensity
+  score), vaccine (GMT/SCR + VE), pediatric (ICH E11(R1) age strata +
+  PopPK + growth z-score), cardiovascular (MACE composite + CEC
+  adjudication + LVEF). 5 sample projects with synthetic ADaM data
+  for one-click hands-on.
+- **5 new AI agents** — literature search (PubMed E-utilities,
+  Wanfang stub), medical English polishing (3 modes with diff), chart
+  selector (StatBlock → ECharts type), reference formatter (Vancouver
+  / GB/T 7714 / AMA), LaTeX → DOCX formula render.
+- **Multi-tenant accounts** — `User` + `Tenant` + `ProjectMember`
+  models, bcrypt password hashing, JWT (python-jose) with access +
+  refresh tokens, dev_mode `X-User-Id` fallback for backward
+  compatibility. Four-role ACL: owner / editor / reviewer / viewer.
+  Login + Register + TenantSettings frontend views.
+- **Reverse import suite** — Protocol PDF → 8 trial-design fields,
+  SAP docx → outline stat_hints injection, define.xml → ItemDef notes.
+- **Advanced visualizations** — KM with risk table (dual-panel +
+  median + log-rank p), Bland-Altman with LoA, heatmap (long → pivot
+  → imshow + ECharts), PK profile 3D (matplotlib 3D + ECharts-GL with
+  2D fallback), composable dashboard (grid layout persistence).
+- **Mobile < 768 full support** — `useResponsive` composable, panes
+  stack into el-tabs, simplified ChapterReader toolbar, native touch
+  gestures (swipe chapters + long-press context menu); skip-to-content
+  link, ARIA semantics, contrast bumps targeting Lighthouse a11y ≥ 95.
+- **Onboarding upgrade** — ProjectList Hero 5-domain card grid with
+  icons; OnboardingTour gains "5 demo projects" step; HelpMenu gains
+  video tutorial modal + 10-question FAQ.
+- **Documentation** — `docs/quickstart.md` (5-min walkthrough),
+  `architecture.md` (data flow + module map), `compliance.md`
+  (21 CFR Part 11 / NMPA reviewer checklist), `api.md` (OpenAPI +
+  curl/Python/TS/WS examples), `deployment.md` (Docker Compose +
+  Nginx TLS + backup), `contributing.md` (recipes for adding
+  templates / agents / export formats / locales).
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md#roadmap) for the remaining
+v3.x backlog (SSO/OIDC, real HSM signing, true OCR vision, recording
+replay, multi-study knowledge base, regulatory inquiry tracking).

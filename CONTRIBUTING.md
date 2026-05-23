@@ -71,9 +71,14 @@ call.
 
 ## Releasing
 
-Current release: **v1.0.0** (2026-05-22). The `main` branch is the
+Current release: **v2.0.0** (2026-05-23). The `main` branch is the
 release surface; tag `vX.Y.Z` on the release commit and push tags.
 Release notes live in [README.md](./README.md#release-notes).
+
+Released versions:
+- **v1.0.0** (2026-05-22) — first production-ready CSR pipeline (M1-M18)
+- **v2.0.0** (2026-05-23) — production deployment + 5 therapeutic
+  domains + multi-tenant accounts + advanced visualizations (M19-M22)
 
 When cutting a new release:
 
@@ -82,57 +87,49 @@ When cutting a new release:
 3. On GitHub, draft a release from the tag and paste the README
    highlights as the body.
 
-## Roadmap
+## Roadmap (v3.x)
 
-The v1.0 plan deliberately deferred several items to v2.x; community
-PRs are welcome on any of them:
+The v2.0 release delivered Docker deployment, multi-format export, 5
+therapeutic-area templates, multi-tenant auth, reverse import, and
+advanced visualizations. Items below were intentionally deferred to
+v3.x — community PRs are welcome.
+
+### Authentication & infrastructure
+- SSO / OIDC integration (replace dev-mode + JWT-only flow)
+- Hardware HSM signing (replace demo ed25519 keys)
+- Multi-tenant worker pool with physical path migration
+  (`data/projects/<pid>` → `data/tenants/<tid>/projects/<pid>`;
+  current v2.0 is route-layer isolation, helper at
+  `backend/scripts_helpers/multitenant.py:full_migrate`)
+- CSRF protection + per-route rate-limit tuning
 
 ### Export & integration
-- PDF / HTML / PowerPoint / Markdown bundle export formats
-- True eCTD M1.2 validator (current packager is demo-grade)
-- SAP docx → analysis plan reverse import
-- Protocol PDF → trial-design metadata extraction
-- `define.xml` full ADaM metadata
+- True eCTD M1.2 validator (current packager is demo-grade structure)
 - EDC system API connectors (OpenClinica / Medidata / REDCap)
-
-### Domain templates
-- Oncology (RECIST 1.1 / iRECIST / PFS / OS)
-- Rare disease (small-N + historical controls)
-- Vaccine (immunogenicity + efficacy)
-- Pediatric (age stratification)
-- Cardiovascular (MACE composite endpoints)
+- LIMS integration for lab data
+- Pinnacle 21 / OpenCDISC ADaM validator hook
 
 ### AI agents
-- Literature search agent (PubMed / Wanfang)
-- Medical English polishing agent
-- Chart-type recommendation agent
-- LaTeX → DOCX formula conversion
-- Vancouver / GB/T 7714 / AMA reference formatting
-
-### Infrastructure
-- Docker Compose one-command deployment
-- Prometheus + Grafana dashboard bundle
-- SSO / OIDC integration with `X-User-Id` middleware
-- OpenAPI rate limiting
-- arq + Redis full deployment guide
-- Multi-tenant project worker pool
-- Automatic project zip backup + import
-- Hardware HSM signing (replace demo ed25519 keys)
-- True OCR vision integration (currently stub)
+- True OCR vision integration (`ark_client` needs vision support;
+  M2.5 left `scan_worker` / `handwriting_worker` as stubs)
+- Multi-study knowledge base (cross-project corpus learning)
+- Regulatory inquiry tracker (FDA/NMPA Round 1/2/3 response workflows)
+- AE causality assessment helper
+- Protocol deviation tracker
+- Native Anthropic tool_use streaming (currently JSON-schema action
+  loop pattern)
 
 ### UX
-- Mobile (< 768) responsive support
-- Full Lighthouse a11y 100
-- Treatment-area templates with sample data
-- First-visit guided tour videos
-- Operation record-and-replay
+- Lighthouse a11y 100 (v2.0 targets 95; some EP components have
+  baseline issues)
+- Recorded walkthrough videos (HelpMenu currently links to placeholders)
+- Operation record-and-replay (rrweb integration)
+- WCAG 2.2 AAA color theme variant
 
 ### Visualization
-- Survival curves with risk table overlay
-- Bland-Altman plots
-- Heat maps (gene expression / biomarker)
-- 3D PK profile plots
-- Interactive dashboard mode
+- Animated chart transitions
+- Custom theme builder
+- Plotly export option (alongside ECharts + matplotlib)
 
 If you start work on any of these, please open an issue tagged
-`v2-roadmap` so we can coordinate.
+`v3-roadmap` so we can coordinate.
