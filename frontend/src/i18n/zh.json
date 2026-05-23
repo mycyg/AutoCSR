@@ -31,7 +31,15 @@
     "filter": "过滤",
     "more": "更多",
     "settings": "设置",
-    "help": "帮助"
+    "help": "帮助",
+    "copy": "复制",
+    "share": "分享",
+    "close": "关闭",
+    "confirm": "确认",
+    "warning": "警告",
+    "open": "打开",
+    "run": "运行",
+    "generate": "生成"
   },
   "steps": {
     "intake": "上传",
@@ -67,7 +75,12 @@
     "field_name_placeholder": "例如：BMS-A001 III期临床",
     "field_principle_placeholder": "(可选) 例如 ich_e3",
     "field_template": "选择模板",
-    "field_language": "默认语言"
+    "field_language": "默认语言",
+    "hero_pitch": "用 AI 起草、审稿、签字、监管打包 — 一站到底",
+    "hero_video_alt": "演示视频占位",
+    "templates_title": "从模板开始",
+    "use_template": "从此模板开始",
+    "tpl_default_desc": "标准 ICH E3 框架，适用于大多数 II/III 期试验。"
   },
   "intake": {
     "title": "1. 上传与判型",
@@ -91,31 +104,67 @@
     "accept": "接受",
     "reject": "拒绝",
     "modify": "修改",
-    "no_proposals": "尚无清洗建议"
+    "no_proposals": "尚无清洗建议",
+    "empty_title": "尚无可清洗的文件",
+    "empty_desc": "请先在「上传」步骤上传文件并完成判型",
+    "go_upload": "去上传"
   },
   "analyze": {
     "title": "3. 临床分析",
     "ask_data": "向数据提问",
     "ask_placeholder": "例如：按治疗组比较基线血压…",
     "ask_button": "提问",
-    "auto_run": "运行常规分析"
+    "auto_run": "运行常规分析",
+    "empty_title": "暂无统计块",
+    "empty_desc": "运行自动分析，或在右侧手动 /ask 问数据"
   },
   "outline": {
     "title": "4. 大纲规划",
-    "build": "根据原则生成大纲"
+    "build": "根据原则生成大纲",
+    "empty_title": "暂无大纲",
+    "empty_desc": "选择 ICH E3 等指导原则生成完整章节大纲",
+    "search_placeholder": "搜索章节…",
+    "collapse_all": "全部折叠",
+    "expand_all": "全部展开",
+    "goto_current": "跳到当前"
   },
   "report": {
     "title": "5. 章节撰写",
     "generate": "开始撰写",
     "regenerate": "重新生成本节",
     "harmonize": "全文术语统一",
-    "ask_writer": "向写作助手提问"
+    "ask_writer": "向写作助手提问",
+    "empty_title": "暂无章节草稿",
+    "empty_desc": "点击「开始撰写」批量生成全文，或在大纲页选定章节后单节生成",
+    "copy_md": "复制 Markdown",
+    "copied": "已复制",
+    "share_snapshot": "分享只读快照",
+    "snapshot_created": "快照链接已生成",
+    "recently_viewed": "最近浏览"
   },
   "review": {
     "title": "6. 评审",
     "run_review": "运行评审",
     "issues": "问题列表",
-    "no_issues": "未发现问题"
+    "no_issues": "未发现问题",
+    "tab_hallucination": "幻觉检查"
+  },
+  "tasks": {
+    "title": "任务",
+    "empty_title": "暂无任务",
+    "empty_desc": "从 review 的 issue 转换，或在此手动新建任务",
+    "delete": "删除任务",
+    "delete_confirm": "确认删除任务「{name}」？此操作不可撤销。"
+  },
+  "audit": {
+    "title": "审计日志",
+    "empty_title": "暂无审计事件",
+    "empty_desc": "操作发生后，审计链会按时间倒序展示在这里"
+  },
+  "compare": {
+    "title": "项目对比",
+    "empty_title": "请选择两个项目进行对比",
+    "empty_desc": "可对比大纲结构或章节草稿差异"
   },
   "export": {
     "title": "导出 DOCX",
@@ -135,6 +184,7 @@
     "footer_text": "页脚",
     "watermark": "水印",
     "show_ai_provenance": "显示 AI 标记",
+    "show_hallucination_warnings": "显示幻觉警告",
     "toc_depth": "目录深度",
     "upload_template": "上传自定义模板…",
     "preview_title": "样式预览",
@@ -145,14 +195,32 @@
     "generate": "生成 DOCX",
     "generating": "正在生成…",
     "history": "历史导出",
-    "no_history": "尚无历史导出。"
+    "no_history": "尚无历史导出。",
+    "ectd_open": "导出 eCTD M5 包",
+    "delete_confirm": "确认删除导出文件「{name}」？"
   },
   "shortcuts": {
     "title": "快捷键",
     "save_section": "保存当前章节",
     "global_search": "全局搜索",
     "send_message": "在输入框发送 (Shift+Enter 换行)",
-    "help": "显示快捷键帮助"
+    "help": "显示快捷键帮助",
+    "tab_keys": "快捷键",
+    "tab_workflows": "典型流程",
+    "workflows": {
+      "writing": "写作流",
+      "writing_steps": "上传 → 清洗 → 分析 → 大纲 → 撰写 → 导出",
+      "review": "审稿流",
+      "review_steps": "撰写 → reviewer → comments → sign_chain → docx",
+      "data_ask": "数据问答流",
+      "data_ask_steps": "清洗 → /ask → StatBlock → 引用到章节",
+      "export": "导出流",
+      "export_steps": "DOCX 一键 / TLF zip / eCTD M5 监管包"
+    },
+    "outline_nav": "章节树 j/k 上下移动",
+    "list_nav": "列表 ↑↓ 移动",
+    "close_modal": "关闭弹窗",
+    "view_shortcuts": "本视图快捷键"
   },
   "search": {
     "title": "全局搜索",
@@ -160,6 +228,126 @@
     "section": "章节",
     "term": "术语",
     "stat": "统计块",
-    "empty": "暂无匹配"
+    "empty": "暂无匹配",
+    "recent": "最近搜索"
+  },
+  "onboarding": {
+    "aria": "新手引导",
+    "progress": "第 {n} / {total} 步",
+    "skip": "跳过",
+    "prev": "上一步",
+    "next": "下一步",
+    "finish": "开始使用",
+    "dont_show": "不再显示",
+    "s1_title": "欢迎使用 AutoCSR",
+    "s1_body": "一站式临床总结报告 (CSR) 工作流：从原始数据到监管打包，全程 AI 辅助。",
+    "s2_title": "上传你的数据",
+    "s2_body": "支持 SAS / Excel / PDF / Word。Router 自动判型并启动对应 worker。",
+    "s3_title": "清洗与分析",
+    "s3_body": "工作台逐列提供脱敏 / 编码建议；自动分析生成可复用的 StatBlock。",
+    "s4_title": "AI 起草章节",
+    "s4_body": "writer agent 引用真实统计结果与原文，过程留痕。可随时切换手工微调。",
+    "s5_title": "评审与导出",
+    "s5_body": "Multi-reviewer + sign chain + 幻觉检测；最终导出 DOCX / TLF / eCTD 监管包。",
+    "s6_title": "Ready",
+    "s6_body": "顶栏「?」可随时重看本教程或查看快捷键。"
+  },
+  "tooltips": {
+    "first_time": "首次使用提示",
+    "plan_panel": "先看 plan 再撰写，思路更可控。",
+    "coding_map": "选字典 → 接受候选 → 应用规则。",
+    "advanced_analysis": "亚组 / 敏感性 / CONSORT 等按需选用。",
+    "audit": "所有改动留痕，hash 链可验证。",
+    "got_it": "知道了"
+  },
+  "help": {
+    "menu_aria": "帮助菜单",
+    "shortcuts": "快捷键",
+    "tour": "重看新手引导",
+    "docs": "查看文档",
+    "changelog": "更新日志"
+  },
+  "theme": {
+    "to_dark": "切到深色",
+    "to_light": "切到浅色"
+  },
+  "language": {
+    "ja_beta": "日本語 (beta)"
+  },
+  "progress": {
+    "done": "完成",
+    "cancelled": "已取消",
+    "cancel_not_supported": "此长任务暂不支持取消",
+    "stop_aria": "停止任务",
+    "writer": { "title": "正在撰写章节" },
+    "cleansing": { "title": "正在应用清洗规则" },
+    "ingest": { "title": "正在解析上传文件" },
+    "tlf": { "title": "正在生成 TLF 包" },
+    "ectd": { "title": "正在打包 eCTD" },
+    "review": { "title": "正在运行三审" }
+  },
+  "errors": {
+    "critical_title": "严重错误",
+    "unknown": "操作失败",
+    "network": "网络异常，请检查后端服务",
+    "timeout": "请求超时，请稍后重试",
+    "unauthorized": "未登录或会话已过期",
+    "forbidden": "无权执行此操作",
+    "not_found": "请求的资源不存在",
+    "conflict": "操作冲突，请刷新后重试",
+    "rate_limited": "请求过于频繁，请稍后再试",
+    "server_error": "服务器内部错误，请联系管理员",
+    "validation_failed": "提交的数据校验失败",
+    "project_not_found": "项目不存在",
+    "project_locked": "项目已锁定，无法修改",
+    "must_archive_first": "请先归档再删除",
+    "ingest_unknown_type": "无法识别该文件类型",
+    "ingest_failed": "文件解析失败",
+    "unsupported_file": "暂不支持此格式",
+    "cleansing_no_proposals": "暂无可应用的清洗建议",
+    "cleansing_apply_failed": "清洗应用失败",
+    "outline_missing": "大纲尚未生成",
+    "report_in_progress": "撰写任务正在进行中",
+    "writer_failed": "writer agent 调用失败",
+    "analysis_no_data": "尚无可分析数据",
+    "sandbox_error": "Python sandbox 执行失败",
+    "export_failed": "导出失败",
+    "template_invalid": "模板无效或损坏",
+    "ectd_missing_outline": "缺少必填章节，无法打包 eCTD",
+    "review_already_running": "评审正在执行中",
+    "sign_chain_out_of_order": "签字顺序不正确",
+    "sign_chain_already_done": "本步已签字",
+    "audit_chain_broken": "审计链被破坏，请联系管理员",
+    "hallucination_blocked": "检测到潜在幻觉，已阻止写入",
+    "pii_violation": "敏感字段未脱敏"
+  },
+  "sign_chain": {
+    "title": "签字链",
+    "init": "初始化签字链",
+    "init_confirm": "将按默认顺序 statistician → medical → regulatory → approver 创建签字流程。继续？",
+    "empty": "尚未初始化签字链",
+    "advance": "签字 (本步)",
+    "advance_confirm": "确认作为 {role} 完成本步签字？",
+    "reason_placeholder": "签字理由 (可选)",
+    "not_your_turn": "下一步由 {role} 签字",
+    "completed": "签字链已全部完成"
+  },
+  "ectd": {
+    "title": "导出 eCTD M5.3.5 包",
+    "hint": "将当前 CSR 草稿 + 可选 cover letter / investigator statement / ICF 打包为符合 eCTD 提交规范的 zip。",
+    "cover_letter": "Cover letter (可选)",
+    "investigator_statement": "Investigator statement (可选)",
+    "icf": "ICF (可选)",
+    "pick_file": "选择文件",
+    "package": "开始打包",
+    "download": "下载 zip",
+    "history": "历史 eCTD 包"
+  },
+  "hallucination": {
+    "title": "幻觉检查",
+    "run": "重新运行",
+    "n_findings": "条发现",
+    "never_run": "尚未运行检查",
+    "no_findings": "未发现幻觉问题"
   }
 }

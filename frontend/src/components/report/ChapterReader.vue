@@ -4,9 +4,13 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { MdEditor, MdPreview } from 'md-editor-v3'
 import 'md-editor-v3/lib/preview.css'
 import 'md-editor-v3/lib/style.css'
-import { listSectionVersions, rollbackSection, updateDraftMarkdown,
+import { createSnapshot, listSectionVersions, rollbackSection, updateDraftMarkdown,
          type SectionDraftDTO } from '@/api/rest'
 import { useShortcuts } from '@/composables/useShortcuts'
+import { useI18n } from 'vue-i18n'
+import { useRecentlyViewed } from '@/composables/useRecentlyViewed'
+import { handleApiError } from '@/utils/errors'
+const { t } = useI18n()
 
 const props = defineProps<{
   projectId: string
@@ -35,7 +39,11 @@ watch(() => props.draft?.markdown, (v) => {
 })
 
 watch(() => props.nodeId, async (id) => {
-  if (id) await refreshVersions()
+  if (id) {
+    await refreshVersions()
+    const title = props.draft?.title || props.outlineTitle || id
+    try { useRecentlyViewed(props.projectId).track(id, title) } catch { /* sessionStorage may be blocked */ }
+  }
   locked.value = true
 })
 
@@ -126,9 +134,20 @@ async function onCopy(): Promise<void> {
   if (!props.draft) return
   try {
     await navigator.clipboard.writeText(localMd.value || props.draft.markdown)
-    ElMessage.success('OK')
+    ElMessage.success(t('report.copied'))
   } catch {
-    ElMessage.error('copy failed')
+    handleApiError(new Error('copy failed'))
+  }
+}
+
+async function onShareSnapshot(): Promise<void> {
+  if (!props.nodeId) return
+  try {
+    const snap = await createSnapshot(props.projectId, props.nodeId)
+    try { await navigator.clipboard.writeText(snap.url) } catch { /* no clipboard */ }
+    ElMessage.success(`${t('report.snapshot_created')}: ${snap.url}`)
+  } catch (e) {
+    handleApiError(e)
   }
 }
 
@@ -181,7 +200,12 @@ useShortcuts({
           {{ showExtra ? '收起' : '+ 指令' }}
         </el-button>
         <el-button size="small" type="primary" plain @click="onRegenerate">重写本节</el-button>
-        <el-button size="small" @click="onCopy">复制</el-button>
+        <el-button size="small" @click="onCopy" :aria-label="t('report.copy_md')">
+          ⧉ {{ t('report.copy_md') }}
+        </el-button>
+        <el-button size="small" @click="onShareSnapshot" :aria-label="t('report.share_snapshot')">
+          🔗 {{ t('common.share') }}
+        </el-button>
       </div>
       <div v-if="showExtra" class="extra">
         <el-input v-model="extraInstruction" type="textarea" :rows="2"

@@ -7,12 +7,29 @@ import { connectProjectWS } from '@/api/ws'
 import ChapterTree from '@/components/report/ChapterTree.vue'
 import ChapterReader from '@/components/report/ChapterReader.vue'
 import WriterStatus from '@/components/report/WriterStatus.vue'
+import EmptyState from '@/components/global/EmptyState.vue'
+import { getHallucinationCheck } from '@/api/rest'
+import { handleApiError } from '@/utils/errors'
+import { useRecentlyViewed } from '@/composables/useRecentlyViewed'
 
 const props = defineProps<{ id: string }>()
 const outlineStore = useOutlineStore()
 const reportStore = useReportStore()
 let wsClose: (() => void) | null = null
 let pollTimer: number | null = null
+const halluCounts = ref<Record<string, number>>({})
+const recent = useRecentlyViewed(props.id)
+
+async function refreshHallucinations(): Promise<void> {
+  try {
+    const r = await getHallucinationCheck(props.id)
+    const counts: Record<string, number> = {}
+    for (const f of r.findings || []) {
+      counts[f.node_id] = (counts[f.node_id] || 0) + 1
+    }
+    halluCounts.value = counts
+  } catch { /* no findings or endpoint unavailable */ }
+}
 
 onMounted(async () => {
   try {
@@ -23,6 +40,7 @@ onMounted(async () => {
   await reportStore.refreshStatus(props.id)
   await reportStore.refreshDrafts(props.id)
   await reportStore.loadTerminology(props.id)
+  void refreshHallucinations()
   wsClose = connectProjectWS(props.id, (ev) => reportStore.handleWS(props.id, ev))
   // Light fallback poll so the user gets updates even if WS is asleep
   pollTimer = window.setInterval(() => {
@@ -48,7 +66,7 @@ const outlineNode = computed(() => outlineStore.findNode(reportStore.selectedNod
 
 async function onStart(): Promise<void> {
   if (!outlineStore.outline) {
-    ElMessage.warning('请先生成大纲')
+    handleApiError(new Error('outline missing'))
     return
   }
   const leaves = (function count(nodes: typeof outlineStore.outline.root_sections): number {
@@ -144,17 +162,30 @@ const running = computed(() => ['background', 'results', 'discussion', 'harmoniz
     </div>
     <el-container class="three">
       <el-aside class="left" width="320px">
-        <div v-if="!outlineStore.outline" class="empty">
-          <p>项目尚无大纲，无法撰写。</p>
-          <el-button size="small" plain @click="$router.push(`/p/${props.id}/outline`)">
-            去生成大纲
-          </el-button>
-        </div>
-        <ChapterTree v-else
-          :nodes="outlineStore.outline.root_sections"
-          :selected-id="reportStore.selectedNodeId"
-          :drafts="draftsById"
-          @select="onSelect" />
+        <EmptyState v-if="!outlineStore.outline"
+                     icon="📋"
+                     :title="$t('outline.empty_title')"
+                     :description="$t('outline.empty_desc')"
+                     :cta-text="$t('outline.build')"
+                     @cta="$router.push(`/p/${props.id}/outline`)" />
+        <template v-else>
+          <ChapterTree
+            :nodes="outlineStore.outline.root_sections"
+            :selected-id="reportStore.selectedNodeId"
+            :drafts="draftsById"
+            :hallucinations="halluCounts"
+            @select="onSelect" />
+          <div v-if="recent.items.value && recent.items.value.length" class="recent-list">
+            <h4>★ {{ $t('report.recently_viewed') }}</h4>
+            <ul>
+              <li v-for="r in (recent.items.value || []).slice(0, 5)" :key="r.node_id"
+                  @click="onSelect(r.node_id)">
+                <span class="rid">{{ r.node_id }}</span>
+                <span class="rtitle">{{ r.title }}</span>
+              </li>
+            </ul>
+          </div>
+        </template>
       </el-aside>
 
       <el-main class="center">
@@ -187,12 +218,33 @@ const running = computed(() => ['background', 'results', 'discussion', 'harmoniz
 .report-view { height: calc(100vh - 56px); display: flex; flex-direction: column; }
 .topbar {
   display: flex; align-items: center; gap: 12px;
-  padding: 8px 16px; background: #fff; border-bottom: 1px solid #e5e7eb;
+  padding: 8px 16px; background: var(--color-surface); border-bottom: 1px solid var(--color-border);
 }
-.topbar .info { color: #6b7280; font-size: 12px; }
+.topbar .info { color: var(--color-text-mute); font-size: var(--font-size-sm); }
 .three { flex: 1; overflow: hidden; }
-.left { background: #fff; border-right: 1px solid #e5e7eb; overflow: auto; padding: 12px; }
-.center { background: #fafbfc; padding: 0; overflow: auto; }
-.right { background: #fff; border-left: 1px solid #e5e7eb; overflow: auto; }
-.empty { color: #6b7280; padding: 24px 12px; text-align: center; }
+.left { background: var(--color-surface); border-right: 1px solid var(--color-border); overflow: auto; padding: 12px; }
+.center { background: var(--color-surface-2); padding: 0; overflow: auto; }
+.right { background: var(--color-surface); border-left: 1px solid var(--color-border); overflow: auto; }
+.empty { color: var(--color-text-mute); padding: 24px 12px; text-align: center; }
+.recent-list { margin-top: 12px; padding: 8px 4px; border-top: 1px solid var(--color-border); }
+.recent-list h4 {
+  margin: 0 0 6px; font-size: var(--font-size-sm);
+  color: var(--color-text-mute); font-weight: 600;
+}
+.recent-list ul { list-style: none; margin: 0; padding: 0; }
+.recent-list li {
+  padding: 4px 6px; cursor: pointer; border-radius: 4px;
+  display: flex; gap: 6px; align-items: center; font-size: var(--font-size-sm);
+}
+.recent-list li:hover { background: var(--color-surface-3); }
+.recent-list .rid { font-family: ui-monospace, monospace; color: var(--color-text-mute); font-size: var(--font-size-xs); min-width: 40px; }
+.recent-list .rtitle { color: var(--color-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 1279px) {
+  .left { width: 260px !important; }
+  .right { width: 320px !important; }
+}
+@media (max-width: 1023px) {
+  .three { flex-direction: column; }
+  .left, .right { width: auto !important; max-height: 220px; border: none; border-bottom: 1px solid var(--color-border); }
+}
 </style>

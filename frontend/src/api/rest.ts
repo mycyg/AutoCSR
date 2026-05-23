@@ -1165,4 +1165,133 @@ export async function getQueueTaskStatus(taskId: string): Promise<QueueTaskRecor
   return (await api.get(`/tasks/${taskId}/status`)).data
 }
 
+// ---------------------------------------------------------------------------
+// M17 wiring — hallucination, sign chain, eCTD, cancel
+// ---------------------------------------------------------------------------
+
+export interface HallucinationFindingDTO {
+  node_id: string
+  paragraph_index?: number
+  ref_code?: string
+  reason: string
+  severity: 'info' | 'warn' | 'error'
+  text_excerpt?: string
+  [k: string]: unknown
+}
+
+export interface HallucinationResultDTO {
+  project_id: string
+  n_findings: number
+  findings: HallucinationFindingDTO[]
+}
+
+export async function runHallucinationCheck(pid: string): Promise<HallucinationResultDTO> {
+  return (await api.post(`/projects/${pid}/hallucination_check`)).data
+}
+
+export async function getHallucinationCheck(pid: string): Promise<HallucinationResultDTO> {
+  return (await api.get(`/projects/${pid}/hallucination_check`)).data
+}
+
+export interface SignChainStepDTO {
+  role: string
+  signer_user_id?: string | null
+  signed_at?: string | null
+  reason?: string | null
+  status: 'pending' | 'signed' | 'skipped'
+}
+
+export interface SignChainDTO {
+  task_id?: string
+  chain?: string[]
+  current_step?: string | null
+  steps: SignChainStepDTO[]
+  completed?: boolean
+}
+
+export async function initSignChain(pid: string, tid: string,
+                                     chain?: string[]): Promise<SignChainDTO> {
+  return (await api.post(`/projects/${pid}/tasks/${tid}/sign_chain/init`,
+                          chain ? { chain } : {})).data
+}
+
+export async function getSignChain(pid: string, tid: string): Promise<SignChainDTO> {
+  return (await api.get(`/projects/${pid}/tasks/${tid}/sign_chain`)).data
+}
+
+export async function advanceSignChain(pid: string, tid: string, body: {
+  role: string; signer_user_id?: string; reason?: string
+}): Promise<SignChainStepDTO> {
+  const headers: Record<string, string> = {}
+  if (body.signer_user_id) headers['X-User-Id'] = body.signer_user_id
+  return (await api.post(`/projects/${pid}/tasks/${tid}/sign_chain/advance`,
+                          body, { headers })).data
+}
+
+export interface EctdExportResultDTO {
+  task_id: string
+  filename: string
+  size_bytes: number
+}
+
+export interface EctdExportRecordDTO {
+  filename: string
+  size_bytes: number
+  created_at: string
+}
+
+export async function exportEctd(pid: string, files: {
+  cover_letter?: File | null
+  investigator_statement?: File | null
+  icf?: File | null
+}): Promise<EctdExportResultDTO> {
+  const fd = new FormData()
+  if (files.cover_letter) fd.append('cover_letter', files.cover_letter)
+  if (files.investigator_statement) fd.append('investigator_statement', files.investigator_statement)
+  if (files.icf) fd.append('icf', files.icf)
+  return (await api.post(`/projects/${pid}/export/ectd`, fd, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 300_000,
+  })).data
+}
+
+export async function listEctdExports(pid: string): Promise<EctdExportRecordDTO[]> {
+  return (await api.get(`/projects/${pid}/exports/ectd`)).data
+}
+
+export function ectdDownloadUrl(pid: string, filename: string): string {
+  return `/api/projects/${pid}/exports/ectd/${encodeURIComponent(filename)}`
+}
+
+/** Best-effort task cancel. Returns true on 200, false on 404 (unsupported). */
+export async function cancelTask(taskId: string): Promise<boolean> {
+  try {
+    await api.post(`/tasks/${taskId}/cancel`)
+    return true
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Read-only snapshot (M18). Backend may or may not expose it; the helper
+ * falls back to a client-side share URL so the button is never dead.
+ */
+export interface SnapshotRefDTO { id: string; url: string; expires_at?: string | null }
+
+export async function createSnapshot(pid: string, nodeId: string,
+                                      version?: number): Promise<SnapshotRefDTO> {
+  try {
+    const body: Record<string, unknown> = { node_id: nodeId }
+    if (version !== undefined) body.version = version
+    const r = await api.post(`/projects/${pid}/snapshots`, body)
+    return r.data
+  } catch {
+    // Fallback: return a deep-link a teammate can open inside the same
+    // installation. Read-only enforcement still happens at the route level.
+    const id = `${nodeId}-${Date.now()}`
+    return { id, url: `${window.location.origin}/p/${pid}/report?node=${encodeURIComponent(nodeId)}` }
+  }
+}
+
 export default api

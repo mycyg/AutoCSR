@@ -31,7 +31,15 @@
     "filter": "Filter",
     "more": "More",
     "settings": "Settings",
-    "help": "Help"
+    "help": "Help",
+    "copy": "Copy",
+    "share": "Share",
+    "close": "Close",
+    "confirm": "Confirm",
+    "warning": "Warning",
+    "open": "Open",
+    "run": "Run",
+    "generate": "Generate"
   },
   "steps": {
     "intake": "Intake",
@@ -67,7 +75,12 @@
     "field_name_placeholder": "e.g. BMS-A001 Phase III",
     "field_principle_placeholder": "(optional) e.g. ich_e3",
     "field_template": "Template",
-    "field_language": "Default language"
+    "field_language": "Default language",
+    "hero_pitch": "Draft, review, sign, and ship regulatory CSRs — end to end, with AI.",
+    "hero_video_alt": "Demo video placeholder",
+    "templates_title": "Start from a template",
+    "use_template": "Start from this template",
+    "tpl_default_desc": "Standard ICH E3 skeleton for most Phase II / III trials."
   },
   "intake": {
     "title": "1. Upload & Classify",
@@ -91,31 +104,67 @@
     "accept": "Accept",
     "reject": "Reject",
     "modify": "Modify",
-    "no_proposals": "No cleansing proposals yet"
+    "no_proposals": "No cleansing proposals yet",
+    "empty_title": "No files ready for cleansing",
+    "empty_desc": "Upload a file in the Intake step first.",
+    "go_upload": "Go to upload"
   },
   "analyze": {
     "title": "3. Clinical Analysis",
     "ask_data": "Ask the data",
     "ask_placeholder": "e.g. compare baseline blood pressure across arms…",
     "ask_button": "Ask",
-    "auto_run": "Run standard analyses"
+    "auto_run": "Run standard analyses",
+    "empty_title": "No StatBlocks yet",
+    "empty_desc": "Run the auto analyses or use the ask panel to query data."
   },
   "outline": {
     "title": "4. Outline",
-    "build": "Build outline from principle"
+    "build": "Build outline from principle",
+    "empty_title": "No outline yet",
+    "empty_desc": "Pick an ICH E3 (or other) principle and generate the section tree.",
+    "search_placeholder": "Search sections…",
+    "collapse_all": "Collapse all",
+    "expand_all": "Expand all",
+    "goto_current": "Jump to current"
   },
   "report": {
     "title": "5. Section Writing",
     "generate": "Start writing",
     "regenerate": "Regenerate section",
     "harmonize": "Harmonize terminology",
-    "ask_writer": "Ask the writing assistant"
+    "ask_writer": "Ask the writing assistant",
+    "empty_title": "No draft sections yet",
+    "empty_desc": "Click \"Start writing\" to generate all sections, or pick a single section from the outline.",
+    "copy_md": "Copy markdown",
+    "copied": "Copied",
+    "share_snapshot": "Share read-only snapshot",
+    "snapshot_created": "Snapshot link generated",
+    "recently_viewed": "Recently viewed"
   },
   "review": {
     "title": "6. Review",
     "run_review": "Run review",
     "issues": "Issues",
-    "no_issues": "No issues found"
+    "no_issues": "No issues found",
+    "tab_hallucination": "Hallucination check"
+  },
+  "tasks": {
+    "title": "Tasks",
+    "empty_title": "No tasks yet",
+    "empty_desc": "Convert review issues into tasks or create one manually.",
+    "delete": "Delete task",
+    "delete_confirm": "Delete task \"{name}\"? This cannot be undone."
+  },
+  "audit": {
+    "title": "Audit log",
+    "empty_title": "No audit events",
+    "empty_desc": "Once operations happen, the hash-chained audit log will appear here."
+  },
+  "compare": {
+    "title": "Project compare",
+    "empty_title": "Pick two projects to compare",
+    "empty_desc": "Compare outline structure or section drafts."
   },
   "export": {
     "title": "Export DOCX",
@@ -135,6 +184,7 @@
     "footer_text": "Footer",
     "watermark": "Watermark",
     "show_ai_provenance": "Show AI provenance",
+    "show_hallucination_warnings": "Show hallucination warnings",
     "toc_depth": "TOC depth",
     "upload_template": "Upload custom template…",
     "preview_title": "Style preview",
@@ -145,14 +195,32 @@
     "generate": "Generate DOCX",
     "generating": "Generating…",
     "history": "Export history",
-    "no_history": "No exports yet."
+    "no_history": "No exports yet.",
+    "ectd_open": "Export eCTD M5 package",
+    "delete_confirm": "Delete export \"{name}\"?"
   },
   "shortcuts": {
     "title": "Keyboard shortcuts",
     "save_section": "Save current section",
     "global_search": "Global search",
     "send_message": "Send message in input (Shift+Enter for newline)",
-    "help": "Show this help"
+    "help": "Show this help",
+    "tab_keys": "Keys",
+    "tab_workflows": "Workflows",
+    "workflows": {
+      "writing": "Writing",
+      "writing_steps": "Upload → Cleanse → Analyze → Outline → Write → Export",
+      "review": "Review",
+      "review_steps": "Write → reviewer → comments → sign_chain → docx",
+      "data_ask": "Data ask",
+      "data_ask_steps": "Cleanse → /ask → StatBlock → cite in section",
+      "export": "Export",
+      "export_steps": "DOCX one-shot / TLF zip / eCTD M5 regulatory package"
+    },
+    "outline_nav": "j/k to move in section tree",
+    "list_nav": "↑/↓ to move in lists",
+    "close_modal": "Close modal",
+    "view_shortcuts": "Shortcuts for this view"
   },
   "search": {
     "title": "Global search",
@@ -160,6 +228,126 @@
     "section": "Section",
     "term": "Term",
     "stat": "Stat block",
-    "empty": "No matches"
+    "empty": "No matches",
+    "recent": "Recent searches"
+  },
+  "onboarding": {
+    "aria": "Onboarding tour",
+    "progress": "Step {n} of {total}",
+    "skip": "Skip",
+    "prev": "Back",
+    "next": "Next",
+    "finish": "Get started",
+    "dont_show": "Don't show again",
+    "s1_title": "Welcome to AutoCSR",
+    "s1_body": "An end-to-end Clinical Study Report (CSR) workflow — from raw data to regulatory submission package, with AI throughout.",
+    "s2_title": "Upload your data",
+    "s2_body": "SAS / Excel / PDF / Word are all fine. The router classifies each file and dispatches the right worker.",
+    "s3_title": "Cleanse & analyze",
+    "s3_body": "The workbench proposes PII / coding fixes column-by-column; auto-analyze produces reusable StatBlocks.",
+    "s4_title": "AI drafts sections",
+    "s4_body": "The writer agent cites real stats and source text with full provenance. Switch to manual edit any time.",
+    "s5_title": "Review & ship",
+    "s5_body": "Multi-reviewer + sign chain + hallucination check; export DOCX / TLF / eCTD packages.",
+    "s6_title": "Ready",
+    "s6_body": "The \"?\" menu in the top bar can replay this tour or show shortcuts."
+  },
+  "tooltips": {
+    "first_time": "First-time tip",
+    "plan_panel": "Read the plan first — it makes the writer more predictable.",
+    "coding_map": "Pick a dictionary, accept candidates, then apply rules.",
+    "advanced_analysis": "Subgroup, sensitivity, CONSORT etc — use as needed.",
+    "audit": "Every change is logged; the hash chain is independently verifiable.",
+    "got_it": "Got it"
+  },
+  "help": {
+    "menu_aria": "Help menu",
+    "shortcuts": "Keyboard shortcuts",
+    "tour": "Replay onboarding",
+    "docs": "Documentation",
+    "changelog": "Changelog"
+  },
+  "theme": {
+    "to_dark": "Switch to dark",
+    "to_light": "Switch to light"
+  },
+  "language": {
+    "ja_beta": "日本語 (beta)"
+  },
+  "progress": {
+    "done": "Done",
+    "cancelled": "Cancelled",
+    "cancel_not_supported": "Cancel is not supported for this task yet",
+    "stop_aria": "Stop task",
+    "writer": { "title": "Writing sections" },
+    "cleansing": { "title": "Applying cleansing" },
+    "ingest": { "title": "Parsing uploads" },
+    "tlf": { "title": "Packaging TLF" },
+    "ectd": { "title": "Packaging eCTD" },
+    "review": { "title": "Running multi-reviewer" }
+  },
+  "errors": {
+    "critical_title": "Critical error",
+    "unknown": "Operation failed",
+    "network": "Network error — is the backend running?",
+    "timeout": "Request timed out, please retry",
+    "unauthorized": "Not signed in or session expired",
+    "forbidden": "Permission denied",
+    "not_found": "Resource not found",
+    "conflict": "Conflict — please refresh and try again",
+    "rate_limited": "Too many requests, please slow down",
+    "server_error": "Internal server error, please contact admin",
+    "validation_failed": "Submitted data failed validation",
+    "project_not_found": "Project not found",
+    "project_locked": "Project is locked — cannot modify",
+    "must_archive_first": "Archive before deleting",
+    "ingest_unknown_type": "Unrecognised file type",
+    "ingest_failed": "Failed to parse upload",
+    "unsupported_file": "File format not supported",
+    "cleansing_no_proposals": "No cleansing proposals to apply",
+    "cleansing_apply_failed": "Cleansing apply failed",
+    "outline_missing": "Outline has not been built",
+    "report_in_progress": "Writing task is already running",
+    "writer_failed": "Writer agent call failed",
+    "analysis_no_data": "No data to analyse yet",
+    "sandbox_error": "Python sandbox execution failed",
+    "export_failed": "Export failed",
+    "template_invalid": "Template is invalid or corrupted",
+    "ectd_missing_outline": "Required sections missing — cannot build eCTD",
+    "review_already_running": "A review is already running",
+    "sign_chain_out_of_order": "Sign-chain step is out of order",
+    "sign_chain_already_done": "This step has already been signed",
+    "audit_chain_broken": "Audit chain integrity broken — contact admin",
+    "hallucination_blocked": "Potential hallucination blocked the write",
+    "pii_violation": "PII field was not anonymised"
+  },
+  "sign_chain": {
+    "title": "Sign chain",
+    "init": "Initialise chain",
+    "init_confirm": "Create the default sign chain (statistician → medical → regulatory → approver)?",
+    "empty": "Sign chain has not been initialised",
+    "advance": "Sign current step",
+    "advance_confirm": "Sign this step as {role}?",
+    "reason_placeholder": "Reason (optional)",
+    "not_your_turn": "Next step is signed by {role}",
+    "completed": "Sign chain complete"
+  },
+  "ectd": {
+    "title": "Export eCTD M5.3.5 package",
+    "hint": "Bundle the current CSR draft with optional cover letter, investigator statement and ICF into an eCTD-compliant zip.",
+    "cover_letter": "Cover letter (optional)",
+    "investigator_statement": "Investigator statement (optional)",
+    "icf": "ICF (optional)",
+    "pick_file": "Choose file",
+    "package": "Build package",
+    "download": "Download zip",
+    "history": "Past packages"
+  },
+  "hallucination": {
+    "title": "Hallucination check",
+    "run": "Re-run",
+    "n_findings": "findings",
+    "never_run": "Not run yet",
+    "no_findings": "No hallucination findings"
   }
 }

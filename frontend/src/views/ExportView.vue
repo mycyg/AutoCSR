@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import { useExportStore } from '@/stores/export'
 import {
   exportDownloadUrl, getExportTemplateConfig, listExportTemplates,
@@ -10,6 +10,9 @@ import {
   type UploadedTemplateDTO,
 } from '@/api/rest'
 import { connectProjectWS } from '@/api/ws'
+import EctdExportDialog from '@/components/global/EctdExportDialog.vue'
+import { confirmAction } from '@/composables/useConfirm'
+import { handleApiError } from '@/utils/errors'
 
 const props = defineProps<{ id: string }>()
 const exportStore = useExportStore()
@@ -21,6 +24,8 @@ const opts = ref<ExportOptions>({
   include_appendix_cleansing: true,
   include_appendix_analysis: true,
 })
+const showHallucinationWarnings = ref(false)
+const ectdDialogOpen = ref(false)
 
 const cfg = ref<DocxTemplateConfigDTO | null>(null)
 const uploadedTemplates = ref<UploadedTemplateDTO[]>([])
@@ -39,7 +44,7 @@ async function onBuildTlf(): Promise<void> {
     ElMessage.success(`${r.filename} (${(r.size_bytes / 1024).toFixed(1)} KB)`)
     await refreshTlf()
   } catch (e) {
-    ElMessage.error(e instanceof Error ? e.message : String(e))
+    handleApiError(e)
   } finally {
     tlfBuilding.value = false
   }
@@ -71,7 +76,7 @@ async function saveCfg(patch: Partial<DocxTemplateConfigDTO> & { preset_apply?: 
   try {
     cfg.value = await patchExportTemplateConfig(props.id, patch)
   } catch (e) {
-    ElMessage.error(e instanceof Error ? e.message : String(e))
+    handleApiError(e)
   } finally {
     savingCfg.value = false
   }
@@ -91,7 +96,7 @@ async function onUploadTemplate(uploadFile: { raw?: File }): Promise<void> {
     await saveCfg({ custom_template_id: rec.id })
     ElMessage.success(rec.filename)
   } catch (e) {
-    ElMessage.error(e instanceof Error ? e.message : String(e))
+    handleApiError(e)
   }
 }
 
@@ -100,15 +105,15 @@ async function onExport(): Promise<void> {
     const r = await exportStore.trigger(props.id, opts.value)
     ElMessage.success(`${r.filename} (${(r.size_bytes / 1024).toFixed(1)} KB)`)
   } catch (e) {
-    ElMessage.error(e instanceof Error ? e.message : String(e))
+    handleApiError(e)
   }
 }
 
 async function onDelete(filename: string): Promise<void> {
-  try {
-    await ElMessageBox.confirm(filename, '?', { type: 'warning' })
-  } catch { return }
-  await exportStore.remove(props.id, filename)
+  if (!await confirmAction('export.delete_confirm',
+                            { type: 'warning', danger: true, resource_name: filename })) return
+  try { await exportStore.remove(props.id, filename) }
+  catch (e) { handleApiError(e) }
 }
 
 function fmtSize(bytes: number): string {
@@ -172,6 +177,9 @@ const previewHeadingStyle = computed(() => {
         <el-checkbox v-model="opts.include_toc">{{ $t('export.include_toc') }}</el-checkbox>
         <el-checkbox v-model="opts.include_appendix_cleansing">{{ $t('export.include_appendix_a') }}</el-checkbox>
         <el-checkbox v-model="opts.include_appendix_analysis">{{ $t('export.include_appendix_b') }}</el-checkbox>
+        <el-checkbox v-model="showHallucinationWarnings">
+          {{ $t('export.show_hallucination_warnings') }}
+        </el-checkbox>
       </div>
       <div class="trigger">
         <el-button type="primary" size="large" :loading="exportStore.exporting" @click="onExport">
@@ -246,7 +254,7 @@ const previewHeadingStyle = computed(() => {
           </el-upload>
           <span v-if="cfg.custom_template_id" class="muted">
             custom: {{ cfg.custom_template_id }}
-            <el-button link size="small" @click="saveCfg({ custom_template_id: null })">×</el-button>
+            <el-button link size="small" :aria-label="$t('common.delete')" @click="saveCfg({ custom_template_id: null })">×</el-button>
           </span>
         </div>
 
@@ -263,6 +271,14 @@ const previewHeadingStyle = computed(() => {
         </div>
       </el-collapse-item>
     </el-collapse>
+
+    <div class="panel">
+      <h3>{{ $t('ectd.title') }}</h3>
+      <p class="hint">{{ $t('ectd.hint') }}</p>
+      <el-button type="primary" plain @click="ectdDialogOpen = true">
+        📦 {{ $t('export.ectd_open') }}
+      </el-button>
+    </div>
 
     <div class="panel">
       <h3>TLF 包（Table-Listing-Figure）</h3>
@@ -299,35 +315,37 @@ const previewHeadingStyle = computed(() => {
         <el-table-column label="—" width="200">
           <template #default="{ row }">
             <el-link :href="downloadUrl(row.filename)" type="primary" target="_blank">⬇</el-link>
-            <el-button type="danger" link size="small" @click="onDelete(row.filename)">×</el-button>
+            <el-button type="danger" link size="small" :aria-label="$t('common.delete')" @click="onDelete(row.filename)">×</el-button>
           </template>
         </el-table-column>
       </el-table>
       <p v-else class="empty">{{ $t('export.no_history') }}</p>
     </div>
+
+    <EctdExportDialog v-model:open="ectdDialogOpen" :project-id="props.id" />
   </div>
 </template>
 
 <style scoped>
 .export-view { padding: 24px; max-width: 1100px; margin: 0 auto; }
-.panel { background: #fff; border-radius: 8px; padding: 20px 24px; margin-bottom: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
-.panel h2 { margin: 0 0 6px 0; color: #1f2937; }
-.panel h3 { margin: 0 0 12px 0; color: #1f2937; font-size: 16px; }
-.hint { color: #6b7280; font-size: 13px; margin-bottom: 14px; }
+.panel { background: var(--color-surface); border-radius: var(--radius-lg); padding: 20px 24px; margin-bottom: 18px; box-shadow: var(--shadow-sm); }
+.panel h2 { margin: 0 0 6px 0; color: var(--color-text-strong); }
+.panel h3 { margin: 0 0 12px 0; color: var(--color-text-strong); font-size: var(--font-size-xl); }
+.hint { color: var(--color-text-mute); font-size: var(--font-size-md); margin-bottom: 14px; }
 .options { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
 .trigger { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
-.phase { color: #6b7280; font-size: 12px; }
-.empty { color: #9ca3af; padding: 12px 0; }
+.phase { color: var(--color-text-mute); font-size: var(--font-size-sm); }
+.empty { color: var(--color-text-faint); padding: 12px 0; }
 .presets { display: flex; gap: 8px; align-items: center; margin: 8px 0 14px; }
 .cfg-form { max-width: 520px; }
-.muted { color: #9ca3af; font-size: 12px; }
+.muted { color: var(--color-text-faint); font-size: var(--font-size-sm); }
 .upload-row { display: flex; gap: 12px; align-items: center; margin: 8px 0 12px; }
 .preview { margin-top: 12px; }
-.preview h4 { margin: 0 0 6px; font-size: 13px; color: #6b7280; }
+.preview h4 { margin: 0 0 6px; font-size: var(--font-size-md); color: var(--color-text-mute); }
 .preview-page {
-  background: #fafafa;
-  border: 1px dashed #d1d5db;
-  border-radius: 6px;
+  background: var(--color-surface-2);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
   padding: 16px 22px;
   min-height: 100px;
 }

@@ -19,9 +19,27 @@ const outlineStore = useOutlineStore()
 const reportStore = useReportStore()
 const { t } = useI18n()
 
+const RECENT_KEY = 'autocsr_recent_searches'
+const MAX_RECENT = 5
 const visible = ref(false)
 const q = ref('')
 const inputRef = ref<HTMLInputElement | null>(null)
+const recent = ref<string[]>(loadRecent())
+
+function loadRecent(): string[] {
+  try {
+    const raw = window.localStorage.getItem(RECENT_KEY)
+    const arr = raw ? JSON.parse(raw) : []
+    return Array.isArray(arr) ? arr.slice(0, MAX_RECENT) : []
+  } catch { return [] }
+}
+function saveRecent(term: string): void {
+  const cleaned = term.trim()
+  if (!cleaned) return
+  const next = [cleaned, ...recent.value.filter(x => x !== cleaned)].slice(0, MAX_RECENT)
+  recent.value = next
+  try { window.localStorage.setItem(RECENT_KEY, JSON.stringify(next)) } catch { /* ignore */ }
+}
 
 const projectId = computed(() => (route.params.id as string | undefined) || '')
 
@@ -74,12 +92,18 @@ watch(visible, async (v) => {
 })
 
 function pick(h: Hit): void {
+  saveRecent(q.value)
   visible.value = false
   router.push(h.href)
 }
 
 function onEnter(): void {
   if (filtered.value.length > 0) pick(filtered.value[0])
+}
+
+function useRecent(term: string): void {
+  q.value = term
+  inputRef.value?.focus()
 }
 </script>
 
@@ -100,6 +124,10 @@ function onEnter(): void {
       </li>
       <li v-if="!filtered.length" class="empty">{{ $t('search.empty') }}</li>
     </ul>
+    <div v-if="!q && recent.length" class="recent">
+      <div class="rh">{{ $t('search.recent') }}</div>
+      <span v-for="r in recent" :key="r" class="rterm" @click="useRecent(r)">{{ r }}</span>
+    </div>
   </el-dialog>
 </template>
 
@@ -133,4 +161,15 @@ function onEnter(): void {
   flex: 0 0 auto;
 }
 .label { flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.recent {
+  display: flex; gap: 6px; flex-wrap: wrap;
+  margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--color-border);
+}
+.rh { font-size: var(--font-size-xs); color: var(--color-text-mute); width: 100%; }
+.rterm {
+  font-size: var(--font-size-sm); padding: 2px 8px;
+  background: var(--color-surface-3); border-radius: 10px;
+  color: var(--color-text-mute); cursor: pointer;
+}
+.rterm:hover { background: var(--color-primary-soft); color: var(--color-primary); }
 </style>

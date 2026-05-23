@@ -14,6 +14,8 @@ const props = defineProps<{
   nodes: OutlineNodeDTO[]
   selectedId: string | null
   drafts: Record<string, DraftSummaryDTO>
+  /** Optional: per-node hallucination finding counts; renders red badge. */
+  hallucinations?: Record<string, number>
 }>()
 const emit = defineEmits<{ (e: 'select', id: string): void }>()
 
@@ -77,6 +79,11 @@ function dotColor(node: OutlineNodeDTO): string {
           <span v-if="props.drafts[data.id]" class="badge">
             {{ props.drafts[data.id].word_count }}
           </span>
+          <span v-if="props.hallucinations && (props.hallucinations[data.id] || 0) > 0"
+                class="badge hallu"
+                :title="`${props.hallucinations[data.id]} hallucination findings`">
+            ⚠ {{ props.hallucinations[data.id] }}
+          </span>
         </div>
       </template>
     </el-tree>
@@ -92,7 +99,10 @@ function dotColor(node: OutlineNodeDTO): string {
 .title { color: #111827; }
 .badge {
   font-size: 10px; padding: 1px 6px; border-radius: 8px;
-  background: #f3f4f6; color: #4b5563;
+  background: var(--color-surface-3); color: var(--color-text-mute);
   font-family: ui-monospace, monospace;
+}
+.badge.hallu {
+  background: #fee2e2; color: #991b1b; font-weight: 600;
 }
 </style>

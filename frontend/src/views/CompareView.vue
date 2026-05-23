@@ -3,6 +3,8 @@ import { onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { compareProjects, type DiffResultDTO } from '@/api/rest'
 import api from '@/api/rest'
+import EmptyState from '@/components/global/EmptyState.vue'
+import { handleApiError } from '@/utils/errors'
 
 const projects = ref<Array<{ id: string; name: string }>>([])
 const pidA = ref<string>('')
@@ -27,7 +29,7 @@ async function runCompare(): Promise<void> {
   try {
     diff.value = await compareProjects(pidA.value, pidB.value, mode.value)
   } catch (e) {
-    ElMessage.error(e instanceof Error ? e.message : String(e))
+    handleApiError(e)
   } finally {
     loading.value = false
   }
@@ -57,6 +59,11 @@ const kindType: Record<string, string> = {
       </el-radio-group>
       <el-button type="primary" :loading="loading" @click="runCompare">对比</el-button>
     </div>
+
+    <EmptyState v-if="!diff && !loading"
+                 icon="🔄"
+                 :title="$t('compare.empty_title')"
+                 :description="$t('compare.empty_desc')" />
 
     <div v-if="diff" class="summary">
       <el-tag v-for="[k, v] in Object.entries(diff.summary)" :key="k" type="info" class="chip">
@@ -89,7 +96,7 @@ const kindType: Record<string, string> = {
 .compare-view { padding: 16px; }
 .topbar { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
 .summary { margin-bottom: 12px; display: flex; gap: 6px; flex-wrap: wrap; }
-.diff-block { background: #f9fafb; padding: 10px; margin-bottom: 8px; border-left: 3px solid #6366f1; }
-.diff-block pre { font-family: ui-monospace, monospace; font-size: 11px; white-space: pre-wrap; margin: 0; }
-.empty { color: #6b7280; padding: 16px; text-align: center; }
+.diff-block { background: var(--color-surface-2); padding: 10px; margin-bottom: 8px; border-left: 3px solid var(--color-primary); }
+.diff-block pre { font-family: ui-monospace, monospace; font-size: 11px; white-space: pre-wrap; margin: 0; color: var(--color-text); }
+.empty { color: var(--color-text-mute); padding: 16px; text-align: center; }
 </style>

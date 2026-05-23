@@ -25,6 +25,7 @@ function pick(l: Locale): void {
       <el-dropdown-menu>
         <el-dropdown-item command="zh" :disabled="current === 'zh'">简体中文</el-dropdown-item>
         <el-dropdown-item command="en" :disabled="current === 'en'">English</el-dropdown-item>
+        <el-dropdown-item command="ja" :disabled="current === 'ja'">{{ $t('language.ja_beta') }}</el-dropdown-item>
       </el-dropdown-menu>
     </template>
   </el-dropdown>
@@ -36,11 +37,11 @@ function pick(l: Locale): void {
   align-items: center;
   gap: 4px;
   cursor: pointer;
-  color: #6b7280;
+  color: var(--color-text-mute);
   padding: 4px 8px;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   transition: background 120ms ease, color 120ms ease;
 }
-.lang-switch:hover { background: #f3f4f6; color: #1f2937; }
+.lang-switch:hover { background: var(--color-surface-3); color: var(--color-text); }
 .code { font-size: 12px; font-weight: 600; letter-spacing: 0.5px; }
 </style>

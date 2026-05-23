@@ -1,12 +1,17 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import { useAnalysisStore } from '@/stores/analysis'
 import { connectProjectWS } from '@/api/ws'
 import StatBlockDrawer from '@/components/analyze/StatBlockDrawer.vue'
 import ManualAnalysisDialog from '@/components/analyze/ManualAnalysisDialog.vue'
 import DataAskPanel from '@/components/analyze/DataAskPanel.vue'
 import AdvancedAnalysisDialog from '@/components/analyze/AdvancedAnalysisDialog.vue'
+import EmptyState from '@/components/global/EmptyState.vue'
+import { confirmAction } from '@/composables/useConfirm'
+import { handleApiError } from '@/utils/errors'
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 
 const props = defineProps<{ id: string }>()
 const analysis = useAnalysisStore()
@@ -64,9 +69,9 @@ onUnmounted(() => { wsClose?.(); analysis.reset() })
 async function onAuto(): Promise<void> {
   try {
     await analysis.runAuto(props.id)
-    ElMessage.success(`自动分析完成，共 ${analysis.blocks.length} 个 StatBlock`)
+    ElMessage.success(`${analysis.blocks.length} StatBlock`)
   } catch (e) {
-    ElMessage.error(e instanceof Error ? e.message : String(e))
+    handleApiError(e)
   }
 }
 
@@ -76,12 +81,13 @@ async function onOpen(id: string): Promise<void> {
 }
 
 async function onDelete(id: string): Promise<void> {
+  if (!await confirmAction(t('common.delete'),
+                            { type: 'warning', danger: true,
+                              resource_name: 'StatBlock' })) return
   try {
-    await ElMessageBox.confirm('确认删除该 StatBlock？同时会从语料库索引中移除。', '删除',
-      { type: 'warning' })
-  } catch { return }
-  await analysis.remove(props.id, id)
-  ElMessage.success('已删除')
+    await analysis.remove(props.id, id)
+    ElMessage.success(t('common.ok'))
+  } catch (e) { handleApiError(e) }
 }
 
 function onManualSubmit(): void {
@@ -122,11 +128,13 @@ function fmtDate(s: string): string {
     </header>
 
     <section class="content">
-      <div v-if="analysis.loading" class="empty">加载中…</div>
-      <div v-else-if="!sortedBlocks.length" class="empty">
-        <p>项目尚无任何 StatBlock。</p>
-        <p>先到「清洗」步骤把数据落到 processed/ 目录，再点上方「自动分析」。</p>
-      </div>
+      <div v-if="analysis.loading" class="empty">{{ $t('common.loading') }}</div>
+      <EmptyState v-else-if="!sortedBlocks.length"
+                   icon="📊"
+                   :title="$t('analyze.empty_title')"
+                   :description="$t('analyze.empty_desc')"
+                   :cta-text="$t('analyze.auto_run')"
+                   @cta="onAuto" />
       <el-table v-else :data="sortedBlocks" stripe size="default" class="stat-table">
         <el-table-column prop="title" label="标题" min-width="320">
           <template #default="{ row }">

@@ -5,6 +5,8 @@ import {
   listAuditEvents, listSignatures, verifyAuditChain, verifySignature,
   type AuditEventDTO, type AuditChainResultDTO, type SignatureDTO,
 } from '@/api/rest'
+import EmptyState from '@/components/global/EmptyState.vue'
+import { handleApiError } from '@/utils/errors'
 
 const props = defineProps<{ id: string }>()
 
@@ -23,7 +25,7 @@ async function refresh(): Promise<void> {
     chain.value = await verifyAuditChain(props.id)
     signatures.value = await listSignatures(props.id)
   } catch (e) {
-    ElMessage.error(e instanceof Error ? e.message : String(e))
+    handleApiError(e)
   } finally {
     loading.value = false
   }
@@ -35,7 +37,7 @@ async function reverify(): Promise<void> {
     chain.value = await verifyAuditChain(props.id)
     ElMessage.success(chain.value.verified ? '链完整' : `链断裂于 ${chain.value.broken_at}`)
   } catch (e) {
-    ElMessage.error(e instanceof Error ? e.message : String(e))
+    handleApiError(e)
   } finally {
     verifying.value = false
   }
@@ -47,7 +49,7 @@ async function verifySig(sig: SignatureDTO): Promise<void> {
     sigVerifyCache.value[sig.id] = r.verified
     ElMessage.success(`${sig.id}: ${r.verified ? '验证通过' : '验证失败'}`)
   } catch (e) {
-    ElMessage.error(e instanceof Error ? e.message : String(e))
+    handleApiError(e)
   }
 }
 
@@ -91,7 +93,11 @@ const resourceTypes = computed(() => Array.from(new Set(events.value.map(e => e.
 
     <el-tabs>
       <el-tab-pane label="事件时间线">
-        <el-table :data="events" stripe size="small" :max-height="500" v-loading="loading">
+        <EmptyState v-if="!loading && !events.length"
+                     icon="📜"
+                     :title="$t('audit.empty_title')"
+                     :description="$t('audit.empty_desc')" />
+        <el-table v-else :data="events" stripe size="small" :max-height="500" v-loading="loading">
           <el-table-column prop="ts" label="ts" width="200" />
           <el-table-column prop="actor" label="actor" width="140" />
           <el-table-column prop="action" label="action" />
@@ -131,5 +137,5 @@ const resourceTypes = computed(() => Array.from(new Set(events.value.map(e => e.
 .audit-view { padding: 16px; }
 .topbar { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
 .filters { margin-bottom: 12px; }
-.hash { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #6b7280; }
+.hash { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: var(--color-text-mute); }
 </style>

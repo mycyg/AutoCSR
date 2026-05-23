@@ -1,0 +1,105 @@
+/* AutoCSR design tokens — v1.0 (M18).
+ *
+ * All colors / spacing / typography flow from CSS variables defined here.
+ * Dark mode is achieved by setting `data-theme="dark"` on the <html>
+ * element; both palettes use the same variable names.
+ *
+ * Component styles should reference var(--color-*) instead of hardcoded
+ * hex values. A small set of legacy hex values (#fff/#000/#fafbfc/#1f2937
+ * etc.) still exist in scoped styles — they are visually acceptable in
+ * light mode and a fallback in dark mode, but new code MUST use tokens.
+ */
+
+:root {
+  /* Surfaces */
+  --color-bg: #f5f7fa;
+  --color-surface: #ffffff;
+  --color-surface-2: #fafbfc;
+  --color-surface-3: #f3f4f6;
+
+  /* Text */
+  --color-text: #1f2937;
+  --color-text-strong: #111827;
+  --color-text-mute: #6b7280;   /* WCAG AA on white ≥ 4.5 */
+  --color-text-faint: #9ca3af;  /* used only on non-essential captions */
+
+  /* Borders */
+  --color-border: #e5e7eb;
+  --color-border-strong: #d1d5db;
+
+  /* Brand + semantic */
+  --color-primary: #2563eb;
+  --color-primary-soft: #eef4ff;
+  --color-success: #10b981;
+  --color-warn: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #6b7280;
+
+  /* Spacing scale (4-pt grid) */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 24px;
+  --spacing-2xl: 32px;
+
+  /* Type scale */
+  --font-size-xs: 11px;
+  --font-size-sm: 12px;
+  --font-size-md: 13px;
+  --font-size-lg: 14px;
+  --font-size-xl: 16px;
+  --font-size-2xl: 18px;
+
+  /* Misc */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.18);
+}
+
+:root[data-theme="dark"] {
+  --color-bg: #0f172a;
+  --color-surface: #1e293b;
+  --color-surface-2: #1b2436;
+  --color-surface-3: #273448;
+
+  --color-text: #e5e7eb;
+  --color-text-strong: #f9fafb;
+  --color-text-mute: #9ca3af;
+  --color-text-faint: #6b7280;
+
+  --color-border: #334155;
+  --color-border-strong: #475569;
+
+  --color-primary: #60a5fa;
+  --color-primary-soft: #1e3a5c;
+  --color-success: #34d399;
+  --color-warn: #fbbf24;
+  --color-error: #f87171;
+  --color-info: #94a3b8;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.45);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.7);
+}
+
+/* Apply tokens to body so first-paint already follows the theme.
+ * Element Plus components reach in via their own CSS vars (see main.ts). */
+html, body, #app {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+html { color-scheme: light; }
+html[data-theme="dark"] { color-scheme: dark; }
+
+/* Dark-mode tweaks for components that don't ship full token support
+ * (kept minimal — we rely on Element Plus dark theme CSS for the rest). */
+html[data-theme="dark"] .el-card,
+html[data-theme="dark"] .el-message-box {
+  background: var(--color-surface);
+  color: var(--color-text);
+}

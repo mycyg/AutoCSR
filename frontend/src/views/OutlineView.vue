@@ -1,11 +1,16 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import { useOutlineStore } from '@/stores/outline'
 import { connectProjectWS } from '@/api/ws'
 import OutlineTree from '@/components/outline/OutlineTree.vue'
 import NodeDetail from '@/components/outline/NodeDetail.vue'
 import OutlineActions from '@/components/outline/OutlineActions.vue'
+import EmptyState from '@/components/global/EmptyState.vue'
+import { confirmAction } from '@/composables/useConfirm'
+import { handleApiError } from '@/utils/errors'
+const { t } = useI18n()
 
 const props = defineProps<{ id: string }>()
 const outlineStore = useOutlineStore()
@@ -33,53 +38,43 @@ onUnmounted(() => { wsClose?.(); outlineStore.reset() })
 const selected = computed(() => outlineStore.findNode(outlineStore.selectedNodeId))
 
 async function onBuild(): Promise<void> {
-  try {
-    if (outlineStore.outline) {
-      await ElMessageBox.confirm(
-        '重新生成会创建一个新的 outline 版本，旧版本会归档到 outline_v{N}.json，可随时回滚。',
-        '重新生成大纲',
-        { type: 'warning' },
-      )
-    }
-    await outlineStore.build(props.id, principleId.value)
-    ElMessage.success(`大纲已生成 v${outlineStore.outline?.version ?? '?'}`)
-  } catch (e) {
-    if (e instanceof Error && e.message.includes('cancel')) return
-    ElMessage.error(e instanceof Error ? e.message : String(e))
+  if (outlineStore.outline) {
+    if (!await confirmAction(
+      t('outline.build'),
+      { type: 'warning', confirm_text: 'common.confirm' },
+    )) return
   }
+  try {
+    await outlineStore.build(props.id, principleId.value)
+    ElMessage.success(`v${outlineStore.outline?.version ?? '?'}`)
+  } catch (e) { handleApiError(e) }
 }
 
 async function onRestore(v: number): Promise<void> {
-  try {
-    await outlineStore.restore(props.id, v)
-    ElMessage.success(`已回滚到 v${v}`)
-  } catch (e) {
-    ElMessage.error(e instanceof Error ? e.message : String(e))
-  }
+  if (!await confirmAction(`v${v}`, { type: 'warning' })) return
+  try { await outlineStore.restore(props.id, v); ElMessage.success(`v${v}`) }
+  catch (e) { handleApiError(e) }
 }
 
 async function onPatch(patch: Record<string, unknown>): Promise<void> {
   if (!selected.value) return
-  try {
-    await outlineStore.patchNode(props.id, selected.value.id, patch)
-    ElMessage.success('已保存')
-  } catch (e) {
-    ElMessage.error(e instanceof Error ? e.message : String(e))
-  }
+  try { await outlineStore.patchNode(props.id, selected.value.id, patch); ElMessage.success(t('common.ok')) }
+  catch (e) { handleApiError(e) }
 }
 
 async function onAddChild(title: string, notes: string): Promise<void> {
   if (!selected.value) return
-  await outlineStore.addChild(props.id, selected.value.id, title, notes)
-  ElMessage.success('已新增子节')
+  try { await outlineStore.addChild(props.id, selected.value.id, title, notes); ElMessage.success(t('common.ok')) }
+  catch (e) { handleApiError(e) }
 }
 
 async function onDelete(): Promise<void> {
   if (!selected.value) return
-  await ElMessageBox.confirm(`确定删除节点 ${selected.value.id} 及其所有子节？`, '删除节点',
-    { type: 'warning' })
-  await outlineStore.removeNode(props.id, selected.value.id)
-  ElMessage.success('已删除')
+  if (!await confirmAction(t('common.delete'),
+                            { type: 'warning', danger: true,
+                              resource_name: selected.value.id })) return
+  try { await outlineStore.removeNode(props.id, selected.value.id); ElMessage.success(t('common.ok')) }
+  catch (e) { handleApiError(e) }
 }
 </script>
 
@@ -87,18 +82,20 @@ async function onDelete(): Promise<void> {
   <div class="outline-view">
     <el-container class="three">
       <el-aside class="left" width="380px">
-        <div v-if="!outlineStore.outline" class="empty">
-          <p>项目尚无大纲。</p>
-          <el-select v-model="principleId" size="small" style="width: 180px; margin-bottom: 8px">
+        <EmptyState v-if="!outlineStore.outline"
+                     icon="📋"
+                     :title="$t('outline.empty_title')"
+                     :description="$t('outline.empty_desc')">
+          <el-select v-model="principleId" size="small" style="width: 180px; margin-top: 8px;">
             <el-option value="ich_e3" label="ICH E3" />
             <el-option value="cde_chem" label="CDE 化药" />
             <el-option value="cde_tcm" label="CDE 中药" />
           </el-select>
-          <br />
-          <el-button type="primary" :loading="outlineStore.building" @click="onBuild">
-            生成大纲
+          <el-button type="primary" :loading="outlineStore.building"
+                     style="margin-top: 12px;" @click="onBuild">
+            {{ $t('outline.build') }}
           </el-button>
-        </div>
+        </EmptyState>
         <OutlineTree v-else
           :nodes="outlineStore.outline.root_sections"
           :selected-id="outlineStore.selectedNodeId"
@@ -135,10 +132,18 @@ async function onDelete(): Promise<void> {
   display: flex; flex-direction: column;
 }
 .three { flex: 1; overflow: hidden; }
-.left { background: #fff; border-right: 1px solid #e5e7eb; overflow: auto; padding: 12px; }
-.center { background: #fafbfc; padding: 18px 24px; overflow: auto; }
-.right { background: #fff; border-left: 1px solid #e5e7eb; overflow: auto; padding: 12px; }
-.empty { color: #6b7280; padding: 32px 12px; }
+.left { background: var(--color-surface); border-right: 1px solid var(--color-border); overflow: auto; padding: 12px; }
+.center { background: var(--color-surface-2); padding: 18px 24px; overflow: auto; }
+.right { background: var(--color-surface); border-left: 1px solid var(--color-border); overflow: auto; padding: 12px; }
+.empty { color: var(--color-text-mute); padding: 32px 12px; }
 .empty p { margin-bottom: 10px; }
-.empty-center { color: #9ca3af; padding: 80px 0; text-align: center; }
+.empty-center { color: var(--color-text-faint); padding: 80px 0; text-align: center; }
+@media (max-width: 1279px) {
+  .left { width: 280px !important; }
+  .right { width: 220px !important; }
+}
+@media (max-width: 1023px) {
+  .three { flex-direction: column; }
+  .left, .right { width: auto !important; border: none; border-bottom: 1px solid var(--color-border); max-height: 200px; }
+}
 </style>

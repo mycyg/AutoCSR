@@ -8,6 +8,8 @@ import {
   type MultiReviewDTO, type ReviewIssueDTO, type ReviewResultDTO,
   type ReviewHistoryDTO, type UserDTO,
 } from '@/api/rest'
+import HallucinationPanel from '@/components/global/HallucinationPanel.vue'
+import { handleApiError } from '@/utils/errors'
 
 const props = defineProps<{ id: string }>()
 const router = useRouter()
@@ -16,7 +18,7 @@ const review = ref<ReviewResultDTO | null>(null)
 const history = ref<ReviewHistoryDTO[]>([])
 const running = ref(false)
 const currentHistIdx = ref<number>(-1)   // -1 = latest
-const mode = ref<'classic' | 'multi'>('classic')
+const mode = ref<'classic' | 'multi' | 'hallucination'>('classic')
 const multi = ref<MultiReviewDTO | null>(null)
 const users = ref<UserDTO[]>([])
 const taskDlg = ref({ visible: false, issueId: '', assignee: 'demo_reviewer' })
@@ -46,7 +48,7 @@ async function onStartMulti(): Promise<void> {
     multi.value = await runMultiReview(props.id)
     ElMessage.success(`三审完成: ${JSON.stringify(multi.value.combined_count)}`)
   } catch (e) {
-    ElMessage.error(e instanceof Error ? e.message : String(e))
+    handleApiError(e)
   } finally {
     running.value = false
   }
@@ -64,7 +66,7 @@ async function submitTask(): Promise<void> {
     taskDlg.value.visible = false
     ElMessage.success('已转换为任务')
   } catch (e) {
-    ElMessage.error(e instanceof Error ? e.message : String(e))
+    handleApiError(e)
   }
 }
 
@@ -75,7 +77,7 @@ async function onStart(): Promise<void> {
     history.value = await getReviewHistory(props.id)
     ElMessage.success(`审查完成：${review.value?.passed ? '通过' : '有未处理 issue'}`)
   } catch (e) {
-    ElMessage.error(e instanceof Error ? e.message : String(e))
+    handleApiError(e)
   } finally {
     running.value = false
   }
@@ -85,7 +87,7 @@ async function onIgnore(issue: ReviewIssueDTO, ignored: boolean): Promise<void> 
   try {
     review.value = await patchReviewIssue(props.id, issue.id, ignored)
   } catch (e) {
-    ElMessage.error(e instanceof Error ? e.message : String(e))
+    handleApiError(e)
   }
 }
 
@@ -124,11 +126,12 @@ const counts = computed(() => ({
       <el-radio-group v-model="mode" size="small">
         <el-radio-button label="classic">单审 (M10)</el-radio-button>
         <el-radio-button label="multi">三审 (M16)</el-radio-button>
+        <el-radio-button label="hallucination">{{ $t('review.tab_hallucination') }}</el-radio-button>
       </el-radio-group>
       <el-button v-if="mode === 'classic'" type="primary" :loading="running" @click="onStart">
         触发审查
       </el-button>
-      <el-button v-else type="primary" :loading="running" @click="onStartMulti">
+      <el-button v-else-if="mode === 'multi'" type="primary" :loading="running" @click="onStartMulti">
         触发三审
       </el-button>
       <span v-if="review?.created_at" class="ts">
@@ -200,6 +203,10 @@ const counts = computed(() => ({
           </div>
         </el-tab-pane>
       </el-tabs>
+    </div>
+
+    <div v-if="mode === 'hallucination'" class="hallucination-wrap">
+      <HallucinationPanel :project-id="props.id" />
     </div>
 
     <div v-show="mode === 'classic'" class="body">
@@ -278,6 +285,7 @@ const counts = computed(() => ({
 
 <style scoped>
 .review-view { height: calc(100vh - 56px); display: flex; flex-direction: column; }
+.hallucination-wrap { flex: 1; overflow: auto; padding: 16px; }
 .topbar { display: flex; align-items: center; gap: 10px; padding: 10px 16px;
   background: #fff; border-bottom: 1px solid #e5e7eb; flex-wrap: wrap; }
 .topbar .ts { color: #6b7280; font-size: 12px; }

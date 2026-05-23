@@ -1,0 +1,42 @@
+/* A11y — focus indicators, reduced motion, contrast helpers.
+ *
+ * `:focus-visible` only highlights when the user is keyboard-navigating
+ * (modern browsers handle the heuristic). The 2px outline + 2px offset
+ * passes Lighthouse contrast checks on both light and dark themes.
+ */
+
+*:focus-visible {
+  outline: 2px solid var(--color-primary, #2563eb);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* Element Plus buttons already have their own focus ring; we only
+ * sharpen it here so it's actually visible in dark mode too. */
+.el-button:focus-visible,
+.el-input__inner:focus-visible,
+.el-textarea__inner:focus-visible {
+  outline: 2px solid var(--color-primary, #2563eb);
+  outline-offset: 1px;
+}
+
+/* Visually hidden but available to screen readers. */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0);
+  white-space: nowrap; border: 0;
+}
+
+/* Respect prefers-reduced-motion globally. Components that need
+ * animation regardless should opt out with `data-motion="keep"`. */
+@media (prefers-reduced-motion: reduce) {
+  *:not([data-motion="keep"]),
+  *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -3,9 +3,15 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import {
-  createTask, listTasks, listUsers, patchTask, reopenTask, resolveTask,
+  createTask, listTasks, listUsers, patchTask, reopenTask,
   type ReviewTaskDTO, type UserDTO,
 } from '@/api/rest'
+import EmptyState from '@/components/global/EmptyState.vue'
+import SignChainPanel from '@/components/collab/SignChainPanel.vue'
+import { handleApiError } from '@/utils/errors'
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
+const signChainTaskId = ref<string | null>(null)
 
 const props = defineProps<{ id: string }>()
 const router = useRouter()
@@ -27,7 +33,7 @@ async function refresh(): Promise<void> {
     if (filterSeverity.value) params.severity = filterSeverity.value
     tasks.value = await listTasks(props.id, params)
   } catch (e) {
-    ElMessage.error(e instanceof Error ? e.message : String(e))
+    handleApiError(e)
   } finally {
     loading.value = false
   }
@@ -59,7 +65,7 @@ async function onStatus(task: ReviewTaskDTO, status: string): Promise<void> {
     await patchTask(props.id, task.id, { status }, 'demo_admin')
     await refresh()
   } catch (e) {
-    ElMessage.error(e instanceof Error ? e.message : String(e))
+    handleApiError(e)
   }
 }
 
@@ -68,7 +74,7 @@ async function onReopen(task: ReviewTaskDTO): Promise<void> {
     await reopenTask(props.id, task.id)
     await refresh()
   } catch (e) {
-    ElMessage.error(e instanceof Error ? e.message : String(e))
+    handleApiError(e)
   }
 }
 
@@ -97,12 +103,28 @@ async function submitNew(): Promise<void> {
     newTask.value = { assignee: 'demo_reviewer', body: '', severity: 'warn', node_id: '', due_date: '' }
     await refresh()
   } catch (e) {
-    ElMessage.error(e instanceof Error ? e.message : String(e))
+    handleApiError(e)
   }
 }
 
 const severityType: Record<string, string> = {
   error: 'danger', warn: 'warning', info: 'info',
+}
+
+const severityIcon: Record<string, string> = {
+  error: '🚨', warn: '⚠', info: 'ℹ',
+}
+
+function dueClass(due?: string | null): string {
+  if (!due) return 'due-none'
+  const days = (new Date(due).getTime() - Date.now()) / 86_400_000
+  if (days < 0) return 'due-overdue'
+  if (days < 3) return 'due-soon'
+  return 'due-future'
+}
+
+function openSignChain(task: ReviewTaskDTO): void {
+  signChainTaskId.value = task.id
 }
 </script>
 
@@ -128,25 +150,35 @@ const severityType: Record<string, string> = {
       <el-button size="small" @click="refresh">刷新</el-button>
     </div>
 
-    <div v-if="mode === 'kanban'" class="kanban" v-loading="loading">
+    <EmptyState v-if="!loading && !tasks.length"
+                 icon="📌"
+                 :title="$t('tasks.empty_title')"
+                 :description="$t('tasks.empty_desc')" />
+    <div v-else-if="mode === 'kanban'" class="kanban" v-loading="loading">
       <div v-for="status in ['open', 'in_progress', 'resolved', 'wont_fix']" :key="status" class="column">
         <h3>{{ status }} <span class="count">{{ columns[status].length }}</span></h3>
         <div v-for="t in columns[status]" :key="t.id" class="task-card" @click="gotoNode(t)">
           <div class="head">
+            <span class="sev-icon" :title="t.severity" aria-hidden="true">
+              {{ severityIcon[t.severity] }}
+            </span>
             <el-tag :type="severityType[t.severity]" size="small">{{ t.severity }}</el-tag>
             <span class="assignee">@{{ t.assignee }}</span>
           </div>
           <div class="title">{{ t.title || t.body.slice(0, 60) }}</div>
           <div class="meta">
             <span v-if="t.node_id" class="chip">§ {{ t.node_id }}</span>
-            <span v-if="t.due_date" class="chip due">due {{ new Date(t.due_date).toLocaleDateString() }}</span>
+            <span v-if="t.due_date" class="chip" :class="dueClass(t.due_date)">
+              {{ new Date(t.due_date).toLocaleDateString() }}
+            </span>
             <span class="chip">{{ t.source }}</span>
           </div>
           <div class="actions" @click.stop>
-            <el-button v-if="status === 'open'" size="small" type="primary" link @click="onStatus(t, 'in_progress')">开始</el-button>
-            <el-button v-if="status === 'in_progress'" size="small" type="success" link @click="onStatus(t, 'resolved')">完成</el-button>
-            <el-button v-if="status === 'open' || status === 'in_progress'" size="small" link @click="onStatus(t, 'wont_fix')">不修</el-button>
-            <el-button v-if="status === 'resolved' || status === 'wont_fix'" size="small" link @click="onReopen(t)">重开</el-button>
+            <el-button v-if="status === 'open'" size="small" type="primary" link aria-label="start" @click="onStatus(t, 'in_progress')">▶</el-button>
+            <el-button v-if="status === 'in_progress'" size="small" type="success" link aria-label="resolve" @click="onStatus(t, 'resolved')">✓</el-button>
+            <el-button v-if="status === 'open' || status === 'in_progress'" size="small" link aria-label="wont fix" @click="onStatus(t, 'wont_fix')">×</el-button>
+            <el-button v-if="status === 'resolved' || status === 'wont_fix'" size="small" link aria-label="reopen" @click="onReopen(t)">↻</el-button>
+            <el-button size="small" link :aria-label="$t('sign_chain.title')" :title="$t('sign_chain.title')" @click="openSignChain(t)">✍</el-button>
           </div>
         </div>
       </div>
@@ -165,6 +197,13 @@ const severityType: Record<string, string> = {
       <el-table-column prop="title" label="title" />
       <el-table-column prop="due_date" label="due" width="170" />
     </el-table>
+
+    <el-drawer :model-value="!!signChainTaskId" @update:model-value="(v: boolean) => { if (!v) signChainTaskId = null }"
+                :title="$t('sign_chain.title')" size="380">
+      <SignChainPanel v-if="signChainTaskId"
+                       :project-id="props.id"
+                       :task-id="signChainTaskId" />
+    </el-drawer>
 
     <el-dialog v-model="newDialog" title="新建任务" width="520">
       <el-form label-width="80px">
@@ -210,7 +249,17 @@ const severityType: Record<string, string> = {
 .assignee { font-size: 11px; color: #6b7280; }
 .title { font-size: 13px; color: #111827; margin-bottom: 4px; }
 .meta { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 4px; }
-.chip { font-size: 10px; padding: 2px 6px; background: #eef2ff; color: #4338ca; border-radius: 3px; }
-.chip.due { background: #fee2e2; color: #991b1b; }
+.chip { font-size: 10px; padding: 2px 6px; background: var(--color-primary-soft); color: var(--color-primary); border-radius: 3px; }
+.chip.due-overdue { background: #fee2e2; color: #991b1b; font-weight: 600; }
+.chip.due-soon    { background: #fef3c7; color: #92400e; }
+.chip.due-future  { background: var(--color-surface-3); color: var(--color-text-mute); }
+.chip.due-none    { background: var(--color-surface-3); color: var(--color-text-faint); }
 .actions { display: flex; gap: 4px; }
+.sev-icon { font-size: 12px; }
+@media (max-width: 1023px) {
+  .kanban { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 767px) {
+  .kanban { grid-template-columns: 1fr; }
+}
 </style>

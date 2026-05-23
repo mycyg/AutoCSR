@@ -10,6 +10,10 @@ import GlobalSearchModal from '@/components/global/GlobalSearchModal.vue'
 import PIIWarningBanner from '@/components/global/PIIWarningBanner.vue'
 import UserSwitch from '@/components/global/UserSwitch.vue'
 import TaskBadge from '@/components/global/TaskBadge.vue'
+import TaskProgressOverlay from '@/components/global/TaskProgressOverlay.vue'
+import OnboardingTour from '@/components/global/OnboardingTour.vue'
+import HelpMenu from '@/components/global/HelpMenu.vue'
+import ThemeToggle from '@/components/global/ThemeToggle.vue'
 import { getBlinding, getLock } from '@/api/rest'
 import { onMounted, ref, watch } from 'vue'
 
@@ -37,6 +41,7 @@ const steps = [
 
 const blinded = ref(false)
 const locked = ref(false)
+const stepDropdownOpen = ref(false)
 
 async function refreshChips(): Promise<void> {
   if (!projectId.value) {
@@ -77,21 +82,47 @@ const activeKey = computed(() => {
 function go(step: typeof steps[number]): void {
   if (!projectId.value) return
   router.push(`/p/${projectId.value}/${step.path}`)
+  stepDropdownOpen.value = false
+}
+
+function goCommand(key: string): void {
+  const step = steps.find(s => s.key === key)
+  if (step) go(step)
 }
 </script>
 
 <template>
   <el-container class="autocsr-shell" direction="vertical">
     <el-header class="autocsr-header">
-      <div class="brand" @click="router.push('/')">{{ $t('app.title') }} · {{ projectName }}</div>
-      <StepNavigator :steps="steps" :project-id="projectId" :active-key="activeKey" @go="go" />
+      <div class="brand" @click="router.push('/')"
+            :aria-label="$t('app.title')">{{ $t('app.title') }} · {{ projectName }}</div>
+      <!-- Desktop step navigator -->
+      <div class="step-nav-desktop">
+        <StepNavigator :steps="steps" :project-id="projectId" :active-key="activeKey" @go="go" />
+      </div>
+      <!-- Mobile / tablet dropdown -->
+      <div class="step-nav-mobile">
+        <el-dropdown trigger="click" @command="goCommand">
+          <el-button text :aria-label="$t('steps.intake')">☰</el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item v-for="s in steps" :key="s.key" :command="s.key"
+                                 :disabled="!projectId">
+                {{ $t(s.i18nKey) }}
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+      </div>
       <div class="actions">
-        <el-tag v-if="blinded" type="primary" size="small">● 盲态</el-tag>
-        <el-tag v-if="locked" type="warning" size="small">● 数据已锁定</el-tag>
+        <el-tag v-if="blinded" type="primary" size="small">● {{ $t('common.status') }}</el-tag>
+        <el-tag v-if="locked" type="warning" size="small">●</el-tag>
         <TaskBadge v-if="projectId" :project-id="projectId" />
         <UserSwitch />
         <LanguageSwitch />
-        <el-tag size="small" type="success">V2-F</el-tag>
+        <ThemeToggle />
+        <HelpMenu />
+        <el-tag size="small" type="success">v1.0</el-tag>
       </div>
     </el-header>
     <GlobalAlertBar v-if="projectId" :project-id="projectId" />
@@ -101,6 +132,8 @@ function go(step: typeof steps[number]): void {
     </el-main>
     <ShortcutsHelpModal />
     <GlobalSearchModal />
+    <TaskProgressOverlay />
+    <OnboardingTour />
   </el-container>
 </template>
 
@@ -113,14 +146,14 @@ function go(step: typeof steps[number]): void {
   align-items: center;
   justify-content: space-between;
   padding: 0 24px;
-  background: #fff;
-  border-bottom: 1px solid #e4e7ed;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
   height: 56px;
 }
 .brand {
   font-weight: 600;
-  font-size: 16px;
-  color: #1f2937;
+  font-size: var(--font-size-xl);
+  color: var(--color-text-strong);
   cursor: pointer;
 }
 .actions {
@@ -130,7 +163,17 @@ function go(step: typeof steps[number]): void {
 }
 .autocsr-main {
   padding: 0;
-  background: #f5f7fa;
+  background: var(--color-bg);
   overflow: hidden;
+}
+.step-nav-mobile { display: none; }
+@media (max-width: 1023px) {
+  .step-nav-desktop { display: none; }
+  .step-nav-mobile { display: inline-flex; }
+  .autocsr-header { padding: 0 12px; }
+  .actions > :nth-child(n+4) {
+    /* hide non-essential chips on small screens */
+    display: none;
+  }
 }
 </style>

@@ -31,18 +31,26 @@ watch(() => props.id, (id) => store.load(id))
   height: 100%;
 }
 .left {
-  background: #fff;
-  border-right: 1px solid #e4e7ed;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
   overflow: auto;
 }
 .center {
   padding: 0;
-  background: #fafbfc;
+  background: var(--color-surface-2);
   overflow: auto;
 }
 .right {
-  background: #fff;
-  border-left: 1px solid #e4e7ed;
+  background: var(--color-surface);
+  border-left: 1px solid var(--color-border);
   overflow: auto;
+}
+@media (max-width: 1279px) {
+  .left { width: 220px !important; }
+  .right { width: 300px !important; }
+}
+@media (max-width: 1023px) {
+  .detail { flex-direction: column; }
+  .left, .right { width: auto !important; max-height: 200px; border: none; border-bottom: 1px solid var(--color-border); }
 }
 </style>

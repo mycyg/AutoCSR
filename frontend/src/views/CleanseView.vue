@@ -8,6 +8,10 @@ import FileListPanel from '@/components/cleanse/FileListPanel.vue'
 import ProposalReview from '@/components/cleanse/ProposalReview.vue'
 import PreviewAndAudit from '@/components/cleanse/PreviewAndAudit.vue'
 import BatchActions from '@/components/cleanse/BatchActions.vue'
+import EmptyState from '@/components/global/EmptyState.vue'
+import { handleApiError } from '@/utils/errors'
+import { useRouter } from 'vue-router'
+const router = useRouter()
 
 const props = defineProps<{ id: string }>()
 const ingest = useIngestStore()
@@ -53,7 +57,7 @@ async function onPatch(proposalId: string, patch: Record<string, unknown>): Prom
   try {
     await cleansing.patchProposal(props.id, cleansing.selectedFileId, proposalId, patch)
   } catch (e) {
-    ElMessage.error(e instanceof Error ? e.message : String(e))
+    handleApiError(e)
   }
 }
 async function onApply(): Promise<void> {
@@ -62,7 +66,7 @@ async function onApply(): Promise<void> {
     ElMessage.success(`已生成清洗结果，快照 ${out.snapshot_id.slice(0, 8)}`)
     await cleansing.loadPipelineYaml(props.id)
   } catch (e) {
-    ElMessage.error(e instanceof Error ? e.message : String(e))
+    handleApiError(e)
   }
 }
 async function onAcceptAll(): Promise<void> {
@@ -70,7 +74,7 @@ async function onAcceptAll(): Promise<void> {
     await cleansing.acceptAll(props.id, cleansing.selectedFileId)
     ElMessage.success('已全部接受')
   } catch (e) {
-    ElMessage.error(e instanceof Error ? e.message : String(e))
+    handleApiError(e)
   }
 }
 async function onRollbackLatest(): Promise<void> {
@@ -97,7 +101,13 @@ const hasPending = computed(() => proposals.value.some((p) => p.status === 'pend
 
 <template>
   <div class="cleanse">
-    <el-container class="three-pane">
+    <EmptyState v-if="!ingest.files.length"
+                 icon="🗂"
+                 :title="$t('cleanse.empty_title')"
+                 :description="$t('cleanse.empty_desc')"
+                 :cta-text="$t('cleanse.go_upload')"
+                 @cta="router.push(`/p/${props.id}/intake`)" />
+    <el-container v-else class="three-pane">
       <el-aside class="left" width="260px">
         <FileListPanel
           :files="ingest.files"
@@ -133,7 +143,7 @@ const hasPending = computed(() => proposals.value.some((p) => p.status === 'pend
         />
       </el-aside>
     </el-container>
-    <BatchActions
+    <BatchActions v-if="ingest.files.length"
       :file-id="cleansing.selectedFileId"
       :has-accepted="hasAccepted"
       :has-pending="hasPending"
@@ -150,10 +160,18 @@ const hasPending = computed(() => proposals.value.some((p) => p.status === 'pend
   height: calc(100vh - 56px);
 }
 .three-pane { flex: 1; overflow: hidden; }
-.left { background: #fff; border-right: 1px solid #e5e7eb; overflow: auto; }
-.center { background: #fafbfc; padding: 0; overflow: auto; }
-.right { background: #fff; border-left: 1px solid #e5e7eb; overflow: auto; }
+.left { background: var(--color-surface); border-right: 1px solid var(--color-border); overflow: auto; }
+.center { background: var(--color-surface-2); padding: 0; overflow: auto; }
+.right { background: var(--color-surface); border-left: 1px solid var(--color-border); overflow: auto; }
 .empty-hint {
-  color: #9ca3af; padding: 60px 24px; text-align: center;
+  color: var(--color-text-mute); padding: 60px 24px; text-align: center;
+}
+@media (max-width: 1279px) {
+  .left { width: 220px !important; }
+  .right { width: 320px !important; }
+}
+@media (max-width: 1023px) {
+  .three-pane { flex-direction: column; }
+  .left, .right { width: auto !important; max-height: 220px; border: none; border-bottom: 1px solid var(--color-border); }
 }
 </style>

@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import { useProjectStore } from '@/stores/project'
 import type { ProjectDTO } from '@/api/rest'
+import { confirmAction } from '@/composables/useConfirm'
+import { handleApiError } from '@/utils/errors'
 
 const router = useRouter()
 const store = useProjectStore()
@@ -71,44 +73,34 @@ async function submit(): Promise<void> {
 
 async function onContext(row: ProjectDTO, action: string): Promise<void> {
   if (action === 'archive') {
-    try {
-      await ElMessageBox.confirm(
-        t('projects.archive_confirm', { name: row.name }),
-        t('common.help'), { type: 'warning' },
-      )
-    } catch { return }
-    await store.update(row.id, { archived: true })
-    ElMessage.success(t('common.ok'))
+    if (!await confirmAction('projects.archive_confirm',
+                              { type: 'warning', resource_name: row.name })) return
+    try { await store.update(row.id, { archived: true }); ElMessage.success(t('common.ok')) }
+    catch (e) { handleApiError(e) }
   } else if (action === 'unarchive') {
-    await store.update(row.id, { archived: false })
-    ElMessage.success(t('common.ok'))
+    try { await store.update(row.id, { archived: false }); ElMessage.success(t('common.ok')) }
+    catch (e) { handleApiError(e) }
   } else if (action === 'duplicate') {
     try {
-      const newName = await ElMessageBox.prompt(
-        t('projects.field_name'), t('projects.duplicate'),
-        { inputValue: row.name + ' (copy)' },
-      )
       await store.create({
-        name: String(newName.value).trim(),
+        name: row.name + ' (copy)',
         principle_id: row.principle_id,
         language: row.language,
         notes: row.notes,
       })
       ElMessage.success(t('common.ok'))
-    } catch { /* cancelled */ }
+    } catch (e) { handleApiError(e) }
   } else if (action === 'delete') {
     if (!row.archived) {
       ElMessage.warning(t('projects.must_archive_first'))
       return
     }
-    try {
-      await ElMessageBox.confirm(
-        t('projects.delete_confirm', { name: row.name }),
-        t('common.delete'), { type: 'error' },
-      )
-    } catch { return }
-    await store.remove(row.id, false)
-    ElMessage.success(t('common.ok'))
+    if (!await confirmAction('projects.delete_confirm',
+                              { type: 'error', danger: true,
+                                resource_name: row.name,
+                                confirm_text: 'common.delete' })) return
+    try { await store.remove(row.id, false); ElMessage.success(t('common.ok')) }
+    catch (e) { handleApiError(e) }
   }
 }
 
@@ -170,10 +162,43 @@ const tagOptions = computed(() => store.allTags.map((t) => ({ value: t, label: t
       </aside>
 
       <section class="main">
-        <el-empty v-if="!store.loading && !store.projects.length"
-                  :description="$t('projects.empty_desc')" />
+        <div v-if="!store.loading && !store.projects.length" class="hero-empty">
+          <div class="hero">
+            <div class="hero-icon" aria-hidden="true">📑</div>
+            <h1>{{ $t('app.title') }}</h1>
+            <p class="hero-pitch">{{ $t('projects.hero_pitch') }}</p>
+            <!-- TODO: hero video — replace with real demo .mp4 / .gif when ready -->
+            <div class="hero-video" role="img"
+                  :aria-label="$t('projects.hero_video_alt')">
+              <span aria-hidden="true">▶</span>
+              <span class="muted">30s demo video — coming soon</span>
+            </div>
+            <el-button type="primary" size="large" @click="openCreate('')">
+              {{ $t('common.new') }}
+            </el-button>
+          </div>
+          <div v-if="store.templates.length" class="templates">
+            <h3>{{ $t('projects.templates_title') }}</h3>
+            <div class="tpl-grid">
+              <article v-for="tpl in store.templates.slice(0, 4)" :key="tpl.id"
+                        class="tpl-card" tabindex="0" role="button"
+                        :aria-label="tpl.name"
+                        @click="openCreate(tpl.id)"
+                        @keyup.enter="openCreate(tpl.id)">
+                <div class="tpl-icon" aria-hidden="true">{{
+                  tpl.id.includes('safety') ? '🛡' :
+                  tpl.id.includes('onco') ? '🧬' :
+                  tpl.id.includes('device') ? '⚙' : '📋'
+                }}</div>
+                <div class="tpl-name">{{ tpl.name }}</div>
+                <div class="tpl-desc">{{ tpl.description || $t('projects.tpl_default_desc') }}</div>
+                <div class="tpl-cta">{{ $t('projects.use_template') }} →</div>
+              </article>
+            </div>
+          </div>
+        </div>
 
-        <el-table v-else :data="store.projects" class="grid" stripe>
+        <el-table v-else :data="store.projects" class="grid" stripe role="table">
           <el-table-column :label="$t('common.name')" min-width="240">
             <template #default="{ row }">
               <router-link :to="`/p/${row.id}`" class="link">{{ row.name }}</router-link>
@@ -205,7 +230,7 @@ const tagOptions = computed(() => store.allTags.map((t) => ({ value: t, label: t
           <el-table-column :label="$t('common.more')" width="100">
             <template #default="{ row }">
               <el-dropdown trigger="click" @command="(v: string) => onContext(row, v)">
-                <el-button link size="small">⋮</el-button>
+                <el-button link size="small" :aria-label="$t('common.more')">⋮</el-button>
                 <template #dropdown>
                   <el-dropdown-menu>
                     <el-dropdown-item command="duplicate">{{ $t('projects.duplicate') }}</el-dropdown-item>
@@ -260,13 +285,14 @@ const tagOptions = computed(() => store.allTags.map((t) => ({ value: t, label: t
   align-items: center;
   margin-bottom: 12px;
 }
-.bar h2 { font-size: 18px; font-weight: 600; color: #1f2937; margin: 0; }
+.bar h2 { font-size: var(--font-size-2xl); font-weight: 600; color: var(--color-text-strong); margin: 0; }
 .bar-right { display: flex; gap: 8px; }
 .filters {
   display: flex;
   gap: 10px;
   align-items: center;
   margin-bottom: 16px;
+  flex-wrap: wrap;
 }
 .filters .search { width: 280px; }
 .filters .tag-filter { width: 180px; }
@@ -274,23 +300,112 @@ const tagOptions = computed(() => store.allTags.map((t) => ({ value: t, label: t
 .layout { display: flex; gap: 18px; }
 .recent {
   width: 240px;
-  background: #fff;
-  border-radius: 8px;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
   padding: 14px 18px;
   flex: 0 0 240px;
 }
-.recent h3 { margin: 0 0 8px 0; font-size: 13px; color: #1f2937; font-weight: 600; }
+.recent h3 { margin: 0 0 8px 0; font-size: var(--font-size-md); color: var(--color-text-strong); font-weight: 600; }
 .recent ul { list-style: none; padding: 0; margin: 0; }
 .recent li {
   display: flex; flex-direction: column;
-  padding: 8px 0; border-bottom: 1px solid #f0f1f4;
+  padding: 8px 0; border-bottom: 1px solid var(--color-border);
 }
 .recent li:last-child { border-bottom: none; }
-.recent .muted { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+.recent .muted { font-size: var(--font-size-xs); color: var(--color-text-mute); margin-top: 2px; }
 .main { flex: 1 1 auto; }
-.grid { border-radius: 6px; background: #fff; }
-.link { color: #2563eb; text-decoration: none; }
+.grid { border-radius: var(--radius-md); background: var(--color-surface); }
+.link { color: var(--color-primary); text-decoration: none; }
 .link:hover { text-decoration: underline; }
-.muted { color: #9ca3af; }
+.muted { color: var(--color-text-mute); }
 .tag-inline { margin-left: 4px; }
+
+/* Hero empty state */
+.hero-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding: 32px 0;
+}
+.hero {
+  text-align: center;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 56px 32px;
+}
+.hero-icon { font-size: 64px; margin-bottom: 16px; }
+.hero h1 { margin: 0; font-size: 28px; color: var(--color-text-strong); }
+.hero-pitch {
+  color: var(--color-text-mute);
+  max-width: 480px;
+  margin: 12px auto 24px;
+  line-height: 1.6;
+}
+.hero-video {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 32px;
+  background: var(--color-surface-2);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  margin: 0 auto 24px;
+  color: var(--color-text-mute);
+}
+.hero-video span:first-child { font-size: 28px; }
+.templates h3 {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text-strong);
+  margin: 0 0 12px;
+}
+.tpl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+.tpl-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  cursor: pointer;
+  transition: border-color 120ms, transform 120ms;
+}
+.tpl-card:hover, .tpl-card:focus-visible {
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+}
+.tpl-icon { font-size: 28px; margin-bottom: 8px; }
+.tpl-name {
+  font-weight: 600;
+  color: var(--color-text-strong);
+  font-size: var(--font-size-lg);
+}
+.tpl-desc {
+  color: var(--color-text-mute);
+  font-size: var(--font-size-sm);
+  margin: 6px 0 12px;
+  min-height: 36px;
+}
+.tpl-cta {
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+/* Responsive: < 1024px collapses table to card stack */
+@media (max-width: 1023px) {
+  .project-list { padding: 16px; }
+  .layout { flex-direction: column; }
+  .recent { width: auto; flex: none; }
+  :deep(.el-table) {
+    /* Light card-stack tweak: table still works but rows wrap nicely. */
+    font-size: var(--font-size-sm);
+  }
+  .filters .search,
+  .filters .tag-filter,
+  .filters .sort { width: 100%; }
+}
 </style>

@@ -1,0 +1,30 @@
+{
+  "app": {
+    "title": "AutoCSR",
+    "project_prefix": "プロジェクト"
+  },
+  "common": {
+    "ok": "OK",
+    "cancel": "キャンセル",
+    "save": "保存",
+    "delete": "削除",
+    "edit": "編集",
+    "refresh": "更新",
+    "search": "検索",
+    "new": "新規",
+    "loading": "読み込み中…",
+    "help": "ヘルプ",
+    "confirm": "確認"
+  },
+  "steps": {
+    "intake": "取り込み",
+    "cleanse": "クレンジング",
+    "analyze": "解析",
+    "outline": "アウトライン",
+    "report": "執筆",
+    "review": "レビュー",
+    "tasks": "タスク",
+    "export": "エクスポート",
+    "audit": "監査"
+  }
+}
