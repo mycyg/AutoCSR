@@ -1,7 +1,8 @@
 <template>
-  <div class="km-risk-chart">
-    <img v-if="imageDataUri" :src="imageDataUri" alt="KM with risk table" />
-    <div v-else ref="chartEl" class="echarts-container" />
+  <div class="km-risk-chart" role="img"
+        :aria-label="String($attrs['aria-label'] || 'Kaplan-Meier survival curve with subjects-at-risk table')">
+    <img v-if="imageDataUri" :src="imageDataUri" alt="Kaplan-Meier survival curve with risk table" />
+    <div v-else ref="chartEl" class="echarts-container" aria-hidden="true" />
     <div v-if="riskRows.length" class="risk-table-summary">
       <table>
         <thead>

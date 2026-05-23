@@ -23,7 +23,8 @@ function widthPct(lo: number, hi: number): number {
 </script>
 
 <template>
-  <div class="forest">
+  <div class="forest" role="img"
+        :aria-label="`Forest plot of ${rows.length} subgroups with effect size and 95% confidence intervals`">
     <table class="forest-table">
       <thead>
         <tr>

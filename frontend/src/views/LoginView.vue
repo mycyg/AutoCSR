@@ -1,17 +1,22 @@
 <template>
   <div class="auth-wrap">
-    <div class="auth-card">
-      <h1>AutoCSR</h1>
+    <main class="auth-card" role="main" aria-labelledby="login-heading">
+      <h1 id="login-heading">AutoCSR</h1>
       <p class="subtitle">Sign in to continue</p>
-      <el-form :model="form" @submit.prevent="onSubmit" label-position="top" size="large">
-        <el-form-item label="Email">
-          <el-input v-model="form.email" placeholder="you@example.com" autocomplete="email" />
+      <el-form :model="form" @submit.prevent="onSubmit" label-position="top" size="large"
+                role="form" aria-label="Sign-in form">
+        <el-form-item label="Email" prop="email">
+          <el-input v-model="form.email" placeholder="you@example.com" autocomplete="email"
+                    aria-required="true" name="email" type="email" />
         </el-form-item>
-        <el-form-item label="Password">
-          <el-input v-model="form.password" type="password" show-password autocomplete="current-password" />
+        <el-form-item label="Password" prop="password">
+          <el-input v-model="form.password" type="password" show-password autocomplete="current-password"
+                    aria-required="true" name="password" />
         </el-form-item>
-        <el-alert v-if="auth.error" type="error" :title="auth.error" :closable="false" class="auth-err" />
-        <el-button type="primary" native-type="submit" :loading="auth.loading" class="auth-submit">
+        <el-alert v-if="auth.error" type="error" :title="auth.error" :closable="false" class="auth-err"
+                   role="alert" aria-live="assertive" />
+        <el-button type="primary" native-type="submit" :loading="auth.loading" class="auth-submit"
+                    aria-label="Sign in to AutoCSR">
           Sign in
         </el-button>
       </el-form>
@@ -19,7 +24,7 @@
         New here?
         <router-link to="/register">Create an account</router-link>
       </p>
-    </div>
+    </main>
   </div>
 </template>
 
@@ -65,8 +70,11 @@ async function onSubmit() {
 }
 .subtitle {
   margin: 0 0 24px;
-  color: #6b7280;
+  color: #4b5563;        /* M22 — bumped from #6b7280 for >= 4.5:1 contrast */
   font-size: 14px;
+}
+@media (max-width: 767px) {
+  .auth-card { width: 92vw; padding: 24px 18px; }
 }
 .auth-err {
   margin-bottom: 12px;

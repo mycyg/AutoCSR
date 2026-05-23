@@ -60,7 +60,21 @@ const sortBy = ref<'last_opened' | 'created' | 'name'>('last_opened')
 
 onMounted(async () => {
   await Promise.all([store.refresh(), store.loadTemplates()])
+  // Eagerly hydrate sample domains so the hero grid lights up on first paint.
+  void loadSampleDomains()
 })
+
+// M22 — visual helpers for the hero domain grid.
+const DOMAIN_ICONS: Record<string, string> = {
+  oncology: '🧬',
+  rare_disease: '🧪',
+  vaccine: '💉',
+  pediatric: '👶',
+  cardiovascular: '❤️',
+}
+function domainIcon(domain: string): string {
+  return DOMAIN_ICONS[domain] || '📋'
+}
 
 let searchTimer: number | null = null
 watch([searchQ, tagQ, showArchived, sortBy], () => {
@@ -229,6 +243,25 @@ const tagOptions = computed(() => store.allTags.map((t) => ({ value: t, label: t
               {{ $t('common.new') }}
             </el-button>
           </div>
+          <!-- M22 — 5 domain demo project cards, more prominent than the
+                dropdown.  Clicking a card kicks off `create-from-sample`. -->
+          <section v-if="sampleDomains.length" class="domains" aria-labelledby="hero-domains-title">
+            <h3 id="hero-domains-title">{{ $t('projects.try_sample_title') }}</h3>
+            <p class="domains-sub">{{ $t('projects.try_sample_sub') }}</p>
+            <div class="dom-grid">
+              <article v-for="d in sampleDomains" :key="d.domain"
+                        class="dom-card" tabindex="0" role="button"
+                        :aria-label="`${d.name}: ${d.blurb}`"
+                        @click="createFromSample(d.domain)"
+                        @keyup.enter="createFromSample(d.domain)">
+                <div class="dom-icon" aria-hidden="true">{{ domainIcon(d.domain) }}</div>
+                <div class="dom-name">{{ d.name }}</div>
+                <div class="dom-blurb">{{ d.blurb }}</div>
+                <div class="dom-cta">{{ $t('projects.start_demo') }} →</div>
+              </article>
+            </div>
+          </section>
+
           <div v-if="store.templates.length" class="templates">
             <h3>{{ $t('projects.templates_title') }}</h3>
             <div class="tpl-grid">
@@ -447,6 +480,63 @@ const tagOptions = computed(() => store.allTags.map((t) => ({ value: t, label: t
   font-weight: 600;
 }
 
+/* M22 — 5 domain demo project grid (sits between hero + templates). */
+.domains {
+  padding: 0;
+  margin-top: -16px;
+}
+.domains h3 {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--color-text-strong);
+  margin: 0 0 6px;
+}
+.domains-sub {
+  margin: 0 0 14px;
+  color: var(--color-text-mute);
+  font-size: var(--font-size-sm);
+}
+.dom-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+}
+.dom-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 18px 16px;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 120ms, transform 120ms, box-shadow 120ms;
+}
+.dom-card:hover,
+.dom-card:focus-visible {
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  outline: none;
+}
+.dom-icon { font-size: 36px; line-height: 1; margin-bottom: 8px; }
+.dom-name {
+  font-weight: 600;
+  color: var(--color-text-strong);
+  font-size: var(--font-size-lg);
+  margin-bottom: 4px;
+}
+.dom-blurb {
+  color: var(--color-text-mute);
+  font-size: var(--font-size-sm);
+  min-height: 32px;
+  line-height: 1.4;
+}
+.dom-cta {
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  margin-top: 8px;
+}
+
 /* Responsive: < 1024px collapses table to card stack */
 @media (max-width: 1023px) {
   .project-list { padding: 16px; }
@@ -459,5 +549,13 @@ const tagOptions = computed(() => store.allTags.map((t) => ({ value: t, label: t
   .filters .search,
   .filters .tag-filter,
   .filters .sort { width: 100%; }
+}
+@media (max-width: 767px) {
+  .project-list { padding: 10px 8px; max-width: 100vw; }
+  .bar { flex-direction: column; align-items: stretch; gap: 8px; }
+  .bar-right { flex-wrap: wrap; }
+  .hero { padding: 32px 16px; }
+  .hero h1 { font-size: 22px; }
+  .tpl-grid, .dom-grid { grid-template-columns: 1fr 1fr; }
 }
 </style>

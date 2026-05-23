@@ -1,12 +1,12 @@
 <template>
-  <div class="tenant-page">
+  <main class="tenant-page" role="main" aria-labelledby="tenant-heading">
     <header>
-      <h1>{{ tenant?.name || 'Tenant settings' }}</h1>
-      <span class="plan">{{ tenant?.plan || '—' }}</span>
+      <h1 id="tenant-heading">{{ tenant?.name || 'Tenant settings' }}</h1>
+      <span class="plan" aria-label="Plan tier">{{ tenant?.plan || '—' }}</span>
     </header>
 
-    <section class="card">
-      <h2>Members ({{ users.length }})</h2>
+    <section class="card" aria-labelledby="members-heading" role="region">
+      <h2 id="members-heading">Members ({{ users.length }})</h2>
       <el-table :data="users" stripe size="default">
         <el-table-column prop="display_name" label="Name" min-width="160" />
         <el-table-column prop="email" label="Email" min-width="220" />
@@ -25,19 +25,21 @@
       </el-table>
     </section>
 
-    <section class="card">
-      <h2>Your account</h2>
-      <el-form label-position="top" :model="profile">
-        <el-form-item label="Display name">
-          <el-input v-model="profile.display_name" />
+    <section class="card" aria-labelledby="account-heading" role="region">
+      <h2 id="account-heading">Your account</h2>
+      <el-form label-position="top" :model="profile" role="form" aria-label="Update profile">
+        <el-form-item label="Display name" prop="display_name">
+          <el-input v-model="profile.display_name" name="display_name" />
         </el-form-item>
-        <el-form-item label="New password (leave blank to keep current)">
-          <el-input v-model="profile.password" type="password" show-password />
+        <el-form-item label="New password (leave blank to keep current)" prop="password">
+          <el-input v-model="profile.password" type="password" show-password
+                    autocomplete="new-password" name="password" />
         </el-form-item>
-        <el-button type="primary" :loading="saving" @click="onSave">Save</el-button>
+        <el-button type="primary" :loading="saving" @click="onSave"
+                    aria-label="Save profile changes">Save</el-button>
       </el-form>
     </section>
-  </div>
+  </main>
 </template>
 
 <script setup lang="ts">

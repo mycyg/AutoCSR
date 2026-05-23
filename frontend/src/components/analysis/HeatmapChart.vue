@@ -1,7 +1,8 @@
 <template>
-  <div class="heatmap-chart">
-    <img v-if="imageDataUri" :src="imageDataUri" alt="Heatmap" />
-    <div v-else ref="chartEl" class="echarts-container" />
+  <div class="heatmap-chart" role="img"
+        :aria-label="String($attrs['aria-label'] || 'Heatmap chart of values')">
+    <img v-if="imageDataUri" :src="imageDataUri" alt="Heatmap chart" />
+    <div v-else ref="chartEl" class="echarts-container" aria-hidden="true" />
   </div>
 </template>
 

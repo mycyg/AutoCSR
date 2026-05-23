@@ -81,7 +81,10 @@
     "hero_video_alt": "演示视频占位",
     "templates_title": "从模板开始",
     "use_template": "从此模板开始",
-    "tpl_default_desc": "标准 ICH E3 框架，适用于大多数 II/III 期试验。"
+    "tpl_default_desc": "标准 ICH E3 框架，适用于大多数 II/III 期试验。",
+    "try_sample_title": "5 大领域 Demo 项目",
+    "try_sample_sub": "一键创建带真实风格 ADaM 假数据的端到端 demo，几分钟体验全流程。",
+    "start_demo": "立即体验"
   },
   "intake": {
     "title": "1. 上传与判型",
@@ -108,7 +111,11 @@
     "no_proposals": "尚无清洗建议",
     "empty_title": "尚无可清洗的文件",
     "empty_desc": "请先在「上传」步骤上传文件并完成判型",
-    "go_upload": "去上传"
+    "go_upload": "去上传",
+    "tab_files": "文件",
+    "tab_review": "审阅",
+    "tab_preview": "预览",
+    "pick_file_first": "请先选择左侧文件"
   },
   "analyze": {
     "title": "3. 临床分析",
@@ -127,7 +134,11 @@
     "search_placeholder": "搜索章节…",
     "collapse_all": "全部折叠",
     "expand_all": "全部展开",
-    "goto_current": "跳到当前"
+    "goto_current": "跳到当前",
+    "tab_tree": "大纲",
+    "tab_detail": "节点",
+    "tab_actions": "操作",
+    "pick_node_first": "← 请先在大纲选择一个节点"
   },
   "report": {
     "title": "5. 章节撰写",
@@ -141,7 +152,13 @@
     "copied": "已复制",
     "share_snapshot": "分享只读快照",
     "snapshot_created": "快照链接已生成",
-    "recently_viewed": "最近浏览"
+    "recently_viewed": "最近浏览",
+    "tab_tree": "章节",
+    "tab_reader": "正文",
+    "tab_inspector": "面板",
+    "toolbar_aria": "章节工具栏",
+    "edit": "编辑",
+    "history": "历史版本"
   },
   "review": {
     "title": "6. 评审",
@@ -198,7 +215,9 @@
     "history": "历史导出",
     "no_history": "尚无历史导出。",
     "ectd_open": "导出 eCTD M5 包",
-    "delete_confirm": "确认删除导出文件「{name}」？"
+    "delete_confirm": "确认删除导出文件「{name}」？",
+    "multi_grid_aria": "多格式导出选项",
+    "generate_format": "生成 {fmt} 文件"
   },
   "shortcuts": {
     "title": "快捷键",
@@ -251,7 +270,9 @@
     "s5_title": "评审与导出",
     "s5_body": "Multi-reviewer + sign chain + 幻觉检测；最终导出 DOCX / TLF / eCTD 监管包。",
     "s6_title": "Ready",
-    "s6_body": "顶栏「?」可随时重看本教程或查看快捷键。"
+    "s6_body": "顶栏「?」可随时重看本教程或查看快捷键。",
+    "s_demo_title": "5 个 Demo 项目",
+    "s_demo_body": "肿瘤 / 罕见病 / 疫苗 / 儿科 / 心血管 — 项目列表首页可一键创建任一领域的端到端 demo，自带 fake ADaM 数据。"
   },
   "tooltips": {
     "first_time": "首次使用提示",
@@ -266,7 +287,26 @@
     "shortcuts": "快捷键",
     "tour": "重看新手引导",
     "docs": "查看文档",
-    "changelog": "更新日志"
+    "changelog": "更新日志",
+    "video": "视频教程",
+    "video_desc": "5 分钟从 demo 项目到 DOCX 完整走查。",
+    "video_placeholder": "视频教程录制中… 暂时请看右下角搜索链接。",
+    "video_placeholder_aria": "视频教程占位",
+    "video_search": "搜索 AutoCSR 教程",
+    "video_script_note": "脚本见 docs/quickstart.md — 后续更新会直接嵌入到本对话框。",
+    "faq_title": "常见问题",
+    "faq": {
+      "q1": { "q": "AutoCSR 是开源的吗？", "a": "是。仓库 github.com/your-org/AutoCSR，MIT 许可证，可自部署/二次开发。" },
+      "q2": { "q": "我的临床数据安全吗？", "a": "默认本地存储；多租户隔离 + 审计链 + 电子签名；可全程脱网部署（不调云端 LLM）。" },
+      "q3": { "q": "可以离线跑吗？", "a": "可以。配置 settings.yaml 指向本地 LLM（如 vLLM/ollama）即可。" },
+      "q4": { "q": "支持哪些数据格式？", "a": "SAS xpt/sas7bdat、Excel/CSV、PDF、Word；define.xml 可反向解析 ADaM 元数据。" },
+      "q5": { "q": "符合 21 CFR Part 11 / NMPA 吗？", "a": "提供审计跟踪、电子签名、顺序签名链、PII 扫描；详见 docs/compliance.md。最终监管签字仍需 RA 审核。" },
+      "q6": { "q": "AI 写错了怎么办？", "a": "writer 每节都有 hallucination_guard；可手工切换「锁定 / 编辑」覆盖任何段落；所有历史版本都保留。" },
+      "q7": { "q": "支持中英文双语吗？", "a": "前端含 zh/en/ja，后端 prompt 可按 ProjectConfig.language 切换。" },
+      "q8": { "q": "如何导出最终 docx？", "a": "导出页选模板 → 配置字体/页眉 → 生成；也可导出 PDF / HTML / PPTX / Markdown bundle / eCTD M5 zip。" },
+      "q9": { "q": "支持移动端吗？", "a": "v2.4 起完整支持 < 768 视口，三栏自动堆叠为 tab；不过 CSR 真正撰写仍推荐桌面端。" },
+      "q10": { "q": "我能贡献代码吗？", "a": "欢迎！见 CONTRIBUTING.md + docs/contributing.md，含模板 / agent / 导出格式 / locale 扩展指南。" }
+    }
   },
   "theme": {
     "to_dark": "切到深色",
@@ -350,5 +390,21 @@
     "n_findings": "条发现",
     "never_run": "尚未运行检查",
     "no_findings": "未发现幻觉问题"
+  },
+  "a11y": {
+    "skip_to_content": "跳到正文",
+    "main_nav": "主导航",
+    "section_landmark": "{name} 区域"
+  },
+  "members": {
+    "title": "成员",
+    "open": "管理项目成员",
+    "toolbar_aria": "项目操作工具栏"
+  },
+  "detail": {
+    "m_tabs_aria": "项目详情切换",
+    "tab_outline": "大纲",
+    "tab_editor": "编辑",
+    "tab_inspector": "面板"
   }
 }

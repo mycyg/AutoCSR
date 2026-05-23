@@ -81,7 +81,10 @@
     "hero_video_alt": "Demo video placeholder",
     "templates_title": "Start from a template",
     "use_template": "Start from this template",
-    "tpl_default_desc": "Standard ICH E3 skeleton for most Phase II / III trials."
+    "tpl_default_desc": "Standard ICH E3 skeleton for most Phase II / III trials.",
+    "try_sample_title": "5 domain demo projects",
+    "try_sample_sub": "One-click end-to-end demo with realistic fake ADaM data — try the full pipeline in minutes.",
+    "start_demo": "Try the demo"
   },
   "intake": {
     "title": "1. Upload & Classify",
@@ -108,7 +111,11 @@
     "no_proposals": "No cleansing proposals yet",
     "empty_title": "No files ready for cleansing",
     "empty_desc": "Upload a file in the Intake step first.",
-    "go_upload": "Go to upload"
+    "go_upload": "Go to upload",
+    "tab_files": "Files",
+    "tab_review": "Review",
+    "tab_preview": "Preview",
+    "pick_file_first": "Pick a file first."
   },
   "analyze": {
     "title": "3. Clinical Analysis",
@@ -127,7 +134,11 @@
     "search_placeholder": "Search sections…",
     "collapse_all": "Collapse all",
     "expand_all": "Expand all",
-    "goto_current": "Jump to current"
+    "goto_current": "Jump to current",
+    "tab_tree": "Outline",
+    "tab_detail": "Node",
+    "tab_actions": "Actions",
+    "pick_node_first": "← Pick a node from the outline."
   },
   "report": {
     "title": "5. Section Writing",
@@ -141,7 +152,13 @@
     "copied": "Copied",
     "share_snapshot": "Share read-only snapshot",
     "snapshot_created": "Snapshot link generated",
-    "recently_viewed": "Recently viewed"
+    "recently_viewed": "Recently viewed",
+    "tab_tree": "Sections",
+    "tab_reader": "Reader",
+    "tab_inspector": "Inspector",
+    "toolbar_aria": "Section toolbar",
+    "edit": "Edit",
+    "history": "History"
   },
   "review": {
     "title": "6. Review",
@@ -198,7 +215,9 @@
     "history": "Export history",
     "no_history": "No exports yet.",
     "ectd_open": "Export eCTD M5 package",
-    "delete_confirm": "Delete export \"{name}\"?"
+    "delete_confirm": "Delete export \"{name}\"?",
+    "multi_grid_aria": "Multi-format export options",
+    "generate_format": "Generate {fmt} file"
   },
   "shortcuts": {
     "title": "Keyboard shortcuts",
@@ -251,7 +270,9 @@
     "s5_title": "Review & ship",
     "s5_body": "Multi-reviewer + sign chain + hallucination check; export DOCX / TLF / eCTD packages.",
     "s6_title": "Ready",
-    "s6_body": "The \"?\" menu in the top bar can replay this tour or show shortcuts."
+    "s6_body": "The \"?\" menu in the top bar can replay this tour or show shortcuts.",
+    "s_demo_title": "5 demo projects",
+    "s_demo_body": "Oncology, rare disease, vaccine, pediatric, cardiovascular — one click on the project list creates an end-to-end demo with realistic fake ADaM data."
   },
   "tooltips": {
     "first_time": "First-time tip",
@@ -266,7 +287,26 @@
     "shortcuts": "Keyboard shortcuts",
     "tour": "Replay onboarding",
     "docs": "Documentation",
-    "changelog": "Changelog"
+    "changelog": "Changelog",
+    "video": "Video tutorial",
+    "video_desc": "A 5-minute walkthrough from a demo project to an exported DOCX.",
+    "video_placeholder": "Video tutorial is being recorded — see search links below in the meantime.",
+    "video_placeholder_aria": "Video tutorial placeholder",
+    "video_search": "Search AutoCSR tutorials",
+    "video_script_note": "Script lives in docs/quickstart.md — once recorded the video will embed here directly.",
+    "faq_title": "FAQ",
+    "faq": {
+      "q1": { "q": "Is AutoCSR open source?", "a": "Yes — MIT licensed at github.com/your-org/AutoCSR. Self-hosting and forks are encouraged." },
+      "q2": { "q": "Is my clinical data safe?", "a": "Local-first storage, multi-tenant isolation, audit chain and e-signatures. You can run fully air-gapped against a local LLM." },
+      "q3": { "q": "Can it run offline?", "a": "Yes — point settings.yaml at a local LLM (vLLM / ollama) and no calls leave the machine." },
+      "q4": { "q": "Which data formats do you support?", "a": "SAS xpt/sas7bdat, Excel/CSV, PDF, Word; define.xml is parsed in reverse for ADaM metadata." },
+      "q5": { "q": "Are you 21 CFR Part 11 / NMPA compliant?", "a": "We ship audit trail, e-signature, sequential sign-chain and PII scanning. See docs/compliance.md. Final regulatory sign-off remains a RA responsibility." },
+      "q6": { "q": "What if the AI writes something wrong?", "a": "Every section runs hallucination_guard; you can switch to manual edit at any time and all versions are retained." },
+      "q7": { "q": "Bilingual?", "a": "Frontend ships zh / en / ja. Backend prompts switch on ProjectConfig.language." },
+      "q8": { "q": "How do I export the final docx?", "a": "Export page → pick template → tune fonts / header → generate. PDF / HTML / PPTX / Markdown-bundle / eCTD M5 zip are also supported." },
+      "q9": { "q": "Mobile support?", "a": "v2.4 fully supports < 768 viewport — three panes stack into tabs. Heavy authoring still works best on desktop." },
+      "q10": { "q": "Can I contribute?", "a": "Please! See CONTRIBUTING.md and docs/contributing.md for template / agent / export / locale extension guides." }
+    }
   },
   "theme": {
     "to_dark": "Switch to dark",
@@ -350,5 +390,21 @@
     "n_findings": "findings",
     "never_run": "Not run yet",
     "no_findings": "No hallucination findings"
+  },
+  "a11y": {
+    "skip_to_content": "Skip to main content",
+    "main_nav": "Main navigation",
+    "section_landmark": "{name} region"
+  },
+  "members": {
+    "title": "Members",
+    "open": "Manage project members",
+    "toolbar_aria": "Project actions toolbar"
+  },
+  "detail": {
+    "m_tabs_aria": "Project detail pane switcher",
+    "tab_outline": "Outline",
+    "tab_editor": "Editor",
+    "tab_inspector": "Inspector"
   }
 }

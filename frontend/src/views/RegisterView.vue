@@ -1,23 +1,29 @@
 <template>
   <div class="auth-wrap">
-    <div class="auth-card">
-      <h1>Create your account</h1>
+    <main class="auth-card" role="main" aria-labelledby="register-heading">
+      <h1 id="register-heading">Create your account</h1>
       <p class="subtitle">Start a new tenant or join the default workspace</p>
-      <el-form :model="form" @submit.prevent="onSubmit" label-position="top" size="large">
-        <el-form-item label="Email">
-          <el-input v-model="form.email" placeholder="you@example.com" autocomplete="email" />
+      <el-form :model="form" @submit.prevent="onSubmit" label-position="top" size="large"
+                role="form" aria-label="Create account form">
+        <el-form-item label="Email" prop="email">
+          <el-input v-model="form.email" placeholder="you@example.com" autocomplete="email"
+                    type="email" aria-required="true" name="email" />
         </el-form-item>
-        <el-form-item label="Display name">
-          <el-input v-model="form.display_name" placeholder="Ada Lovelace" />
+        <el-form-item label="Display name" prop="display_name">
+          <el-input v-model="form.display_name" placeholder="Ada Lovelace" name="display_name" />
         </el-form-item>
-        <el-form-item label="Password (min 6 chars)">
-          <el-input v-model="form.password" type="password" show-password autocomplete="new-password" />
+        <el-form-item label="Password (min 6 chars)" prop="password">
+          <el-input v-model="form.password" type="password" show-password autocomplete="new-password"
+                    aria-required="true" name="password" />
         </el-form-item>
-        <el-form-item label="Tenant / Organisation name (optional)">
-          <el-input v-model="form.tenant_name" placeholder="Leave blank to join the default tenant" />
+        <el-form-item label="Tenant / Organisation name (optional)" prop="tenant_name">
+          <el-input v-model="form.tenant_name" placeholder="Leave blank to join the default tenant"
+                    name="tenant_name" />
         </el-form-item>
-        <el-alert v-if="auth.error" type="error" :title="auth.error" :closable="false" class="auth-err" />
-        <el-button type="primary" native-type="submit" :loading="auth.loading" class="auth-submit">
+        <el-alert v-if="auth.error" type="error" :title="auth.error" :closable="false" class="auth-err"
+                   role="alert" aria-live="assertive" />
+        <el-button type="primary" native-type="submit" :loading="auth.loading" class="auth-submit"
+                    aria-label="Create your AutoCSR account">
           Create account
         </el-button>
       </el-form>
@@ -25,7 +31,7 @@
         Already have an account?
         <router-link to="/login">Sign in</router-link>
       </p>
-    </div>
+    </main>
   </div>
 </template>
 
@@ -76,8 +82,11 @@ async function onSubmit() {
 }
 .subtitle {
   margin: 0 0 24px;
-  color: #6b7280;
+  color: #4b5563;        /* M22 — bumped from #6b7280 for >= 4.5:1 contrast */
   font-size: 14px;
+}
+@media (max-width: 767px) {
+  .auth-card { width: 92vw; padding: 24px 18px; }
 }
 .auth-err {
   margin-bottom: 12px;

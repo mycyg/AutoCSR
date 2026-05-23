@@ -11,8 +11,13 @@ import EmptyState from '@/components/global/EmptyState.vue'
 import { getHallucinationCheck } from '@/api/rest'
 import { handleApiError } from '@/utils/errors'
 import { useRecentlyViewed } from '@/composables/useRecentlyViewed'
+import { useResponsive } from '@/composables/useResponsive'
+import { useSwipe } from '@/composables/useTouchGestures'
 
 const props = defineProps<{ id: string }>()
+const { isMobile } = useResponsive()
+const mobileTab = ref<'tree' | 'reader' | 'inspector'>('tree')
+const readerWrap = ref<HTMLElement | null>(null)
 const outlineStore = useOutlineStore()
 const reportStore = useReportStore()
 let wsClose: (() => void) | null = null
@@ -138,6 +143,36 @@ async function onRolledBack(_version: number): Promise<void> {
 
 const phase = computed(() => reportStore.phase)
 const running = computed(() => ['background', 'results', 'discussion', 'harmonize'].includes(phase.value))
+
+// M22 — flat leaf order, used for swipe-left/right chapter navigation.
+function flattenLeaves(nodes: Array<{ id: string; children?: any[] }>): string[] {
+  const out: string[] = []
+  for (const n of nodes) {
+    if (!n.children?.length) out.push(n.id)
+    else out.push(...flattenLeaves(n.children))
+  }
+  return out
+}
+
+const leafOrder = computed<string[]>(() => {
+  if (!outlineStore.outline) return []
+  return flattenLeaves(outlineStore.outline.root_sections as any)
+})
+
+function gotoOffset(delta: number): void {
+  const order = leafOrder.value
+  if (!order.length) return
+  const cur = reportStore.selectedNodeId
+  const idx = cur ? order.indexOf(cur) : -1
+  const next = idx === -1 ? (delta > 0 ? 0 : order.length - 1)
+                            : Math.max(0, Math.min(order.length - 1, idx + delta))
+  if (order[next] && order[next] !== cur) void onSelect(order[next])
+}
+
+useSwipe(readerWrap, {
+  onLeft: () => gotoOffset(+1),
+  onRight: () => gotoOffset(-1),
+})
 </script>
 
 <template>
@@ -160,7 +195,48 @@ const running = computed(() => ['background', 'results', 'discussion', 'harmoniz
         {{ reportStore.totalWords }} 字
       </span>
     </div>
-    <el-container class="three">
+    <template v-if="isMobile">
+      <el-tabs v-model="mobileTab" class="m-tabs">
+        <el-tab-pane :label="$t('report.tab_tree')" name="tree" />
+        <el-tab-pane :label="$t('report.tab_reader')" name="reader" />
+        <el-tab-pane :label="$t('report.tab_inspector')" name="inspector" />
+      </el-tabs>
+      <div class="m-pane" ref="readerWrap">
+        <template v-if="mobileTab === 'tree'">
+          <EmptyState v-if="!outlineStore.outline"
+                       icon="📋"
+                       :title="$t('outline.empty_title')"
+                       :description="$t('outline.empty_desc')"
+                       :cta-text="$t('outline.build')"
+                       @cta="$router.push(`/p/${props.id}/outline`)" />
+          <ChapterTree v-else
+            :nodes="outlineStore.outline.root_sections"
+            :selected-id="reportStore.selectedNodeId"
+            :drafts="draftsById"
+            :hallucinations="halluCounts"
+            @select="(id) => { onSelect(id); mobileTab = 'reader' }" />
+        </template>
+        <ChapterReader v-else-if="mobileTab === 'reader'"
+          :project-id="props.id"
+          :node-id="reportStore.selectedNodeId"
+          :draft="reportStore.currentDraft"
+          :outline-title="outlineNode?.title"
+          compact
+          @regenerate="(extra) => onRegenerate(extra)" />
+        <WriterStatus v-else
+          :project-id="props.id"
+          :node-id="reportStore.selectedNodeId"
+          :outline-title="outlineNode?.title"
+          :status="reportStore.status"
+          :terminology="reportStore.terminology"
+          @save-terminology="onSaveTerminology"
+          @patch-applied="onPatchApplied"
+          @rolled-back="onRolledBack"
+          @refined="onPatchApplied"
+          @comments-applied="onPatchApplied" />
+      </div>
+    </template>
+    <el-container v-else class="three">
       <el-aside class="left" width="320px">
         <EmptyState v-if="!outlineStore.outline"
                      icon="📋"
@@ -247,4 +323,12 @@ const running = computed(() => ['background', 'results', 'discussion', 'harmoniz
   .three { flex-direction: column; }
   .left, .right { width: auto !important; max-height: 220px; border: none; border-bottom: 1px solid var(--color-border); }
 }
+@media (max-width: 767px) {
+  .report-view { height: calc(100dvh - 48px); }
+  .topbar { padding: 6px 10px; }
+  .topbar .info { display: none; }
+}
+.m-tabs { background: var(--color-surface); border-bottom: 1px solid var(--color-border); }
+.m-tabs :deep(.el-tabs__header) { margin: 0; }
+.m-pane { flex: 1; overflow: auto; background: var(--color-surface-2); touch-action: pan-y; }
 </style>

@@ -27,5 +27,8 @@
     "export": "エクスポート",
     "dashboard": "ダッシュボード",
     "audit": "監査"
+  },
+  "a11y": {
+    "skip_to_content": "本文へスキップ"
   }
 }

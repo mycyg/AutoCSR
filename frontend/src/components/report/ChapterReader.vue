@@ -9,14 +9,18 @@ import { createSnapshot, listSectionVersions, rollbackSection, updateDraftMarkdo
 import { useShortcuts } from '@/composables/useShortcuts'
 import { useI18n } from 'vue-i18n'
 import { useRecentlyViewed } from '@/composables/useRecentlyViewed'
+import { useResponsive } from '@/composables/useResponsive'
+import { useLongPress } from '@/composables/useTouchGestures'
 import { handleApiError } from '@/utils/errors'
 const { t } = useI18n()
+const { isMobile } = useResponsive()
 
 const props = defineProps<{
   projectId: string
   nodeId: string | null
   draft: SectionDraftDTO | null
   outlineTitle?: string
+  compact?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -163,10 +167,28 @@ useShortcuts({
     }
   },
 })
+
+// M22 — long-press touch -> pop the section context menu (Copy / History / Regenerate).
+const readerRoot = ref<HTMLElement | null>(null)
+const ctxMenuOpen = ref(false)
+const ctxMenuX = ref(0)
+const ctxMenuY = ref(0)
+
+function openCtxMenu(pos: { x: number; y: number }): void {
+  if (!props.draft) return
+  ctxMenuX.value = pos.x
+  ctxMenuY.value = pos.y
+  ctxMenuOpen.value = true
+}
+function closeCtxMenu(): void { ctxMenuOpen.value = false }
+
+useLongPress(readerRoot, openCtxMenu, { delay: 500, tolerance: 12 })
+
+const compact = computed(() => !!(props.compact || isMobile.value))
 </script>
 
 <template>
-  <div class="chapter-reader">
+  <div class="chapter-reader" ref="readerRoot" :class="{ 'is-compact': compact }">
     <div v-if="empty" class="empty">
       <p v-if="nodeId">本节尚无草稿。</p>
       <p v-else>← 在左侧选择章节</p>
@@ -175,7 +197,41 @@ useShortcuts({
       </el-button>
     </div>
     <template v-else-if="draft">
-      <div class="toolbar">
+      <!-- Compact (mobile) toolbar: save/copy/history only; rest in overflow. -->
+      <div v-if="compact" class="toolbar toolbar-compact" role="toolbar"
+            :aria-label="t('report.toolbar_aria')">
+        <span class="title" :title="draft.title || outlineTitle || draft.node_id">
+          {{ draft.title || outlineTitle || draft.node_id }}
+        </span>
+        <span class="spacer" />
+        <el-button size="small" :type="locked ? 'default' : 'success'" plain
+                   @click="toggleLock" :aria-label="locked ? t('report.edit') : t('common.save')">
+          {{ locked ? '✎' : '💾' }}
+        </el-button>
+        <el-button size="small" @click="onCopy" :aria-label="t('report.copy_md')">⧉</el-button>
+        <el-dropdown trigger="click" @command="(c: string) => {
+          if (c === 'history') showExtra = false;
+          if (c === 'regen') onRegenerate();
+          if (c === 'share') onShareSnapshot();
+          if (c === 'extra') showExtra = !showExtra;
+        }">
+          <el-button size="small" :aria-label="t('common.more')">⋯</el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="extra">{{ showExtra ? '收起指令' : '+ 指令' }}</el-dropdown-item>
+              <el-dropdown-item command="regen">{{ $t('report.regenerate') }}</el-dropdown-item>
+              <el-dropdown-item command="share">🔗 {{ $t('common.share') }}</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+        <el-select v-if="versions.length" v-model="pickedVersion" placeholder="v…" size="small"
+                   class="ver-select" clearable :aria-label="$t('report.history')">
+          <el-option v-for="v in versions" :key="v" :label="`v${v}`" :value="v" />
+        </el-select>
+        <el-button v-if="pickedVersion !== null" size="small" @click="onRollback">↻</el-button>
+      </div>
+      <div v-else class="toolbar" role="toolbar"
+            :aria-label="t('report.toolbar_aria')">
         <span class="title">{{ draft.title || outlineTitle || draft.node_id }}</span>
         <span class="meta">
           <el-tag size="small" :type="draft.status === 'error' ? 'danger'
@@ -224,6 +280,17 @@ useShortcuts({
         <MdEditor v-else :key="nodeId + '-e'" class="md editor"
                   :model-value="localMd" :preview-theme="'github'" @on-change="onEdit" />
       </Transition>
+      <!-- M22 — long-press context menu (mobile). -->
+      <Teleport to="body">
+        <div v-if="ctxMenuOpen" class="ctx-mask" @click="closeCtxMenu" />
+        <ul v-if="ctxMenuOpen" class="ctx-menu" role="menu"
+             :style="{ top: ctxMenuY + 'px', left: ctxMenuX + 'px' }">
+          <li role="menuitem" @click="() => { onCopy(); closeCtxMenu() }">⧉ {{ t('report.copy_md') }}</li>
+          <li role="menuitem" @click="() => { onShareSnapshot(); closeCtxMenu() }">🔗 {{ t('common.share') }}</li>
+          <li role="menuitem" @click="() => { onRegenerate(); closeCtxMenu() }">{{ t('report.regenerate') }}</li>
+          <li v-if="!locked" role="menuitem" @click="() => { toggleLock(); closeCtxMenu() }">💾 {{ t('common.save') }}</li>
+        </ul>
+      </Teleport>
       <div v-if="draft.citations?.length" class="cites">
         <h4>引用</h4>
         <ul>
@@ -270,4 +337,41 @@ useShortcuts({
   transition: opacity 200ms ease;
 }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
+.chapter-reader.is-compact .toolbar { padding: 6px 8px; }
+.chapter-reader.is-compact .toolbar .title {
+  font-size: var(--font-size-md);
+  max-width: 40%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chapter-reader.is-compact .ver-select { width: 72px; }
+.chapter-reader.is-compact .md { padding: 0 8px; font-size: 14px; }
+</style>
+<style>
+/* Unscoped: the context menu lives under document.body via <Teleport>. */
+.ctx-mask {
+  position: fixed; inset: 0;
+  z-index: 1000;
+  background: transparent;
+}
+.ctx-menu {
+  position: fixed;
+  z-index: 1001;
+  margin: 0;
+  padding: 4px 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  list-style: none;
+  min-width: 180px;
+  font-size: var(--font-size-md);
+}
+.ctx-menu li {
+  padding: 10px 14px;
+  cursor: pointer;
+  color: var(--color-text);
+}
+.ctx-menu li:hover, .ctx-menu li:focus-visible { background: var(--color-surface-3); }
 </style>

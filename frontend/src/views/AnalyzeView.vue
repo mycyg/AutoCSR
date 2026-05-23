@@ -11,7 +11,10 @@ import EmptyState from '@/components/global/EmptyState.vue'
 import { confirmAction } from '@/composables/useConfirm'
 import { handleApiError } from '@/utils/errors'
 import { useI18n } from 'vue-i18n'
+import { useResponsive } from '@/composables/useResponsive'
 const { t } = useI18n()
+const { isMobile } = useResponsive()
+void isMobile  // referenced via CSS media query; keep composable mounted
 
 const props = defineProps<{ id: string }>()
 const analysis = useAnalysisStore()
@@ -201,4 +204,11 @@ function fmtDate(s: string): string {
 .stat-table .link:hover { text-decoration: underline; }
 .src { display: inline-block; margin-right: 10px; color: #4b5563; font-size: 12px; }
 .muted { color: #9ca3af; }
+@media (max-width: 767px) {
+  .analyze { height: calc(100dvh - 48px); font-size: 14px; }
+  .bar { flex-direction: column; align-items: flex-start; gap: 8px; padding: 10px 12px; }
+  .bar .right { width: 100%; display: flex; flex-wrap: wrap; gap: 6px; }
+  .content { padding: 8px 10px; }
+  .stat-table :deep(.el-table__cell) { padding: 6px 4px; }
+}
 </style>

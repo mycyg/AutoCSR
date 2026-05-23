@@ -2,7 +2,8 @@
   <div class="dashboard-page">
     <header>
       <h1>Dashboards · {{ pid }}</h1>
-      <el-button type="primary" :icon="Plus" @click="onCreate" :disabled="!availableStats.length">
+      <el-button type="primary" :icon="Plus" @click="onCreate" :disabled="!availableStats.length"
+                  aria-label="Create a new dashboard">
         New dashboard
       </el-button>
     </header>
@@ -10,14 +11,18 @@
     <el-empty v-if="!dashboards.length && !loading" description="No dashboards yet. Build one from your analysis blocks." />
     <el-skeleton v-if="loading" :rows="6" animated />
 
-    <div v-for="d in dashboards" :key="d.id" class="dashboard-card">
+    <section v-for="d in dashboards" :key="d.id" class="dashboard-card"
+              role="region" :aria-label="`Dashboard: ${d.name}`">
       <div class="dash-head">
         <h3>{{ d.name }}</h3>
-        <el-button text type="danger" size="small" @click="onDelete(d)">Delete</el-button>
+        <el-button text type="danger" size="small" @click="onDelete(d)"
+                    :aria-label="`Delete dashboard ${d.name}`">Delete</el-button>
       </div>
       <div class="dash-grid">
         <div v-for="(cell, idx) in d.layout" :key="cell.cell_id || idx"
               class="dash-cell"
+              role="region"
+              :aria-label="cellTitle(cell)"
               :style="cellStyle(cell)">
           <h4>{{ cellTitle(cell) }}</h4>
           <component v-if="cellComponent(cell)"
@@ -28,7 +33,7 @@
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
     <!-- Create dialog -->
     <el-dialog v-model="createOpen" title="Compose a dashboard" width="640px">

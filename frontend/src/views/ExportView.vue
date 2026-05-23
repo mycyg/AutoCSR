@@ -15,8 +15,11 @@ import { connectProjectWS } from '@/api/ws'
 import EctdExportDialog from '@/components/global/EctdExportDialog.vue'
 import { confirmAction } from '@/composables/useConfirm'
 import { handleApiError } from '@/utils/errors'
+import { useResponsive } from '@/composables/useResponsive'
 
 const props = defineProps<{ id: string }>()
+const { isMobile: _isMobile } = useResponsive()
+void _isMobile  // referenced in <style> via :class only — keep the import warm
 const exportStore = useExportStore()
 let wsClose: (() => void) | null = null
 
@@ -359,7 +362,7 @@ const previewHeadingStyle = computed(() => {
     <div class="panel">
       <h3>Multi-format export</h3>
       <p class="hint">同一份报告导出为多种格式 — PDF 给打印 / HTML 给在线浏览 / PPTX 给汇报 / Markdown bundle 给 dev workflow。</p>
-      <div class="multi-grid">
+      <div class="multi-grid" role="group" :aria-label="$t('export.multi_grid_aria')">
         <div v-for="fmt in (['pdf','html','pptx','md_bundle'] as MultiExportFormat[])"
               :key="fmt" class="multi-card">
           <div class="multi-card-head">
@@ -367,6 +370,7 @@ const previewHeadingStyle = computed(() => {
             <span v-if="multiPhase[fmt]" class="muted">· {{ multiPhase[fmt] }}</span>
           </div>
           <el-button type="primary" plain :loading="multiExporting[fmt]"
+                     :aria-label="$t('export.generate_format', { fmt: FORMAT_LABEL[fmt] })"
                      @click="onExportFormat(fmt)">
             {{ multiExporting[fmt] ? '正在生成…' : '生成 ' + FORMAT_LABEL[fmt] }}
           </el-button>
@@ -485,4 +489,13 @@ const previewHeadingStyle = computed(() => {
 }
 .multi-card-head { display: flex; align-items: baseline; gap: 6px; }
 .multi-card-last { font-size: var(--font-size-sm); }
+@media (max-width: 767px) {
+  .export-view { padding: 12px; }
+  .panel { padding: 14px 16px; margin-bottom: 12px; }
+  .panel h2 { font-size: var(--font-size-xl); }
+  .options { gap: 8px; }
+  .trigger { flex-wrap: wrap; }
+  .multi-grid { grid-template-columns: 1fr; }
+  .cfg-form :deep(.el-form-item__label) { font-size: 12px; }
+}
 </style>

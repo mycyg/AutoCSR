@@ -10,7 +10,10 @@ import OutlineActions from '@/components/outline/OutlineActions.vue'
 import EmptyState from '@/components/global/EmptyState.vue'
 import { confirmAction } from '@/composables/useConfirm'
 import { handleApiError } from '@/utils/errors'
+import { useResponsive } from '@/composables/useResponsive'
 const { t } = useI18n()
+const { isMobile } = useResponsive()
+const mobileTab = ref<'tree' | 'detail' | 'actions'>('tree')
 
 const props = defineProps<{ id: string }>()
 const outlineStore = useOutlineStore()
@@ -80,7 +83,51 @@ async function onDelete(): Promise<void> {
 
 <template>
   <div class="outline-view">
-    <el-container class="three">
+    <template v-if="isMobile">
+      <el-tabs v-model="mobileTab" class="m-tabs">
+        <el-tab-pane :label="$t('outline.tab_tree')" name="tree" />
+        <el-tab-pane :label="$t('outline.tab_detail')" name="detail" />
+        <el-tab-pane :label="$t('outline.tab_actions')" name="actions" />
+      </el-tabs>
+      <div class="m-pane">
+        <template v-if="mobileTab === 'tree'">
+          <EmptyState v-if="!outlineStore.outline"
+                       icon="📋"
+                       :title="$t('outline.empty_title')"
+                       :description="$t('outline.empty_desc')">
+            <el-select v-model="principleId" size="small" style="width: 180px; margin-top: 8px;">
+              <el-option value="ich_e3" label="ICH E3" />
+              <el-option value="cde_chem" label="CDE 化药" />
+              <el-option value="cde_tcm" label="CDE 中药" />
+            </el-select>
+            <el-button type="primary" :loading="outlineStore.building"
+                       style="margin-top: 12px;" @click="onBuild">
+              {{ $t('outline.build') }}
+            </el-button>
+          </EmptyState>
+          <OutlineTree v-else
+            :nodes="outlineStore.outline.root_sections"
+            :selected-id="outlineStore.selectedNodeId"
+            @select="(id) => { outlineStore.selectedNodeId = id; mobileTab = 'detail' }" />
+        </template>
+        <NodeDetail v-else-if="mobileTab === 'detail' && selected"
+          :node="selected"
+          :project-id="props.id"
+          @patch="onPatch"
+          @add-child="onAddChild"
+          @delete="onDelete" />
+        <div v-else-if="mobileTab === 'detail'" class="empty-center">
+          {{ $t('outline.pick_node_first') }}
+        </div>
+        <OutlineActions v-else
+          :outline="outlineStore.outline"
+          :versions="outlineStore.versions"
+          :building="outlineStore.building"
+          @rebuild="onBuild"
+          @restore="onRestore" />
+      </div>
+    </template>
+    <el-container v-else class="three">
       <el-aside class="left" width="380px">
         <EmptyState v-if="!outlineStore.outline"
                      icon="📋"
@@ -146,4 +193,10 @@ async function onDelete(): Promise<void> {
   .three { flex-direction: column; }
   .left, .right { width: auto !important; border: none; border-bottom: 1px solid var(--color-border); max-height: 200px; }
 }
+@media (max-width: 767px) {
+  .outline-view { height: calc(100dvh - 48px); font-size: 14px; }
+}
+.m-tabs { background: var(--color-surface); border-bottom: 1px solid var(--color-border); }
+.m-tabs :deep(.el-tabs__header) { margin: 0; }
+.m-pane { flex: 1; overflow: auto; padding: 12px; background: var(--color-surface-2); }
 </style>

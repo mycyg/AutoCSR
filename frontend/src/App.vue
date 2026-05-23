@@ -101,8 +101,10 @@ function goCommand(key: string): void {
 
 <template>
   <el-container class="autocsr-shell" direction="vertical">
-    <el-header class="autocsr-header">
-      <div class="brand" @click="router.push('/')"
+    <a href="#main-content" class="skip-link">{{ $t('a11y.skip_to_content') }}</a>
+    <el-header class="autocsr-header" role="banner">
+      <div class="brand" @click="router.push('/')" role="button" tabindex="0"
+            @keyup.enter="router.push('/')"
             :aria-label="$t('app.title')">{{ $t('app.title') }} · {{ projectName }}</div>
       <!-- Desktop step navigator -->
       <div class="step-nav-desktop">
@@ -136,7 +138,7 @@ function goCommand(key: string): void {
     </el-header>
     <GlobalAlertBar v-if="projectId" :project-id="projectId" />
     <PIIWarningBanner v-if="projectId" :project-id="projectId" />
-    <el-main class="autocsr-main">
+    <el-main id="main-content" class="autocsr-main" role="main">
       <router-view />
     </el-main>
     <ShortcutsHelpModal />
@@ -184,5 +186,47 @@ function goCommand(key: string): void {
     /* hide non-essential chips on small screens */
     display: none;
   }
+}
+@media (max-width: 767px) {
+  /* M22 — mobile: sticky shrunken header, tighter spacing, smaller brand. */
+  .autocsr-shell { height: 100dvh; }
+  .autocsr-header {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    padding: 0 8px;
+    height: 48px;
+  }
+  .brand {
+    font-size: var(--font-size-md);
+    max-width: 50%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .actions { gap: 4px; }
+  .actions > :nth-child(n+3) { display: none; }
+}
+
+/* Skip-to-content link (WCAG 2.4.1). Hidden until focused. */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 8px;
+  z-index: 100;
+  background: var(--color-primary);
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: var(--font-size-md);
+  transition: top 120ms ease;
+}
+.skip-link:focus,
+.skip-link:focus-visible {
+  top: 0;
+  outline: 2px solid #fff;
+  outline-offset: -4px;
 }
 </style>

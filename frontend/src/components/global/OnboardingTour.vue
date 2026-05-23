@@ -28,6 +28,7 @@ interface Step {
 
 const steps: Step[] = [
   { icon: '👋', title: 'onboarding.s1_title', body: 'onboarding.s1_body' },
+  { icon: '🧪', title: 'onboarding.s_demo_title', body: 'onboarding.s_demo_body' },
   { icon: '📤', title: 'onboarding.s2_title', body: 'onboarding.s2_body' },
   { icon: '🧹', title: 'onboarding.s3_title', body: 'onboarding.s3_body' },
   { icon: '✍️', title: 'onboarding.s4_title', body: 'onboarding.s4_body' },

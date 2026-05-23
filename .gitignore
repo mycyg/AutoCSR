@@ -48,6 +48,9 @@ logs/
 # Refer (read-only reference from PPT project — proprietary, must NOT be published)
 refer/
 
+# M22 a11y check transient report (regenerated per run)
+scripts/m22_a11y_report.md
+
 # Reports / exports
 data/projects/*/exports/
 
