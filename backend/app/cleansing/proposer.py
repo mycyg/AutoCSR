@@ -186,6 +186,15 @@ async def propose(profile: DataProfile, ingest: IngestResult,
                   *, use_llm: bool = True) -> list[CleansingProposal]:
     import asyncio
     out = _deterministic(profile, ingest)
+    # Dictionary-driven map_to_cdisc proposals (no LLM, fast)
+    try:
+        from app.cleansing.proposals.map_to_cdisc import build_proposals as _mtc
+        seen_mtc = {(p.type, tuple(p.target_columns)) for p in out}
+        for p in _mtc(profile, ingest):
+            if (p.type, tuple(p.target_columns)) not in seen_mtc:
+                out.append(p)
+    except Exception:
+        pass
     if use_llm:
         llm_items = await asyncio.to_thread(_llm_proposals, profile, ingest)
         # Dedup: skip LLM proposals that collide with deterministic on same (type, columns)

@@ -1,0 +1,987 @@
+code,term,hierarchy
+A00,Cholera,I Infectious|Intestinal infections
+A01,Typhoid and paratyphoid fevers,I Infectious|Intestinal infections
+A02,Other salmonella infections,I Infectious|Intestinal infections
+A03,Shigellosis,I Infectious|Intestinal infections
+A04,Other bacterial intestinal infections,I Infectious|Intestinal infections
+A05,Other bacterial foodborne intoxications,I Infectious|Intestinal infections
+A06,Amoebiasis,I Infectious|Intestinal infections
+A07,Other protozoal intestinal diseases,I Infectious|Intestinal infections
+A08,Viral and other specified intestinal infections,I Infectious|Intestinal infections
+A09,Diarrhoea and gastroenteritis of presumed infectious origin,I Infectious|Intestinal infections
+A15,"Respiratory tuberculosis, bacteriologically and histologically confirmed",I Infectious|Tuberculosis
+A16,"Respiratory tuberculosis, not confirmed bacteriologically or histologically",I Infectious|Tuberculosis
+A17,Tuberculosis of nervous system,I Infectious|Tuberculosis
+A18,Tuberculosis of other organs,I Infectious|Tuberculosis
+A19,Miliary tuberculosis,I Infectious|Tuberculosis
+A20,Plague,I Infectious|Other bacterial
+A21,Tularaemia,I Infectious|Other bacterial
+A22,Anthrax,I Infectious|Other bacterial
+A23,Brucellosis,I Infectious|Other bacterial
+A24,Glanders and melioidosis,I Infectious|Other bacterial
+A25,Rat-bite fevers,I Infectious|Other bacterial
+A26,Erysipeloid,I Infectious|Other bacterial
+A27,Leptospirosis,I Infectious|Other bacterial
+A28,Other zoonotic bacterial diseases NEC,I Infectious|Other bacterial
+A30,Leprosy [Hansen disease],I Infectious|Other bacterial
+A31,Infection due to other mycobacteria,I Infectious|Other bacterial
+A32,Listeriosis,I Infectious|Other bacterial
+A33,Tetanus neonatorum,I Infectious|Other bacterial
+A34,Obstetrical tetanus,I Infectious|Other bacterial
+A35,Other tetanus,I Infectious|Other bacterial
+A36,Diphtheria,I Infectious|Other bacterial
+A37,Whooping cough,I Infectious|Other bacterial
+A38,Scarlet fever,I Infectious|Other bacterial
+A39,Meningococcal infection,I Infectious|Other bacterial
+A40,Streptococcal sepsis,I Infectious|Other bacterial
+A41,Other sepsis,I Infectious|Other bacterial
+A42,Actinomycosis,I Infectious|Other bacterial
+A43,Nocardiosis,I Infectious|Other bacterial
+A44,Bartonellosis,I Infectious|Other bacterial
+A46,Erysipelas,I Infectious|Other bacterial
+A48,Other bacterial diseases NEC,I Infectious|Other bacterial
+A49,Bacterial infection of unspecified site,I Infectious|Other bacterial
+A50,Congenital syphilis,I Infectious|Sexually transmitted
+A51,Early syphilis,I Infectious|Sexually transmitted
+A52,Late syphilis,I Infectious|Sexually transmitted
+A53,Other and unspecified syphilis,I Infectious|Sexually transmitted
+A54,Gonococcal infection,I Infectious|Sexually transmitted
+A55,Chlamydial lymphogranuloma,I Infectious|Sexually transmitted
+A56,Other sexually transmitted chlamydial diseases,I Infectious|Sexually transmitted
+A57,Chancroid,I Infectious|Sexually transmitted
+A58,Granuloma inguinale,I Infectious|Sexually transmitted
+A59,Trichomoniasis,I Infectious|Sexually transmitted
+A60,Anogenital herpesviral infection,I Infectious|Sexually transmitted
+A63,Other predominantly sexually transmitted diseases NEC,I Infectious|Sexually transmitted
+A64,Unspecified sexually transmitted disease,I Infectious|Sexually transmitted
+A65,Nonvenereal syphilis,I Infectious|Other spirochaetal
+A66,Yaws,I Infectious|Other spirochaetal
+A67,Pinta [carate],I Infectious|Other spirochaetal
+A68,Relapsing fevers,I Infectious|Other spirochaetal
+A69,Other spirochaetal infections,I Infectious|Other spirochaetal
+A70,Chlamydia psittaci infection,I Infectious|Other spirochaetal
+A71,Trachoma,I Infectious|Other spirochaetal
+A74,Other diseases caused by chlamydiae,I Infectious|Other spirochaetal
+A80,Acute poliomyelitis,I Infectious|Viral CNS
+A81,Atypical virus infections of CNS,I Infectious|Viral CNS
+A82,Rabies,I Infectious|Viral CNS
+A83,Mosquito-borne viral encephalitis,I Infectious|Viral CNS
+A84,Tick-borne viral encephalitis,I Infectious|Viral CNS
+A85,Other viral encephalitis NEC,I Infectious|Viral CNS
+A86,Unspecified viral encephalitis,I Infectious|Viral CNS
+A87,Viral meningitis,I Infectious|Viral CNS
+A88,Other viral infections of CNS NEC,I Infectious|Viral CNS
+A89,Unspecified viral infection of CNS,I Infectious|Viral CNS
+A90,Dengue fever [classical dengue],I Infectious|Arthropod-borne / haemorrhagic
+A91,Dengue haemorrhagic fever,I Infectious|Arthropod-borne / haemorrhagic
+A92,Other mosquito-borne viral fevers,I Infectious|Arthropod-borne / haemorrhagic
+A93,Other arthropod-borne viral fevers NEC,I Infectious|Arthropod-borne / haemorrhagic
+A94,Unspecified arthropod-borne viral fever,I Infectious|Arthropod-borne / haemorrhagic
+A95,Yellow fever,I Infectious|Arthropod-borne / haemorrhagic
+A96,Arenaviral haemorrhagic fever,I Infectious|Arthropod-borne / haemorrhagic
+A97,Dengue,I Infectious|Arthropod-borne / haemorrhagic
+A98,Other viral haemorrhagic fevers NEC,I Infectious|Arthropod-borne / haemorrhagic
+A99,Unspecified viral haemorrhagic fever,I Infectious|Arthropod-borne / haemorrhagic
+B00,Herpesviral [herpes simplex] infections,I Infectious|Viral skin and mucous membranes
+B01,Varicella [chickenpox],I Infectious|Viral skin and mucous membranes
+B02,Zoster [herpes zoster],I Infectious|Viral skin and mucous membranes
+B03,Smallpox,I Infectious|Viral skin and mucous membranes
+B04,Monkeypox,I Infectious|Viral skin and mucous membranes
+B05,Measles,I Infectious|Viral skin and mucous membranes
+B06,Rubella [German measles],I Infectious|Viral skin and mucous membranes
+B07,Viral warts,I Infectious|Viral skin and mucous membranes
+B08,Other viral infections with skin / mucous lesions NEC,I Infectious|Viral skin and mucous membranes
+B09,Unspecified viral infection with skin / mucous lesions,I Infectious|Viral skin and mucous membranes
+B15,Acute hepatitis A,I Infectious|Viral hepatitis
+B16,Acute hepatitis B,I Infectious|Viral hepatitis
+B17,Other acute viral hepatitis,I Infectious|Viral hepatitis
+B18,Chronic viral hepatitis,I Infectious|Viral hepatitis
+B19,Unspecified viral hepatitis,I Infectious|Viral hepatitis
+B20,HIV disease resulting in infectious and parasitic diseases,I Infectious|HIV
+B21,HIV disease resulting in malignant neoplasms,I Infectious|HIV
+B22,HIV disease resulting in other specified diseases,I Infectious|HIV
+B23,HIV disease resulting in other conditions,I Infectious|HIV
+B24,Unspecified HIV disease,I Infectious|HIV
+B25,Cytomegaloviral disease,I Infectious|Other viral and parasitic
+B26,Mumps,I Infectious|Other viral and parasitic
+B27,Infectious mononucleosis,I Infectious|Other viral and parasitic
+B30,Viral conjunctivitis,I Infectious|Other viral and parasitic
+B33,Other viral diseases NEC,I Infectious|Other viral and parasitic
+B34,Viral infection of unspecified site,I Infectious|Other viral and parasitic
+B35,Dermatophytosis,I Infectious|Other viral and parasitic
+B36,Other superficial mycoses,I Infectious|Other viral and parasitic
+B37,Candidiasis,I Infectious|Other viral and parasitic
+B38,Coccidioidomycosis,I Infectious|Other viral and parasitic
+B39,Histoplasmosis,I Infectious|Other viral and parasitic
+B40,Blastomycosis,I Infectious|Other viral and parasitic
+B44,Aspergillosis,I Infectious|Other viral and parasitic
+B45,Cryptococcosis,I Infectious|Other viral and parasitic
+B46,Zygomycosis,I Infectious|Other viral and parasitic
+B48,Other mycoses NEC,I Infectious|Other viral and parasitic
+B49,Unspecified mycosis,I Infectious|Other viral and parasitic
+B50,Plasmodium falciparum malaria,I Infectious|Other viral and parasitic
+B51,Plasmodium vivax malaria,I Infectious|Other viral and parasitic
+B52,Plasmodium malariae malaria,I Infectious|Other viral and parasitic
+B53,Other parasitologically confirmed malaria,I Infectious|Other viral and parasitic
+B54,Unspecified malaria,I Infectious|Other viral and parasitic
+B55,Leishmaniasis,I Infectious|Other viral and parasitic
+B56,African trypanosomiasis,I Infectious|Other viral and parasitic
+B57,Chagas disease,I Infectious|Other viral and parasitic
+B58,Toxoplasmosis,I Infectious|Other viral and parasitic
+B59,Pneumocystosis,I Infectious|Other viral and parasitic
+B60,Other protozoal diseases NEC,I Infectious|Other viral and parasitic
+B65,Schistosomiasis [bilharziasis],I Infectious|Other viral and parasitic
+B66,Other fluke infections,I Infectious|Other viral and parasitic
+B67,Echinococcosis,I Infectious|Other viral and parasitic
+B68,Taeniasis,I Infectious|Other viral and parasitic
+B69,Cysticercosis,I Infectious|Other viral and parasitic
+B70,Diphyllobothriasis and sparganosis,I Infectious|Other viral and parasitic
+B71,Other cestode infections,I Infectious|Other viral and parasitic
+B72,Dracunculiasis,I Infectious|Other viral and parasitic
+B73,Onchocerciasis,I Infectious|Other viral and parasitic
+B74,Filariasis,I Infectious|Other viral and parasitic
+B75,Trichinellosis,I Infectious|Other viral and parasitic
+B76,Hookworm diseases,I Infectious|Other viral and parasitic
+B77,Ascariasis,I Infectious|Other viral and parasitic
+B78,Strongyloidiasis,I Infectious|Other viral and parasitic
+B79,Trichuriasis,I Infectious|Other viral and parasitic
+B80,Enterobiasis,I Infectious|Other viral and parasitic
+B81,Other intestinal helminthiases NEC,I Infectious|Other viral and parasitic
+B82,Unspecified intestinal parasitism,I Infectious|Other viral and parasitic
+B83,Other helminthiases,I Infectious|Other viral and parasitic
+B85,Pediculosis and phthiriasis,I Infectious|Other viral and parasitic
+B86,Scabies,I Infectious|Other viral and parasitic
+B87,Myiasis,I Infectious|Other viral and parasitic
+B88,Other infestations,I Infectious|Other viral and parasitic
+B89,Unspecified parasitic disease,I Infectious|Other viral and parasitic
+B90,Sequelae of tuberculosis,I Infectious|Other viral and parasitic
+B91,Sequelae of poliomyelitis,I Infectious|Other viral and parasitic
+B92,Sequelae of leprosy,I Infectious|Other viral and parasitic
+B94,Sequelae of other / unspecified infectious / parasitic diseases,I Infectious|Other viral and parasitic
+B95,Streptococcus and staphylococcus as cause of diseases classified elsewhere,I Infectious|Other viral and parasitic
+B96,Other bacterial agents as cause of diseases classified elsewhere,I Infectious|Other viral and parasitic
+B97,Viral agents as the cause of diseases classified elsewhere,I Infectious|Other viral and parasitic
+B99,Other and unspecified infectious diseases,I Infectious|Other viral and parasitic
+C00,Malignant neoplasm of lip,II Neoplasms|Malignant – lip / oral / pharynx
+C01,Malignant neoplasm of base of tongue,II Neoplasms|Malignant – lip / oral / pharynx
+C02,Malignant neoplasm of other / unspecified parts of tongue,II Neoplasms|Malignant – lip / oral / pharynx
+C03,Malignant neoplasm of gum,II Neoplasms|Malignant – lip / oral / pharynx
+C04,Malignant neoplasm of floor of mouth,II Neoplasms|Malignant – lip / oral / pharynx
+C05,Malignant neoplasm of palate,II Neoplasms|Malignant – lip / oral / pharynx
+C06,Malignant neoplasm of other / unspecified parts of mouth,II Neoplasms|Malignant – lip / oral / pharynx
+C07,Malignant neoplasm of parotid gland,II Neoplasms|Malignant – lip / oral / pharynx
+C08,Malignant neoplasm of other / unspecified major salivary glands,II Neoplasms|Malignant – lip / oral / pharynx
+C09,Malignant neoplasm of tonsil,II Neoplasms|Malignant – lip / oral / pharynx
+C10,Malignant neoplasm of oropharynx,II Neoplasms|Malignant – lip / oral / pharynx
+C11,Malignant neoplasm of nasopharynx,II Neoplasms|Malignant – lip / oral / pharynx
+C12,Malignant neoplasm of pyriform sinus,II Neoplasms|Malignant – lip / oral / pharynx
+C13,Malignant neoplasm of hypopharynx,II Neoplasms|Malignant – lip / oral / pharynx
+C14,"Malignant neoplasm of other / ill-defined sites in lip, oral cavity and pharynx",II Neoplasms|Malignant – lip / oral / pharynx
+C15,Malignant neoplasm of oesophagus,II Neoplasms|Malignant – digestive organs
+C16,Malignant neoplasm of stomach,II Neoplasms|Malignant – digestive organs
+C17,Malignant neoplasm of small intestine,II Neoplasms|Malignant – digestive organs
+C18,Malignant neoplasm of colon,II Neoplasms|Malignant – digestive organs
+C19,Malignant neoplasm of rectosigmoid junction,II Neoplasms|Malignant – digestive organs
+C20,Malignant neoplasm of rectum,II Neoplasms|Malignant – digestive organs
+C21,Malignant neoplasm of anus and anal canal,II Neoplasms|Malignant – digestive organs
+C22,Malignant neoplasm of liver and intrahepatic bile ducts,II Neoplasms|Malignant – digestive organs
+C23,Malignant neoplasm of gallbladder,II Neoplasms|Malignant – digestive organs
+C24,Malignant neoplasm of other / unspecified parts of biliary tract,II Neoplasms|Malignant – digestive organs
+C25,Malignant neoplasm of pancreas,II Neoplasms|Malignant – digestive organs
+C26,Malignant neoplasm of other / ill-defined digestive organs,II Neoplasms|Malignant – digestive organs
+C30,Malignant neoplasm of nasal cavity and middle ear,II Neoplasms|Malignant – respiratory and intrathoracic
+C31,Malignant neoplasm of accessory sinuses,II Neoplasms|Malignant – respiratory and intrathoracic
+C32,Malignant neoplasm of larynx,II Neoplasms|Malignant – respiratory and intrathoracic
+C33,Malignant neoplasm of trachea,II Neoplasms|Malignant – respiratory and intrathoracic
+C34,Malignant neoplasm of bronchus and lung,II Neoplasms|Malignant – respiratory and intrathoracic
+C37,Malignant neoplasm of thymus,II Neoplasms|Malignant – respiratory and intrathoracic
+C38,"Malignant neoplasm of heart, mediastinum and pleura",II Neoplasms|Malignant – respiratory and intrathoracic
+C39,Malignant neoplasm of other / ill-defined sites in respiratory system,II Neoplasms|Malignant – respiratory and intrathoracic
+C40,Malignant neoplasm of bone / articular cartilage of limbs,"II Neoplasms|Malignant – bone, skin, mesothelial"
+C41,Malignant neoplasm of bone / articular cartilage of other / unspecified sites,"II Neoplasms|Malignant – bone, skin, mesothelial"
+C43,Malignant melanoma of skin,"II Neoplasms|Malignant – bone, skin, mesothelial"
+C44,Other malignant neoplasms of skin,"II Neoplasms|Malignant – bone, skin, mesothelial"
+C45,Mesothelioma,"II Neoplasms|Malignant – bone, skin, mesothelial"
+C46,Kaposi sarcoma,"II Neoplasms|Malignant – bone, skin, mesothelial"
+C47,Malignant neoplasm of peripheral nerves and autonomic nervous system,"II Neoplasms|Malignant – bone, skin, mesothelial"
+C48,Malignant neoplasm of retroperitoneum and peritoneum,"II Neoplasms|Malignant – bone, skin, mesothelial"
+C49,Malignant neoplasm of other connective and soft tissue,"II Neoplasms|Malignant – bone, skin, mesothelial"
+C50,Malignant neoplasm of breast,II Neoplasms|Malignant – breast / genitourinary
+C51,Malignant neoplasm of vulva,II Neoplasms|Malignant – breast / genitourinary
+C52,Malignant neoplasm of vagina,II Neoplasms|Malignant – breast / genitourinary
+C53,Malignant neoplasm of cervix uteri,II Neoplasms|Malignant – breast / genitourinary
+C54,Malignant neoplasm of corpus uteri,II Neoplasms|Malignant – breast / genitourinary
+C55,"Malignant neoplasm of uterus, part unspecified",II Neoplasms|Malignant – breast / genitourinary
+C56,Malignant neoplasm of ovary,II Neoplasms|Malignant – breast / genitourinary
+C57,Malignant neoplasm of other / unspecified female genital organs,II Neoplasms|Malignant – breast / genitourinary
+C58,Malignant neoplasm of placenta,II Neoplasms|Malignant – breast / genitourinary
+C60,Malignant neoplasm of penis,II Neoplasms|Malignant – breast / genitourinary
+C61,Malignant neoplasm of prostate,II Neoplasms|Malignant – breast / genitourinary
+C62,Malignant neoplasm of testis,II Neoplasms|Malignant – breast / genitourinary
+C63,Malignant neoplasm of other / unspecified male genital organs,II Neoplasms|Malignant – breast / genitourinary
+C64,"Malignant neoplasm of kidney, except renal pelvis",II Neoplasms|Malignant – breast / genitourinary
+C65,Malignant neoplasm of renal pelvis,II Neoplasms|Malignant – breast / genitourinary
+C66,Malignant neoplasm of ureter,II Neoplasms|Malignant – breast / genitourinary
+C67,Malignant neoplasm of bladder,II Neoplasms|Malignant – breast / genitourinary
+C68,Malignant neoplasm of other / unspecified urinary organs,II Neoplasms|Malignant – breast / genitourinary
+C69,Malignant neoplasm of eye and adnexa,II Neoplasms|Malignant – eye / brain / endocrine
+C70,Malignant neoplasm of meninges,II Neoplasms|Malignant – eye / brain / endocrine
+C71,Malignant neoplasm of brain,II Neoplasms|Malignant – eye / brain / endocrine
+C72,"Malignant neoplasm of spinal cord, cranial nerves and CNS parts NEC",II Neoplasms|Malignant – eye / brain / endocrine
+C73,Malignant neoplasm of thyroid gland,II Neoplasms|Malignant – eye / brain / endocrine
+C74,Malignant neoplasm of adrenal gland,II Neoplasms|Malignant – eye / brain / endocrine
+C75,Malignant neoplasm of other endocrine glands and related structures,II Neoplasms|Malignant – eye / brain / endocrine
+C76,Malignant neoplasm of other / ill-defined sites,II Neoplasms|Malignant – eye / brain / endocrine
+C77,Secondary / unspecified malignant neoplasm of lymph nodes,II Neoplasms|Malignant – eye / brain / endocrine
+C78,Secondary malignant neoplasm of respiratory and digestive organs,II Neoplasms|Malignant – eye / brain / endocrine
+C79,Secondary malignant neoplasm of other / unspecified sites,II Neoplasms|Malignant – eye / brain / endocrine
+C80,Malignant neoplasm without specification of site,II Neoplasms|Malignant – eye / brain / endocrine
+C81,Hodgkin lymphoma,II Neoplasms|Lymphoid and haematopoietic
+C82,Follicular lymphoma,II Neoplasms|Lymphoid and haematopoietic
+C83,Non-follicular lymphoma,II Neoplasms|Lymphoid and haematopoietic
+C84,Mature T/NK-cell lymphomas,II Neoplasms|Lymphoid and haematopoietic
+C85,Other / unspecified types of non-Hodgkin lymphoma,II Neoplasms|Lymphoid and haematopoietic
+C88,Malignant immunoproliferative diseases,II Neoplasms|Lymphoid and haematopoietic
+C90,Multiple myeloma and malignant plasma cell neoplasms,II Neoplasms|Lymphoid and haematopoietic
+C91,Lymphoid leukaemia,II Neoplasms|Lymphoid and haematopoietic
+C92,Myeloid leukaemia,II Neoplasms|Lymphoid and haematopoietic
+C93,Monocytic leukaemia,II Neoplasms|Lymphoid and haematopoietic
+C94,Other leukaemias of specified cell type,II Neoplasms|Lymphoid and haematopoietic
+C95,Leukaemia of unspecified cell type,II Neoplasms|Lymphoid and haematopoietic
+C96,Other / unspecified malignant neoplasms of lymphoid / haematopoietic / related tissue,II Neoplasms|Lymphoid and haematopoietic
+D00,"Carcinoma in situ of oral cavity, oesophagus and stomach",II Neoplasms|Lymphoid and haematopoietic
+D01,Carcinoma in situ of other / unspecified digestive organs,II Neoplasms|Lymphoid and haematopoietic
+D02,Carcinoma in situ of middle ear and respiratory system,II Neoplasms|Lymphoid and haematopoietic
+D03,Melanoma in situ,II Neoplasms|Lymphoid and haematopoietic
+D04,Carcinoma in situ of skin,II Neoplasms|Lymphoid and haematopoietic
+D05,Carcinoma in situ of breast,II Neoplasms|Lymphoid and haematopoietic
+D06,Carcinoma in situ of cervix uteri,II Neoplasms|Lymphoid and haematopoietic
+D07,Carcinoma in situ of other / unspecified genital organs,II Neoplasms|Lymphoid and haematopoietic
+D09,Carcinoma in situ of other / unspecified sites,II Neoplasms|Lymphoid and haematopoietic
+D50,Iron deficiency anaemia,III Blood|Anaemias
+D51,Vitamin B12 deficiency anaemia,III Blood|Anaemias
+D52,Folate deficiency anaemia,III Blood|Anaemias
+D53,Other nutritional anaemias,III Blood|Anaemias
+D55,Anaemia due to enzyme disorders,III Blood|Anaemias
+D56,Thalassaemia,III Blood|Anaemias
+D57,Sickle-cell disorders,III Blood|Anaemias
+D58,Other hereditary haemolytic anaemias,III Blood|Anaemias
+D59,Acquired haemolytic anaemia,III Blood|Anaemias
+D60,Acquired pure red cell aplasia [erythroblastopenia],III Blood|Anaemias
+D61,Other aplastic anaemias,III Blood|Anaemias
+D62,Acute posthaemorrhagic anaemia,III Blood|Anaemias
+D63,Anaemia in chronic diseases classified elsewhere,III Blood|Anaemias
+D64,Other anaemias,III Blood|Anaemias
+D65,Disseminated intravascular coagulation,III Blood|Coagulation defects
+D66,Hereditary factor VIII deficiency,III Blood|Coagulation defects
+D67,Hereditary factor IX deficiency,III Blood|Coagulation defects
+D68,Other coagulation defects,III Blood|Coagulation defects
+D69,Purpura and other haemorrhagic conditions,III Blood|Coagulation defects
+D70,Agranulocytosis,III Blood|WBC and other
+D71,Functional disorders of polymorphonuclear neutrophils,III Blood|WBC and other
+D72,Other disorders of white blood cells,III Blood|WBC and other
+D73,Diseases of spleen,III Blood|WBC and other
+D74,Methaemoglobinaemia,III Blood|WBC and other
+D75,Other / unspecified diseases of blood and blood-forming organs,III Blood|WBC and other
+D76,Other specified diseases with lymphoreticular / reticulohistiocytic tissue,III Blood|WBC and other
+D77,Other disorders of blood / blood-forming organs in diseases classified elsewhere,III Blood|WBC and other
+E10,Type 1 diabetes mellitus,IV Endocrine|Diabetes
+E11,Type 2 diabetes mellitus,IV Endocrine|Diabetes
+E12,Malnutrition-related diabetes mellitus,IV Endocrine|Diabetes
+E13,Other specified diabetes mellitus,IV Endocrine|Diabetes
+E14,Unspecified diabetes mellitus,IV Endocrine|Diabetes
+E15,Nondiabetic hypoglycaemic coma,IV Endocrine|Diabetes
+E16,Other disorders of pancreatic internal secretion,IV Endocrine|Diabetes
+E00,Congenital iodine-deficiency syndrome,IV Endocrine|Thyroid
+E01,Iodine-deficiency-related thyroid disorders and allied conditions,IV Endocrine|Thyroid
+E02,Subclinical iodine-deficiency hypothyroidism,IV Endocrine|Thyroid
+E03,Other hypothyroidism,IV Endocrine|Thyroid
+E04,Other nontoxic goitre,IV Endocrine|Thyroid
+E05,Thyrotoxicosis [hyperthyroidism],IV Endocrine|Thyroid
+E06,Thyroiditis,IV Endocrine|Thyroid
+E07,Other disorders of thyroid,IV Endocrine|Thyroid
+E20,Hypoparathyroidism,IV Endocrine|Other endocrine / metabolic
+E21,Hyperparathyroidism and other disorders of parathyroid,IV Endocrine|Other endocrine / metabolic
+E22,Hyperfunction of pituitary gland,IV Endocrine|Other endocrine / metabolic
+E23,Hypofunction and other disorders of pituitary gland,IV Endocrine|Other endocrine / metabolic
+E24,Cushing syndrome,IV Endocrine|Other endocrine / metabolic
+E25,Adrenogenital disorders,IV Endocrine|Other endocrine / metabolic
+E26,Hyperaldosteronism,IV Endocrine|Other endocrine / metabolic
+E27,Other disorders of adrenal gland,IV Endocrine|Other endocrine / metabolic
+E28,Ovarian dysfunction,IV Endocrine|Other endocrine / metabolic
+E29,Testicular dysfunction,IV Endocrine|Other endocrine / metabolic
+E30,Disorders of puberty NEC,IV Endocrine|Other endocrine / metabolic
+E31,Polyglandular dysfunction,IV Endocrine|Other endocrine / metabolic
+E40,Kwashiorkor,IV Endocrine|Other endocrine / metabolic
+E41,Nutritional marasmus,IV Endocrine|Other endocrine / metabolic
+E43,Unspecified severe protein-energy malnutrition,IV Endocrine|Other endocrine / metabolic
+E44,Protein-energy malnutrition of moderate / mild degree,IV Endocrine|Other endocrine / metabolic
+E50,Vitamin A deficiency,IV Endocrine|Other endocrine / metabolic
+E51,Thiamine deficiency,IV Endocrine|Other endocrine / metabolic
+E52,Niacin deficiency [pellagra],IV Endocrine|Other endocrine / metabolic
+E53,Deficiency of other B group vitamins,IV Endocrine|Other endocrine / metabolic
+E54,Ascorbic acid deficiency,IV Endocrine|Other endocrine / metabolic
+E55,Vitamin D deficiency,IV Endocrine|Other endocrine / metabolic
+E56,Other vitamin deficiencies,IV Endocrine|Other endocrine / metabolic
+E58,Dietary calcium deficiency,IV Endocrine|Other endocrine / metabolic
+E61,Deficiency of other nutrient elements,IV Endocrine|Other endocrine / metabolic
+E63,Other nutritional deficiencies,IV Endocrine|Other endocrine / metabolic
+E64,Sequelae of malnutrition and other nutritional deficiencies,IV Endocrine|Other endocrine / metabolic
+E65,Localized adiposity,IV Endocrine|Other endocrine / metabolic
+E66,Obesity,IV Endocrine|Other endocrine / metabolic
+E67,Other hyperalimentation,IV Endocrine|Other endocrine / metabolic
+E70,Disorders of aromatic amino-acid metabolism,IV Endocrine|Other endocrine / metabolic
+E71,Disorders of branched-chain amino-acid metabolism / fatty-acid metabolism,IV Endocrine|Other endocrine / metabolic
+E72,Other disorders of amino-acid metabolism,IV Endocrine|Other endocrine / metabolic
+E73,Lactose intolerance,IV Endocrine|Other endocrine / metabolic
+E74,Other disorders of carbohydrate metabolism,IV Endocrine|Other endocrine / metabolic
+E75,Disorders of sphingolipid metabolism and other lipid storage disorders,IV Endocrine|Other endocrine / metabolic
+E76,Disorders of glycosaminoglycan metabolism,IV Endocrine|Other endocrine / metabolic
+E77,Disorders of glycoprotein metabolism,IV Endocrine|Other endocrine / metabolic
+E78,Disorders of lipoprotein metabolism and other lipidaemias,IV Endocrine|Other endocrine / metabolic
+E80,Disorders of porphyrin and bilirubin metabolism,IV Endocrine|Other endocrine / metabolic
+E83,Disorders of mineral metabolism,IV Endocrine|Other endocrine / metabolic
+E84,Cystic fibrosis,IV Endocrine|Other endocrine / metabolic
+E85,Amyloidosis,IV Endocrine|Other endocrine / metabolic
+E86,Volume depletion,IV Endocrine|Other endocrine / metabolic
+E87,"Other disorders of fluid, electrolyte and acid-base balance",IV Endocrine|Other endocrine / metabolic
+E88,Other metabolic disorders,IV Endocrine|Other endocrine / metabolic
+E89,Postprocedural endocrine and metabolic disorders NEC,IV Endocrine|Other endocrine / metabolic
+F00,Dementia in Alzheimer disease,V Mental|Organic / substance
+F01,Vascular dementia,V Mental|Organic / substance
+F02,Dementia in other diseases classified elsewhere,V Mental|Organic / substance
+F03,Unspecified dementia,V Mental|Organic / substance
+F04,Organic amnesic syndrome,V Mental|Organic / substance
+F05,Delirium not induced by alcohol / psychoactive substances,V Mental|Organic / substance
+F06,Other mental disorders due to brain damage / physical disease,V Mental|Organic / substance
+F07,Personality / behavioural disorders due to brain disease,V Mental|Organic / substance
+F09,Unspecified organic / symptomatic mental disorder,V Mental|Organic / substance
+F10,Mental and behavioural disorders due to use of alcohol,V Mental|Organic / substance
+F11,Mental and behavioural disorders due to use of opioids,V Mental|Organic / substance
+F12,Mental and behavioural disorders due to use of cannabinoids,V Mental|Organic / substance
+F13,Mental and behavioural disorders due to use of sedatives or hypnotics,V Mental|Organic / substance
+F14,Mental and behavioural disorders due to use of cocaine,V Mental|Organic / substance
+F15,Mental and behavioural disorders due to use of other stimulants,V Mental|Organic / substance
+F16,Mental and behavioural disorders due to use of hallucinogens,V Mental|Organic / substance
+F17,Mental and behavioural disorders due to use of tobacco,V Mental|Organic / substance
+F19,Mental and behavioural disorders due to multiple drug use,V Mental|Organic / substance
+F20,Schizophrenia,V Mental|Schizophrenia and mood
+F21,Schizotypal disorder,V Mental|Schizophrenia and mood
+F22,Persistent delusional disorders,V Mental|Schizophrenia and mood
+F23,Acute and transient psychotic disorders,V Mental|Schizophrenia and mood
+F25,Schizoaffective disorders,V Mental|Schizophrenia and mood
+F30,Manic episode,V Mental|Schizophrenia and mood
+F31,Bipolar affective disorder,V Mental|Schizophrenia and mood
+F32,Depressive episode,V Mental|Schizophrenia and mood
+F33,Recurrent depressive disorder,V Mental|Schizophrenia and mood
+F34,Persistent mood [affective] disorders,V Mental|Schizophrenia and mood
+F40,Phobic anxiety disorders,V Mental|Schizophrenia and mood
+F41,Other anxiety disorders,V Mental|Schizophrenia and mood
+F42,Obsessive-compulsive disorder,V Mental|Schizophrenia and mood
+F43,"Reaction to severe stress, and adjustment disorders",V Mental|Schizophrenia and mood
+F44,Dissociative [conversion] disorders,V Mental|Schizophrenia and mood
+F45,Somatoform disorders,V Mental|Schizophrenia and mood
+F50,Eating disorders,V Mental|Schizophrenia and mood
+F51,Nonorganic sleep disorders,V Mental|Schizophrenia and mood
+F52,Sexual dysfunction,V Mental|Schizophrenia and mood
+F60,Specific personality disorders,V Mental|Schizophrenia and mood
+F70,Mild mental retardation,V Mental|Schizophrenia and mood
+F71,Moderate mental retardation,V Mental|Schizophrenia and mood
+F72,Severe mental retardation,V Mental|Schizophrenia and mood
+F73,Profound mental retardation,V Mental|Schizophrenia and mood
+F80,Specific developmental disorders of speech and language,V Mental|Schizophrenia and mood
+F81,Specific developmental disorders of scholastic skills,V Mental|Schizophrenia and mood
+F84,Pervasive developmental disorders,V Mental|Schizophrenia and mood
+F90,Hyperkinetic disorders,V Mental|Schizophrenia and mood
+F91,Conduct disorders,V Mental|Schizophrenia and mood
+F95,Tic disorders,V Mental|Schizophrenia and mood
+F99,"Mental disorder, not otherwise specified",V Mental|Schizophrenia and mood
+G00,Bacterial meningitis NEC,VI Nervous|CNS inflammatory
+G01,Meningitis in bacterial diseases classified elsewhere,VI Nervous|CNS inflammatory
+G02,Meningitis in other infectious / parasitic diseases classified elsewhere,VI Nervous|CNS inflammatory
+G03,Meningitis due to other / unspecified causes,VI Nervous|CNS inflammatory
+G04,"Encephalitis, myelitis and encephalomyelitis",VI Nervous|CNS inflammatory
+G06,Intracranial and intraspinal abscess and granuloma,VI Nervous|CNS inflammatory
+G08,Intracranial / intraspinal phlebitis and thrombophlebitis,VI Nervous|CNS inflammatory
+G20,Parkinson disease,VI Nervous|Degenerative / demyelinating
+G21,Secondary parkinsonism,VI Nervous|Degenerative / demyelinating
+G23,Other degenerative diseases of basal ganglia,VI Nervous|Degenerative / demyelinating
+G24,Dystonia,VI Nervous|Degenerative / demyelinating
+G25,Other extrapyramidal and movement disorders,VI Nervous|Degenerative / demyelinating
+G30,Alzheimer disease,VI Nervous|Degenerative / demyelinating
+G31,Other degenerative diseases of nervous system NEC,VI Nervous|Degenerative / demyelinating
+G35,Multiple sclerosis,VI Nervous|Degenerative / demyelinating
+G36,Other acute disseminated demyelination,VI Nervous|Degenerative / demyelinating
+G37,Other demyelinating diseases of CNS,VI Nervous|Degenerative / demyelinating
+G40,Epilepsy,VI Nervous|Episodic / peripheral / muscle
+G41,Status epilepticus,VI Nervous|Episodic / peripheral / muscle
+G43,Migraine,VI Nervous|Episodic / peripheral / muscle
+G44,Other headache syndromes,VI Nervous|Episodic / peripheral / muscle
+G45,Transient cerebral ischaemic attacks and related syndromes,VI Nervous|Episodic / peripheral / muscle
+G46,Vascular syndromes of brain in cerebrovascular diseases,VI Nervous|Episodic / peripheral / muscle
+G47,Sleep disorders,VI Nervous|Episodic / peripheral / muscle
+G50,Disorders of trigeminal nerve,VI Nervous|Episodic / peripheral / muscle
+G51,Facial nerve disorders,VI Nervous|Episodic / peripheral / muscle
+G52,Disorders of other cranial nerves,VI Nervous|Episodic / peripheral / muscle
+G54,Nerve root and plexus disorders,VI Nervous|Episodic / peripheral / muscle
+G56,Mononeuropathies of upper limb,VI Nervous|Episodic / peripheral / muscle
+G57,Mononeuropathies of lower limb,VI Nervous|Episodic / peripheral / muscle
+G60,Hereditary and idiopathic neuropathy,VI Nervous|Episodic / peripheral / muscle
+G61,Inflammatory polyneuropathy,VI Nervous|Episodic / peripheral / muscle
+G62,Other polyneuropathies,VI Nervous|Episodic / peripheral / muscle
+G70,Myasthenia gravis and other myoneural disorders,VI Nervous|Episodic / peripheral / muscle
+G71,Primary disorders of muscles,VI Nervous|Episodic / peripheral / muscle
+G80,Cerebral palsy,VI Nervous|Episodic / peripheral / muscle
+G81,Hemiplegia,VI Nervous|Episodic / peripheral / muscle
+G82,Paraplegia and tetraplegia,VI Nervous|Episodic / peripheral / muscle
+G83,Other paralytic syndromes,VI Nervous|Episodic / peripheral / muscle
+G90,Disorders of autonomic nervous system,VI Nervous|Episodic / peripheral / muscle
+G91,Hydrocephalus,VI Nervous|Episodic / peripheral / muscle
+G93,Other disorders of brain,VI Nervous|Episodic / peripheral / muscle
+G95,Other diseases of spinal cord,VI Nervous|Episodic / peripheral / muscle
+G99,Other disorders of nervous system in diseases classified elsewhere,VI Nervous|Episodic / peripheral / muscle
+H00,Hordeolum and chalazion,VII Eye|Adnexa / sclera / cornea / lens
+H01,Other inflammation of eyelid,VII Eye|Adnexa / sclera / cornea / lens
+H02,Other disorders of eyelid,VII Eye|Adnexa / sclera / cornea / lens
+H04,Disorders of lacrimal system,VII Eye|Adnexa / sclera / cornea / lens
+H05,Disorders of orbit,VII Eye|Adnexa / sclera / cornea / lens
+H10,Conjunctivitis,VII Eye|Adnexa / sclera / cornea / lens
+H11,Other disorders of conjunctiva,VII Eye|Adnexa / sclera / cornea / lens
+H15,Disorders of sclera,VII Eye|Adnexa / sclera / cornea / lens
+H16,Keratitis,VII Eye|Adnexa / sclera / cornea / lens
+H17,Corneal scars and opacities,VII Eye|Adnexa / sclera / cornea / lens
+H18,Other disorders of cornea,VII Eye|Adnexa / sclera / cornea / lens
+H20,Iridocyclitis,VII Eye|Adnexa / sclera / cornea / lens
+H21,Other disorders of iris and ciliary body,VII Eye|Adnexa / sclera / cornea / lens
+H25,Senile cataract,VII Eye|Adnexa / sclera / cornea / lens
+H26,Other cataract,VII Eye|Adnexa / sclera / cornea / lens
+H27,Other disorders of lens,VII Eye|Adnexa / sclera / cornea / lens
+H30,Chorioretinal inflammation,VII Eye|Retina / glaucoma / refraction
+H33,Retinal detachments and breaks,VII Eye|Retina / glaucoma / refraction
+H34,Retinal vascular occlusions,VII Eye|Retina / glaucoma / refraction
+H35,Other retinal disorders,VII Eye|Retina / glaucoma / refraction
+H36,Retinal disorders in diseases classified elsewhere,VII Eye|Retina / glaucoma / refraction
+H40,Glaucoma,VII Eye|Retina / glaucoma / refraction
+H43,Disorders of vitreous body,VII Eye|Retina / glaucoma / refraction
+H44,Disorders of globe,VII Eye|Retina / glaucoma / refraction
+H46,Optic neuritis,VII Eye|Retina / glaucoma / refraction
+H47,Other disorders of optic [2nd] nerve and visual pathways,VII Eye|Retina / glaucoma / refraction
+H49,Paralytic strabismus,VII Eye|Retina / glaucoma / refraction
+H50,Other strabismus,VII Eye|Retina / glaucoma / refraction
+H52,Disorders of refraction and accommodation,VII Eye|Retina / glaucoma / refraction
+H53,Visual disturbances,VII Eye|Retina / glaucoma / refraction
+H54,Blindness and low vision,VII Eye|Retina / glaucoma / refraction
+H60,Otitis externa,VIII Ear|External / middle / inner
+H65,Nonsuppurative otitis media,VIII Ear|External / middle / inner
+H66,Suppurative and unspecified otitis media,VIII Ear|External / middle / inner
+H68,Eustachian salpingitis and obstruction,VIII Ear|External / middle / inner
+H70,Mastoiditis and related conditions,VIII Ear|External / middle / inner
+H80,Otosclerosis,VIII Ear|External / middle / inner
+H81,Disorders of vestibular function,VIII Ear|External / middle / inner
+H83,Other diseases of inner ear,VIII Ear|External / middle / inner
+H90,Conductive and sensorineural hearing loss,VIII Ear|External / middle / inner
+H91,Other hearing loss,VIII Ear|External / middle / inner
+H92,Otalgia and effusion of ear,VIII Ear|External / middle / inner
+H93,Other disorders of ear NEC,VIII Ear|External / middle / inner
+I00,Rheumatic fever without mention of heart involvement,IX Circulatory|Rheumatic / hypertensive / ischaemic
+I01,Rheumatic fever with heart involvement,IX Circulatory|Rheumatic / hypertensive / ischaemic
+I05,Rheumatic mitral valve diseases,IX Circulatory|Rheumatic / hypertensive / ischaemic
+I06,Rheumatic aortic valve diseases,IX Circulatory|Rheumatic / hypertensive / ischaemic
+I07,Rheumatic tricuspid valve diseases,IX Circulatory|Rheumatic / hypertensive / ischaemic
+I08,Multiple valve diseases,IX Circulatory|Rheumatic / hypertensive / ischaemic
+I10,Essential (primary) hypertension,IX Circulatory|Rheumatic / hypertensive / ischaemic
+I11,Hypertensive heart disease,IX Circulatory|Rheumatic / hypertensive / ischaemic
+I12,Hypertensive renal disease,IX Circulatory|Rheumatic / hypertensive / ischaemic
+I13,Hypertensive heart and renal disease,IX Circulatory|Rheumatic / hypertensive / ischaemic
+I15,Secondary hypertension,IX Circulatory|Rheumatic / hypertensive / ischaemic
+I20,Angina pectoris,IX Circulatory|Rheumatic / hypertensive / ischaemic
+I21,Acute myocardial infarction,IX Circulatory|Rheumatic / hypertensive / ischaemic
+I22,Subsequent myocardial infarction,IX Circulatory|Rheumatic / hypertensive / ischaemic
+I24,Other acute ischaemic heart diseases,IX Circulatory|Rheumatic / hypertensive / ischaemic
+I25,Chronic ischaemic heart disease,IX Circulatory|Rheumatic / hypertensive / ischaemic
+I26,Pulmonary embolism,IX Circulatory|Pulmonary / pericardial / endocardial / myocardial
+I27,Other pulmonary heart diseases,IX Circulatory|Pulmonary / pericardial / endocardial / myocardial
+I30,Acute pericarditis,IX Circulatory|Pulmonary / pericardial / endocardial / myocardial
+I31,Other diseases of pericardium,IX Circulatory|Pulmonary / pericardial / endocardial / myocardial
+I33,Acute and subacute endocarditis,IX Circulatory|Pulmonary / pericardial / endocardial / myocardial
+I34,Nonrheumatic mitral valve disorders,IX Circulatory|Pulmonary / pericardial / endocardial / myocardial
+I35,Nonrheumatic aortic valve disorders,IX Circulatory|Pulmonary / pericardial / endocardial / myocardial
+I36,Nonrheumatic tricuspid valve disorders,IX Circulatory|Pulmonary / pericardial / endocardial / myocardial
+I37,Pulmonary valve disorders,IX Circulatory|Pulmonary / pericardial / endocardial / myocardial
+I40,Acute myocarditis,IX Circulatory|Pulmonary / pericardial / endocardial / myocardial
+I42,Cardiomyopathy,IX Circulatory|Pulmonary / pericardial / endocardial / myocardial
+I44,Atrioventricular and left bundle-branch block,IX Circulatory|Pulmonary / pericardial / endocardial / myocardial
+I45,Other conduction disorders,IX Circulatory|Pulmonary / pericardial / endocardial / myocardial
+I46,Cardiac arrest,IX Circulatory|Pulmonary / pericardial / endocardial / myocardial
+I47,Paroxysmal tachycardia,IX Circulatory|Pulmonary / pericardial / endocardial / myocardial
+I48,Atrial fibrillation and flutter,IX Circulatory|Pulmonary / pericardial / endocardial / myocardial
+I49,Other cardiac arrhythmias,IX Circulatory|Pulmonary / pericardial / endocardial / myocardial
+I50,Heart failure,IX Circulatory|Pulmonary / pericardial / endocardial / myocardial
+I51,Complications / ill-defined descriptions of heart disease,IX Circulatory|Pulmonary / pericardial / endocardial / myocardial
+I60,Subarachnoid haemorrhage,IX Circulatory|Cerebrovascular / arterial / venous
+I61,Intracerebral haemorrhage,IX Circulatory|Cerebrovascular / arterial / venous
+I62,Other nontraumatic intracranial haemorrhage,IX Circulatory|Cerebrovascular / arterial / venous
+I63,Cerebral infarction,IX Circulatory|Cerebrovascular / arterial / venous
+I64,"Stroke, not specified as haemorrhage or infarction",IX Circulatory|Cerebrovascular / arterial / venous
+I65,Occlusion and stenosis of precerebral arteries,IX Circulatory|Cerebrovascular / arterial / venous
+I67,Other cerebrovascular diseases,IX Circulatory|Cerebrovascular / arterial / venous
+I69,Sequelae of cerebrovascular disease,IX Circulatory|Cerebrovascular / arterial / venous
+I70,Atherosclerosis,IX Circulatory|Cerebrovascular / arterial / venous
+I71,Aortic aneurysm and dissection,IX Circulatory|Cerebrovascular / arterial / venous
+I72,Other aneurysm,IX Circulatory|Cerebrovascular / arterial / venous
+I73,Other peripheral vascular diseases,IX Circulatory|Cerebrovascular / arterial / venous
+I74,Arterial embolism and thrombosis,IX Circulatory|Cerebrovascular / arterial / venous
+I80,Phlebitis and thrombophlebitis,IX Circulatory|Cerebrovascular / arterial / venous
+I82,Other venous embolism and thrombosis,IX Circulatory|Cerebrovascular / arterial / venous
+I83,Varicose veins of lower extremities,IX Circulatory|Cerebrovascular / arterial / venous
+I84,Haemorrhoids,IX Circulatory|Cerebrovascular / arterial / venous
+I85,Oesophageal varices,IX Circulatory|Cerebrovascular / arterial / venous
+I86,Varicose veins of other sites,IX Circulatory|Cerebrovascular / arterial / venous
+I87,Other disorders of veins,IX Circulatory|Cerebrovascular / arterial / venous
+I88,Nonspecific lymphadenitis,IX Circulatory|Cerebrovascular / arterial / venous
+I89,Other noninfective disorders of lymphatic vessels and lymph nodes,IX Circulatory|Cerebrovascular / arterial / venous
+I95,Hypotension,IX Circulatory|Cerebrovascular / arterial / venous
+I99,Other and unspecified disorders of circulatory system,IX Circulatory|Cerebrovascular / arterial / venous
+J00,Acute nasopharyngitis [common cold],X Respiratory|Acute upper
+J01,Acute sinusitis,X Respiratory|Acute upper
+J02,Acute pharyngitis,X Respiratory|Acute upper
+J03,Acute tonsillitis,X Respiratory|Acute upper
+J04,Acute laryngitis and tracheitis,X Respiratory|Acute upper
+J05,Acute obstructive laryngitis [croup] and epiglottitis,X Respiratory|Acute upper
+J06,Acute upper respiratory infections of multiple / unspecified sites,X Respiratory|Acute upper
+J09,Influenza due to identified zoonotic / pandemic strain,X Respiratory|Influenza / pneumonia / lower acute
+J10,Influenza due to identified seasonal influenza virus,X Respiratory|Influenza / pneumonia / lower acute
+J11,"Influenza, virus not identified",X Respiratory|Influenza / pneumonia / lower acute
+J12,Viral pneumonia NEC,X Respiratory|Influenza / pneumonia / lower acute
+J13,Pneumonia due to Streptococcus pneumoniae,X Respiratory|Influenza / pneumonia / lower acute
+J14,Pneumonia due to Haemophilus influenzae,X Respiratory|Influenza / pneumonia / lower acute
+J15,Bacterial pneumonia NEC,X Respiratory|Influenza / pneumonia / lower acute
+J16,Pneumonia due to other infectious organisms NEC,X Respiratory|Influenza / pneumonia / lower acute
+J17,Pneumonia in diseases classified elsewhere,X Respiratory|Influenza / pneumonia / lower acute
+J18,"Pneumonia, organism unspecified",X Respiratory|Influenza / pneumonia / lower acute
+J20,Acute bronchitis,X Respiratory|Influenza / pneumonia / lower acute
+J21,Acute bronchiolitis,X Respiratory|Influenza / pneumonia / lower acute
+J22,Unspecified acute lower respiratory infection,X Respiratory|Influenza / pneumonia / lower acute
+J30,Vasomotor and allergic rhinitis,X Respiratory|Chronic lower / obstructive
+J31,"Chronic rhinitis, nasopharyngitis and pharyngitis",X Respiratory|Chronic lower / obstructive
+J32,Chronic sinusitis,X Respiratory|Chronic lower / obstructive
+J35,Chronic diseases of tonsils and adenoids,X Respiratory|Chronic lower / obstructive
+J40,"Bronchitis, not specified as acute or chronic",X Respiratory|Chronic lower / obstructive
+J41,Simple and mucopurulent chronic bronchitis,X Respiratory|Chronic lower / obstructive
+J42,Unspecified chronic bronchitis,X Respiratory|Chronic lower / obstructive
+J43,Emphysema,X Respiratory|Chronic lower / obstructive
+J44,Other chronic obstructive pulmonary disease,X Respiratory|Chronic lower / obstructive
+J45,Asthma,X Respiratory|Chronic lower / obstructive
+J46,Status asthmaticus,X Respiratory|Chronic lower / obstructive
+J47,Bronchiectasis,X Respiratory|Chronic lower / obstructive
+J60,Coalworker pneumoconiosis,X Respiratory|Chronic lower / obstructive
+J61,Pneumoconiosis due to asbestos and other mineral fibres,X Respiratory|Chronic lower / obstructive
+J62,Pneumoconiosis due to dust containing silica,X Respiratory|Chronic lower / obstructive
+J63,Pneumoconiosis due to other inorganic dusts,X Respiratory|Chronic lower / obstructive
+J67,Hypersensitivity pneumonitis due to organic dust,X Respiratory|Chronic lower / obstructive
+J68,"Respiratory conditions due to inhalation of chemicals, gases, fumes and vapours",X Respiratory|Chronic lower / obstructive
+J80,Adult respiratory distress syndrome,X Respiratory|Chronic lower / obstructive
+J81,Pulmonary oedema,X Respiratory|Chronic lower / obstructive
+J84,Other interstitial pulmonary diseases,X Respiratory|Chronic lower / obstructive
+J85,Abscess of lung and mediastinum,X Respiratory|Chronic lower / obstructive
+J86,Pyothorax,X Respiratory|Chronic lower / obstructive
+J90,Pleural effusion NEC,X Respiratory|Chronic lower / obstructive
+J91,Pleural effusion in conditions classified elsewhere,X Respiratory|Chronic lower / obstructive
+J93,Pneumothorax,X Respiratory|Chronic lower / obstructive
+J94,Other pleural conditions,X Respiratory|Chronic lower / obstructive
+J96,Respiratory failure NEC,X Respiratory|Chronic lower / obstructive
+J98,Other respiratory disorders,X Respiratory|Chronic lower / obstructive
+K00,Disorders of tooth development and eruption,XI Digestive|Oral / oesophagus / stomach / duodenum
+K02,Dental caries,XI Digestive|Oral / oesophagus / stomach / duodenum
+K04,Diseases of pulp and periapical tissues,XI Digestive|Oral / oesophagus / stomach / duodenum
+K05,Gingivitis and periodontal diseases,XI Digestive|Oral / oesophagus / stomach / duodenum
+K07,Dentofacial anomalies including malocclusion,XI Digestive|Oral / oesophagus / stomach / duodenum
+K11,Diseases of salivary glands,XI Digestive|Oral / oesophagus / stomach / duodenum
+K12,Stomatitis and related lesions,XI Digestive|Oral / oesophagus / stomach / duodenum
+K13,Other diseases of lip and oral mucosa,XI Digestive|Oral / oesophagus / stomach / duodenum
+K14,Diseases of tongue,XI Digestive|Oral / oesophagus / stomach / duodenum
+K20,Oesophagitis,XI Digestive|Oral / oesophagus / stomach / duodenum
+K21,Gastro-oesophageal reflux disease,XI Digestive|Oral / oesophagus / stomach / duodenum
+K22,Other diseases of oesophagus,XI Digestive|Oral / oesophagus / stomach / duodenum
+K25,Gastric ulcer,XI Digestive|Oral / oesophagus / stomach / duodenum
+K26,Duodenal ulcer,XI Digestive|Oral / oesophagus / stomach / duodenum
+K27,"Peptic ulcer, site unspecified",XI Digestive|Oral / oesophagus / stomach / duodenum
+K28,Gastrojejunal ulcer,XI Digestive|Oral / oesophagus / stomach / duodenum
+K29,Gastritis and duodenitis,XI Digestive|Oral / oesophagus / stomach / duodenum
+K30,Functional dyspepsia,XI Digestive|Oral / oesophagus / stomach / duodenum
+K35,Acute appendicitis,XI Digestive|Bowel / hernias / IBD
+K36,Other appendicitis,XI Digestive|Bowel / hernias / IBD
+K37,Unspecified appendicitis,XI Digestive|Bowel / hernias / IBD
+K38,Other diseases of appendix,XI Digestive|Bowel / hernias / IBD
+K40,Inguinal hernia,XI Digestive|Bowel / hernias / IBD
+K41,Femoral hernia,XI Digestive|Bowel / hernias / IBD
+K42,Umbilical hernia,XI Digestive|Bowel / hernias / IBD
+K43,Ventral hernia,XI Digestive|Bowel / hernias / IBD
+K44,Diaphragmatic hernia,XI Digestive|Bowel / hernias / IBD
+K50,Crohn disease [regional enteritis],XI Digestive|Bowel / hernias / IBD
+K51,Ulcerative colitis,XI Digestive|Bowel / hernias / IBD
+K52,Other and unspecified noninfective gastroenteritis and colitis,XI Digestive|Bowel / hernias / IBD
+K55,Vascular disorders of intestine,XI Digestive|Bowel / hernias / IBD
+K56,Paralytic ileus and intestinal obstruction without hernia,XI Digestive|Bowel / hernias / IBD
+K57,Diverticular disease of intestine,XI Digestive|Bowel / hernias / IBD
+K58,Irritable bowel syndrome,XI Digestive|Bowel / hernias / IBD
+K59,Other functional intestinal disorders,XI Digestive|Bowel / hernias / IBD
+K60,Fissure and fistula of anal and rectal regions,XI Digestive|Bowel / hernias / IBD
+K61,Abscess of anal and rectal regions,XI Digestive|Bowel / hernias / IBD
+K62,Other diseases of anus and rectum,XI Digestive|Bowel / hernias / IBD
+K63,Other diseases of intestine,XI Digestive|Bowel / hernias / IBD
+K64,Haemorrhoids and perianal venous thrombosis,XI Digestive|Bowel / hernias / IBD
+K65,Peritonitis,XI Digestive|Bowel / hernias / IBD
+K66,Other disorders of peritoneum,XI Digestive|Bowel / hernias / IBD
+K70,Alcoholic liver disease,XI Digestive|Liver / gallbladder / pancreas
+K71,Toxic liver disease,XI Digestive|Liver / gallbladder / pancreas
+K72,Hepatic failure NEC,XI Digestive|Liver / gallbladder / pancreas
+K73,Chronic hepatitis NEC,XI Digestive|Liver / gallbladder / pancreas
+K74,Fibrosis and cirrhosis of liver,XI Digestive|Liver / gallbladder / pancreas
+K75,Other inflammatory liver diseases,XI Digestive|Liver / gallbladder / pancreas
+K76,Other diseases of liver,XI Digestive|Liver / gallbladder / pancreas
+K80,Cholelithiasis,XI Digestive|Liver / gallbladder / pancreas
+K81,Cholecystitis,XI Digestive|Liver / gallbladder / pancreas
+K82,Other diseases of gallbladder,XI Digestive|Liver / gallbladder / pancreas
+K83,Other diseases of biliary tract,XI Digestive|Liver / gallbladder / pancreas
+K85,Acute pancreatitis,XI Digestive|Liver / gallbladder / pancreas
+K86,Other diseases of pancreas,XI Digestive|Liver / gallbladder / pancreas
+K90,Intestinal malabsorption,XI Digestive|Liver / gallbladder / pancreas
+K91,Postprocedural digestive disorders NEC,XI Digestive|Liver / gallbladder / pancreas
+K92,Other diseases of digestive system,XI Digestive|Liver / gallbladder / pancreas
+L00,Staphylococcal scalded skin syndrome,XII Skin|Skin and subcutaneous
+L01,Impetigo,XII Skin|Skin and subcutaneous
+L02,"Cutaneous abscess, furuncle and carbuncle",XII Skin|Skin and subcutaneous
+L03,Cellulitis,XII Skin|Skin and subcutaneous
+L08,Other local infections of skin and subcutaneous tissue,XII Skin|Skin and subcutaneous
+L10,Pemphigus,XII Skin|Skin and subcutaneous
+L12,Pemphigoid,XII Skin|Skin and subcutaneous
+L20,Atopic dermatitis,XII Skin|Skin and subcutaneous
+L21,Seborrhoeic dermatitis,XII Skin|Skin and subcutaneous
+L22,Diaper dermatitis,XII Skin|Skin and subcutaneous
+L23,Allergic contact dermatitis,XII Skin|Skin and subcutaneous
+L24,Irritant contact dermatitis,XII Skin|Skin and subcutaneous
+L25,Unspecified contact dermatitis,XII Skin|Skin and subcutaneous
+L27,Dermatitis due to substances taken internally,XII Skin|Skin and subcutaneous
+L28,Lichen simplex chronicus and prurigo,XII Skin|Skin and subcutaneous
+L29,Pruritus,XII Skin|Skin and subcutaneous
+L30,Other dermatitis,XII Skin|Skin and subcutaneous
+L40,Psoriasis,XII Skin|Skin and subcutaneous
+L43,Lichen planus,XII Skin|Skin and subcutaneous
+L50,Urticaria,XII Skin|Skin and subcutaneous
+L51,Erythema multiforme,XII Skin|Skin and subcutaneous
+L53,Other erythematous conditions,XII Skin|Skin and subcutaneous
+L55,Sunburn,XII Skin|Skin and subcutaneous
+L56,Other acute skin changes due to ultraviolet radiation,XII Skin|Skin and subcutaneous
+L60,Nail disorders,XII Skin|Skin and subcutaneous
+L63,Alopecia areata,XII Skin|Skin and subcutaneous
+L65,Other nonscarring hair loss,XII Skin|Skin and subcutaneous
+L70,Acne,XII Skin|Skin and subcutaneous
+L71,Rosacea,XII Skin|Skin and subcutaneous
+L73,Other follicular disorders,XII Skin|Skin and subcutaneous
+L80,Vitiligo,XII Skin|Skin and subcutaneous
+L81,Other disorders of pigmentation,XII Skin|Skin and subcutaneous
+L82,Seborrhoeic keratosis,XII Skin|Skin and subcutaneous
+L83,Acanthosis nigricans,XII Skin|Skin and subcutaneous
+L84,Corns and callosities,XII Skin|Skin and subcutaneous
+L85,Other epidermal thickening,XII Skin|Skin and subcutaneous
+L89,Decubitus ulcer and pressure area,XII Skin|Skin and subcutaneous
+L90,Atrophic disorders of skin,XII Skin|Skin and subcutaneous
+L92,Granulomatous disorders of skin and subcutaneous tissue,XII Skin|Skin and subcutaneous
+L93,Lupus erythematosus,XII Skin|Skin and subcutaneous
+L94,Other localized connective tissue disorders,XII Skin|Skin and subcutaneous
+L98,Other disorders of skin and subcutaneous tissue NEC,XII Skin|Skin and subcutaneous
+M00,Pyogenic arthritis,XIII Musculoskeletal|Arthropathies
+M02,Reactive arthropathies,XIII Musculoskeletal|Arthropathies
+M05,Seropositive rheumatoid arthritis,XIII Musculoskeletal|Arthropathies
+M06,Other rheumatoid arthritis,XIII Musculoskeletal|Arthropathies
+M07,Psoriatic and enteropathic arthropathies,XIII Musculoskeletal|Arthropathies
+M08,Juvenile arthritis,XIII Musculoskeletal|Arthropathies
+M10,Gout,XIII Musculoskeletal|Arthropathies
+M11,Other crystal arthropathies,XIII Musculoskeletal|Arthropathies
+M13,Other arthritis,XIII Musculoskeletal|Arthropathies
+M15,Polyarthrosis,XIII Musculoskeletal|Arthropathies
+M16,Coxarthrosis [arthrosis of hip],XIII Musculoskeletal|Arthropathies
+M17,Gonarthrosis [arthrosis of knee],XIII Musculoskeletal|Arthropathies
+M18,Arthrosis of first carpometacarpal joint,XIII Musculoskeletal|Arthropathies
+M19,Other arthrosis,XIII Musculoskeletal|Arthropathies
+M30,Polyarteritis nodosa and related conditions,XIII Musculoskeletal|Connective tissue / dorsopathies / soft tissue / bone
+M31,Other necrotizing vasculopathies,XIII Musculoskeletal|Connective tissue / dorsopathies / soft tissue / bone
+M32,Systemic lupus erythematosus,XIII Musculoskeletal|Connective tissue / dorsopathies / soft tissue / bone
+M33,Dermatopolymyositis,XIII Musculoskeletal|Connective tissue / dorsopathies / soft tissue / bone
+M34,Systemic sclerosis,XIII Musculoskeletal|Connective tissue / dorsopathies / soft tissue / bone
+M35,Other systemic involvement of connective tissue,XIII Musculoskeletal|Connective tissue / dorsopathies / soft tissue / bone
+M40,Kyphosis and lordosis,XIII Musculoskeletal|Connective tissue / dorsopathies / soft tissue / bone
+M41,Scoliosis,XIII Musculoskeletal|Connective tissue / dorsopathies / soft tissue / bone
+M42,Spinal osteochondrosis,XIII Musculoskeletal|Connective tissue / dorsopathies / soft tissue / bone
+M43,Other deforming dorsopathies,XIII Musculoskeletal|Connective tissue / dorsopathies / soft tissue / bone
+M45,Ankylosing spondylitis,XIII Musculoskeletal|Connective tissue / dorsopathies / soft tissue / bone
+M46,Other inflammatory spondylopathies,XIII Musculoskeletal|Connective tissue / dorsopathies / soft tissue / bone
+M47,Spondylosis,XIII Musculoskeletal|Connective tissue / dorsopathies / soft tissue / bone
+M48,Other spondylopathies,XIII Musculoskeletal|Connective tissue / dorsopathies / soft tissue / bone
+M50,Cervical disc disorders,XIII Musculoskeletal|Connective tissue / dorsopathies / soft tissue / bone
+M51,Other intervertebral disc disorders,XIII Musculoskeletal|Connective tissue / dorsopathies / soft tissue / bone
+M53,Other dorsopathies NEC,XIII Musculoskeletal|Connective tissue / dorsopathies / soft tissue / bone
+M54,Dorsalgia,XIII Musculoskeletal|Connective tissue / dorsopathies / soft tissue / bone
+M60,Myositis,XIII Musculoskeletal|Connective tissue / dorsopathies / soft tissue / bone
+M62,Other disorders of muscle,XIII Musculoskeletal|Connective tissue / dorsopathies / soft tissue / bone
+M65,Synovitis and tenosynovitis,XIII Musculoskeletal|Connective tissue / dorsopathies / soft tissue / bone
+M70,"Soft tissue disorders related to use, overuse and pressure",XIII Musculoskeletal|Connective tissue / dorsopathies / soft tissue / bone
+M75,Shoulder lesions,XIII Musculoskeletal|Connective tissue / dorsopathies / soft tissue / bone
+M77,Other enthesopathies,XIII Musculoskeletal|Connective tissue / dorsopathies / soft tissue / bone
+M79,Other soft tissue disorders NEC,XIII Musculoskeletal|Connective tissue / dorsopathies / soft tissue / bone
+M80,Osteoporosis with pathological fracture,XIII Musculoskeletal|Connective tissue / dorsopathies / soft tissue / bone
+M81,Osteoporosis without pathological fracture,XIII Musculoskeletal|Connective tissue / dorsopathies / soft tissue / bone
+M83,Adult osteomalacia,XIII Musculoskeletal|Connective tissue / dorsopathies / soft tissue / bone
+M84,Disorders of continuity of bone,XIII Musculoskeletal|Connective tissue / dorsopathies / soft tissue / bone
+M85,Other disorders of bone density and structure,XIII Musculoskeletal|Connective tissue / dorsopathies / soft tissue / bone
+M86,Osteomyelitis,XIII Musculoskeletal|Connective tissue / dorsopathies / soft tissue / bone
+M87,Osteonecrosis,XIII Musculoskeletal|Connective tissue / dorsopathies / soft tissue / bone
+M89,Other disorders of bone,XIII Musculoskeletal|Connective tissue / dorsopathies / soft tissue / bone
+M93,Other osteochondropathies,XIII Musculoskeletal|Connective tissue / dorsopathies / soft tissue / bone
+M94,Other disorders of cartilage,XIII Musculoskeletal|Connective tissue / dorsopathies / soft tissue / bone
+M95,Other acquired deformities of musculoskeletal system,XIII Musculoskeletal|Connective tissue / dorsopathies / soft tissue / bone
+N00,Acute nephritic syndrome,XIV Genitourinary|Renal / urinary
+N01,Rapidly progressive nephritic syndrome,XIV Genitourinary|Renal / urinary
+N02,Recurrent and persistent haematuria,XIV Genitourinary|Renal / urinary
+N03,Chronic nephritic syndrome,XIV Genitourinary|Renal / urinary
+N04,Nephrotic syndrome,XIV Genitourinary|Renal / urinary
+N05,Unspecified nephritic syndrome,XIV Genitourinary|Renal / urinary
+N10,Acute tubulo-interstitial nephritis,XIV Genitourinary|Renal / urinary
+N11,Chronic tubulo-interstitial nephritis,XIV Genitourinary|Renal / urinary
+N12,Tubulo-interstitial nephritis NEC,XIV Genitourinary|Renal / urinary
+N13,Obstructive and reflux uropathy,XIV Genitourinary|Renal / urinary
+N14,Drug- and heavy-metal-induced tubulo-interstitial / tubular conditions,XIV Genitourinary|Renal / urinary
+N15,Other renal tubulo-interstitial diseases,XIV Genitourinary|Renal / urinary
+N17,Acute renal failure,XIV Genitourinary|Renal / urinary
+N18,Chronic kidney disease,XIV Genitourinary|Renal / urinary
+N19,Unspecified kidney failure,XIV Genitourinary|Renal / urinary
+N20,Calculus of kidney and ureter,XIV Genitourinary|Renal / urinary
+N21,Calculus of lower urinary tract,XIV Genitourinary|Renal / urinary
+N23,Unspecified renal colic,XIV Genitourinary|Renal / urinary
+N25,Disorders resulting from impaired renal tubular function,XIV Genitourinary|Renal / urinary
+N28,Other disorders of kidney and ureter NEC,XIV Genitourinary|Renal / urinary
+N30,Cystitis,XIV Genitourinary|Renal / urinary
+N31,Neuromuscular dysfunction of bladder,XIV Genitourinary|Renal / urinary
+N32,Other disorders of bladder,XIV Genitourinary|Renal / urinary
+N34,Urethritis and urethral syndrome,XIV Genitourinary|Renal / urinary
+N35,Urethral stricture,XIV Genitourinary|Renal / urinary
+N36,Other disorders of urethra,XIV Genitourinary|Renal / urinary
+N39,Other disorders of urinary system,XIV Genitourinary|Renal / urinary
+N40,Hyperplasia of prostate,XIV Genitourinary|Male and female reproductive
+N41,Inflammatory diseases of prostate,XIV Genitourinary|Male and female reproductive
+N42,Other disorders of prostate,XIV Genitourinary|Male and female reproductive
+N43,Hydrocele and spermatocele,XIV Genitourinary|Male and female reproductive
+N45,Orchitis and epididymitis,XIV Genitourinary|Male and female reproductive
+N46,Male infertility,XIV Genitourinary|Male and female reproductive
+N47,"Redundant prepuce, phimosis and paraphimosis",XIV Genitourinary|Male and female reproductive
+N50,Other disorders of male genital organs,XIV Genitourinary|Male and female reproductive
+N60,Benign mammary dysplasia,XIV Genitourinary|Male and female reproductive
+N61,Inflammatory disorders of breast,XIV Genitourinary|Male and female reproductive
+N63,Unspecified lump in breast,XIV Genitourinary|Male and female reproductive
+N64,Other disorders of breast,XIV Genitourinary|Male and female reproductive
+N70,Salpingitis and oophoritis,XIV Genitourinary|Male and female reproductive
+N71,"Inflammatory disease of uterus, except cervix",XIV Genitourinary|Male and female reproductive
+N72,Inflammatory disease of cervix uteri,XIV Genitourinary|Male and female reproductive
+N73,Other female pelvic inflammatory diseases,XIV Genitourinary|Male and female reproductive
+N75,Diseases of Bartholin gland,XIV Genitourinary|Male and female reproductive
+N76,Other inflammation of vagina and vulva,XIV Genitourinary|Male and female reproductive
+N80,Endometriosis,XIV Genitourinary|Male and female reproductive
+N81,Female genital prolapse,XIV Genitourinary|Male and female reproductive
+N83,"Noninflammatory disorders of ovary, fallopian tube and broad ligament",XIV Genitourinary|Male and female reproductive
+N84,Polyp of female genital tract,XIV Genitourinary|Male and female reproductive
+N85,"Other noninflammatory disorders of uterus, except cervix",XIV Genitourinary|Male and female reproductive
+N86,Erosion and ectropion of cervix uteri,XIV Genitourinary|Male and female reproductive
+N87,Dysplasia of cervix uteri,XIV Genitourinary|Male and female reproductive
+N88,Other noninflammatory disorders of cervix uteri,XIV Genitourinary|Male and female reproductive
+N90,Other noninflammatory disorders of vulva and perineum,XIV Genitourinary|Male and female reproductive
+N91,"Absent, scanty and rare menstruation",XIV Genitourinary|Male and female reproductive
+N92,"Excessive, frequent and irregular menstruation",XIV Genitourinary|Male and female reproductive
+N93,Other abnormal uterine and vaginal bleeding,XIV Genitourinary|Male and female reproductive
+N94,Pain and other conditions associated with female genital organs,XIV Genitourinary|Male and female reproductive
+N95,Menopausal and other perimenopausal disorders,XIV Genitourinary|Male and female reproductive
+N97,Female infertility,XIV Genitourinary|Male and female reproductive
+O00,Ectopic pregnancy,XV Pregnancy|Pregnancy / delivery / puerperium
+O01,Hydatidiform mole,XV Pregnancy|Pregnancy / delivery / puerperium
+O02,Other abnormal products of conception,XV Pregnancy|Pregnancy / delivery / puerperium
+O03,Spontaneous abortion,XV Pregnancy|Pregnancy / delivery / puerperium
+O04,Medical abortion,XV Pregnancy|Pregnancy / delivery / puerperium
+O10,"Pre-existing hypertension complicating pregnancy, childbirth and the puerperium",XV Pregnancy|Pregnancy / delivery / puerperium
+O11,Pre-existing hypertensive disorder with superimposed proteinuria,XV Pregnancy|Pregnancy / delivery / puerperium
+O13,Gestational [pregnancy-induced] hypertension without significant proteinuria,XV Pregnancy|Pregnancy / delivery / puerperium
+O14,Pre-eclampsia,XV Pregnancy|Pregnancy / delivery / puerperium
+O15,Eclampsia,XV Pregnancy|Pregnancy / delivery / puerperium
+O20,Haemorrhage in early pregnancy,XV Pregnancy|Pregnancy / delivery / puerperium
+O24,Diabetes mellitus in pregnancy,XV Pregnancy|Pregnancy / delivery / puerperium
+O30,Multiple gestation,XV Pregnancy|Pregnancy / delivery / puerperium
+O36,Maternal care for other known / suspected fetal problems,XV Pregnancy|Pregnancy / delivery / puerperium
+O42,Premature rupture of membranes,XV Pregnancy|Pregnancy / delivery / puerperium
+O60,Preterm labour and delivery,XV Pregnancy|Pregnancy / delivery / puerperium
+O68,Labour and delivery complicated by fetal stress,XV Pregnancy|Pregnancy / delivery / puerperium
+O80,Single spontaneous delivery,XV Pregnancy|Pregnancy / delivery / puerperium
+O82,Single delivery by caesarean section,XV Pregnancy|Pregnancy / delivery / puerperium
+O88,Obstetric embolism,XV Pregnancy|Pregnancy / delivery / puerperium
+O90,Complications of the puerperium NEC,XV Pregnancy|Pregnancy / delivery / puerperium
+P00,Fetus and newborn affected by maternal conditions,XVI Perinatal|Conditions originating in the perinatal period
+P05,Slow fetal growth and fetal malnutrition,XVI Perinatal|Conditions originating in the perinatal period
+P07,Disorders related to short gestation and low birth weight NEC,XVI Perinatal|Conditions originating in the perinatal period
+P22,Respiratory distress of newborn,XVI Perinatal|Conditions originating in the perinatal period
+P24,Neonatal aspiration syndromes,XVI Perinatal|Conditions originating in the perinatal period
+P36,Bacterial sepsis of newborn,XVI Perinatal|Conditions originating in the perinatal period
+P55,Haemolytic disease of fetus and newborn,XVI Perinatal|Conditions originating in the perinatal period
+P59,Neonatal jaundice from other and unspecified causes,XVI Perinatal|Conditions originating in the perinatal period
+P70,Transitory disorders of carbohydrate metabolism specific to fetus and newborn,XVI Perinatal|Conditions originating in the perinatal period
+Q00,Anencephaly and similar malformations,XVII Congenital|Congenital malformations / deformations / chromosomal
+Q02,Microcephaly,XVII Congenital|Congenital malformations / deformations / chromosomal
+Q05,Spina bifida,XVII Congenital|Congenital malformations / deformations / chromosomal
+Q20,Congenital malformations of cardiac chambers and connections,XVII Congenital|Congenital malformations / deformations / chromosomal
+Q21,Congenital malformations of cardiac septa,XVII Congenital|Congenital malformations / deformations / chromosomal
+Q23,Congenital malformations of aortic and mitral valves,XVII Congenital|Congenital malformations / deformations / chromosomal
+Q35,Cleft palate,XVII Congenital|Congenital malformations / deformations / chromosomal
+Q36,Cleft lip,XVII Congenital|Congenital malformations / deformations / chromosomal
+Q37,Cleft palate with cleft lip,XVII Congenital|Congenital malformations / deformations / chromosomal
+Q39,Congenital malformations of oesophagus,XVII Congenital|Congenital malformations / deformations / chromosomal
+Q42,"Congenital absence, atresia and stenosis of large intestine",XVII Congenital|Congenital malformations / deformations / chromosomal
+Q43,Other congenital malformations of intestine,XVII Congenital|Congenital malformations / deformations / chromosomal
+Q51,Congenital malformations of uterus and cervix,XVII Congenital|Congenital malformations / deformations / chromosomal
+Q53,Undescended testicle,XVII Congenital|Congenital malformations / deformations / chromosomal
+Q60,Renal agenesis and other reduction defects of kidney,XVII Congenital|Congenital malformations / deformations / chromosomal
+Q66,Congenital deformities of feet,XVII Congenital|Congenital malformations / deformations / chromosomal
+Q70,Syndactyly,XVII Congenital|Congenital malformations / deformations / chromosomal
+Q79,Congenital malformations of musculoskeletal system NEC,XVII Congenital|Congenital malformations / deformations / chromosomal
+Q90,Down syndrome,XVII Congenital|Congenital malformations / deformations / chromosomal
+Q91,Edwards syndrome and Patau syndrome,XVII Congenital|Congenital malformations / deformations / chromosomal
+Q96,Turner syndrome,XVII Congenital|Congenital malformations / deformations / chromosomal
+Q98,"Other sex chromosome abnormalities, male phenotype NEC",XVII Congenital|Congenital malformations / deformations / chromosomal
+R00,Abnormalities of heart beat,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R01,Cardiac murmurs and other cardiac sounds,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R03,"Abnormal blood pressure reading, without diagnosis",XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R04,Haemorrhage from respiratory passages,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R05,Cough,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R06,Abnormalities of breathing,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R07,Pain in throat and chest,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R09,Other symptoms and signs involving the circulatory and respiratory systems,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R10,Abdominal and pelvic pain,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R11,Nausea and vomiting,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R12,Heartburn,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R13,Dysphagia,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R14,Flatulence and related conditions,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R15,Faecal incontinence,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R16,Hepatomegaly and splenomegaly NEC,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R17,Unspecified jaundice,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R18,Ascites,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R19,Other symptoms and signs involving the digestive system and abdomen,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R20,Disturbances of skin sensation,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R21,Rash and other nonspecific skin eruption,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R22,"Localized swelling, mass and lump of skin and subcutaneous tissue",XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R25,Abnormal involuntary movements,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R26,Abnormalities of gait and mobility,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R29,Other symptoms and signs involving the nervous and musculoskeletal systems,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R30,Pain associated with micturition,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R31,Unspecified haematuria,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R32,Unspecified urinary incontinence,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R33,Retention of urine,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R34,Anuria and oliguria,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R35,Polyuria,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R39,Other symptoms and signs involving the urinary system,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R40,"Somnolence, stupor and coma",XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R41,Other symptoms and signs involving cognitive functions and awareness,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R42,Dizziness and giddiness,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R45,Symptoms and signs involving emotional state,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R47,Speech disturbances NEC,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R50,Fever of other and unknown origin,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R51,Headache,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R52,"Pain, not elsewhere classified",XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R53,Malaise and fatigue,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R55,Syncope and collapse,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R56,"Convulsions, not elsewhere classified",XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R57,Shock NEC,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R58,Haemorrhage NEC,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R59,Enlarged lymph nodes,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R60,Oedema NEC,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R63,Symptoms and signs concerning food and fluid intake,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R64,Cachexia,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R65,Symptoms and signs specifically associated with systemic inflammation and infection,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R70,Elevated erythrocyte sedimentation rate / abnormal viscosity,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R71,Abnormality of red blood cells,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R73,Elevated blood glucose level,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R74,Abnormal serum enzyme levels,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R75,Laboratory evidence of HIV,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R76,Other abnormal immunological findings in serum,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R77,Other abnormalities of plasma proteins,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R78,"Findings of drugs and other substances, not normally found in blood",XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R79,Other abnormal findings of blood chemistry,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R80,Isolated proteinuria,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R81,Glycosuria,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R82,Other abnormal findings in urine,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R85,Abnormal findings in specimens from digestive organs and abdominal cavity,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R87,Abnormal findings in specimens from female genital organs,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R94,Abnormal results of function studies,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R95,Sudden infant death syndrome,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R96,"Other sudden death, cause unknown",XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R98,Unattended death,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+R99,Other ill-defined and unspecified causes of mortality,XVIII Symptoms|Cardiovascular / respiratory / GI / GU / neuro signs
+S00,Superficial injury of head,XIX Injury|Head / neck / trunk / limb / poisoning / burns
+S01,Open wound of head,XIX Injury|Head / neck / trunk / limb / poisoning / burns
+S02,Fracture of skull and facial bones,XIX Injury|Head / neck / trunk / limb / poisoning / burns
+S06,Intracranial injury,XIX Injury|Head / neck / trunk / limb / poisoning / burns
+S09,Other and unspecified injuries of head,XIX Injury|Head / neck / trunk / limb / poisoning / burns
+S10,Superficial injury of neck,XIX Injury|Head / neck / trunk / limb / poisoning / burns
+S20,Superficial injury of thorax,XIX Injury|Head / neck / trunk / limb / poisoning / burns
+S22,"Fracture of rib(s), sternum and thoracic spine",XIX Injury|Head / neck / trunk / limb / poisoning / burns
+S30,"Superficial injury of abdomen, lower back and pelvis",XIX Injury|Head / neck / trunk / limb / poisoning / burns
+S32,Fracture of lumbar spine and pelvis,XIX Injury|Head / neck / trunk / limb / poisoning / burns
+S42,Fracture of shoulder and upper arm,XIX Injury|Head / neck / trunk / limb / poisoning / burns
+S52,Fracture of forearm,XIX Injury|Head / neck / trunk / limb / poisoning / burns
+S62,Fracture at wrist and hand level,XIX Injury|Head / neck / trunk / limb / poisoning / burns
+S72,Fracture of femur,XIX Injury|Head / neck / trunk / limb / poisoning / burns
+S82,"Fracture of lower leg, including ankle",XIX Injury|Head / neck / trunk / limb / poisoning / burns
+S92,"Fracture of foot, except ankle",XIX Injury|Head / neck / trunk / limb / poisoning / burns
+T14,Injury of unspecified body region,XIX Injury|Head / neck / trunk / limb / poisoning / burns
+T20,Burn and corrosion of head and neck,XIX Injury|Head / neck / trunk / limb / poisoning / burns
+T24,"Burn and corrosion of lower limb, except ankle and foot",XIX Injury|Head / neck / trunk / limb / poisoning / burns
+T30,"Burn and corrosion, body region unspecified",XIX Injury|Head / neck / trunk / limb / poisoning / burns
+T36,Poisoning by systemic antibiotics,XIX Injury|Head / neck / trunk / limb / poisoning / burns
+T39,"Poisoning by non-opioid analgesics, antipyretics and antirheumatics",XIX Injury|Head / neck / trunk / limb / poisoning / burns
+T40,Poisoning by narcotics and psychodysleptics [hallucinogens],XIX Injury|Head / neck / trunk / limb / poisoning / burns
+T42,"Poisoning by antiepileptic, sedative-hypnotic, anti-parkinsonism and other CNS-depressant drugs",XIX Injury|Head / neck / trunk / limb / poisoning / burns
+T44,Poisoning by drugs primarily affecting the autonomic nervous system,XIX Injury|Head / neck / trunk / limb / poisoning / burns
+T50,"Poisoning by diuretics and other and unspecified drugs, medicaments and biological substances",XIX Injury|Head / neck / trunk / limb / poisoning / burns
+T78,"Adverse effects, not elsewhere classified",XIX Injury|Head / neck / trunk / limb / poisoning / burns
+T80,"Complications following infusion, transfusion and therapeutic injection",XIX Injury|Head / neck / trunk / limb / poisoning / burns
+T81,"Complications of procedures, not elsewhere classified",XIX Injury|Head / neck / trunk / limb / poisoning / burns
+T88,"Other complications of surgical and medical care, NEC",XIX Injury|Head / neck / trunk / limb / poisoning / burns
+V01,Pedestrian injured in collision with pedal cycle,XX External|External causes of morbidity and mortality
+V40,Car occupant injured in collision with pedestrian or animal,XX External|External causes of morbidity and mortality
+V89,"Motor- or nonmotor-vehicle accident, type of vehicle unspecified",XX External|External causes of morbidity and mortality
+W00,Fall on same level involving ice and snow,XX External|External causes of morbidity and mortality
+W19,Unspecified fall,XX External|External causes of morbidity and mortality
+X44,"Accidental poisoning by other and unspecified drugs, medicaments and biological substances",XX External|External causes of morbidity and mortality
+X60,Intentional self-poisoning by and exposure to nonopioid analgesics,XX External|External causes of morbidity and mortality
+X95,Assault by other and unspecified firearm discharge,XX External|External causes of morbidity and mortality
+Y10,"Poisoning by and exposure to nonopioid analgesics, undetermined intent",XX External|External causes of morbidity and mortality
+Y65,Other misadventures during surgical and medical care,XX External|External causes of morbidity and mortality
+Y83,Surgical operation and other surgical procedures as the cause of abnormal reaction of the patient,XX External|External causes of morbidity and mortality
+Y95,Nosocomial condition,XX External|External causes of morbidity and mortality
+Z00,General examination and investigation of persons without complaint or reported diagnosis,XXI Health status|Factors influencing health status
+Z01,Other special examinations and investigations of persons without complaint,XXI Health status|Factors influencing health status
+Z03,Medical observation and evaluation for suspected diseases and conditions,XXI Health status|Factors influencing health status
+Z11,Special screening examination for infectious and parasitic diseases,XXI Health status|Factors influencing health status
+Z12,Special screening examination for neoplasms,XXI Health status|Factors influencing health status
+Z20,Contact with and (suspected) exposure to communicable diseases,XXI Health status|Factors influencing health status
+Z21,Asymptomatic HIV infection status,XXI Health status|Factors influencing health status
+Z23,Need for immunization against single bacterial diseases,XXI Health status|Factors influencing health status
+Z30,Contraceptive management,XXI Health status|Factors influencing health status
+Z34,Supervision of normal pregnancy,XXI Health status|Factors influencing health status
+Z37,Outcome of delivery,XXI Health status|Factors influencing health status
+Z38,Liveborn infants according to place of birth,XXI Health status|Factors influencing health status
+Z51,Other medical care,XXI Health status|Factors influencing health status
+Z63,"Other problems related to primary support group, including family circumstances",XXI Health status|Factors influencing health status
+Z72,Problems related to lifestyle,XXI Health status|Factors influencing health status
+Z76,Persons encountering health services in other circumstances,XXI Health status|Factors influencing health status
+Z85,Personal history of malignant neoplasm,XXI Health status|Factors influencing health status
+Z87,Personal history of other diseases and conditions,XXI Health status|Factors influencing health status
+Z90,Acquired absence of organs NEC,XXI Health status|Factors influencing health status
+Z95,Presence of cardiac and vascular implants and grafts,XXI Health status|Factors influencing health status
+Z96,Presence of other functional implants,XXI Health status|Factors influencing health status
+Z99,Dependence on enabling machines and devices NEC,XXI Health status|Factors influencing health status

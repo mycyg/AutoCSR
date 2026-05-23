@@ -222,8 +222,11 @@ def _apply_one(df, prop: CleansingProposal):
         return df
 
     if t == "map_to_cdisc":
-        # Deferred to M3; record but no-op so pipelines stay round-trippable
-        return df
+        try:
+            from app.cleansing.proposals.map_to_cdisc import apply_map_to_cdisc
+            return apply_map_to_cdisc(df, {**params, "target_columns": cols})
+        except Exception:
+            return df
 
     return df
 

@@ -15,7 +15,11 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
-AnalysisType = Literal["descriptive", "inferential", "survival", "safety", "custom"]
+AnalysisType = Literal[
+    "descriptive", "inferential", "survival", "safety", "custom",
+    # V2-E M14 advanced statistics
+    "multitest", "subgroup", "sensitivity", "consort", "baseline_balance",
+]
 
 
 class StatBlock(BaseModel):

@@ -6,13 +6,21 @@ import { connectProjectWS } from '@/api/ws'
 import StatBlockDrawer from '@/components/analyze/StatBlockDrawer.vue'
 import ManualAnalysisDialog from '@/components/analyze/ManualAnalysisDialog.vue'
 import DataAskPanel from '@/components/analyze/DataAskPanel.vue'
+import AdvancedAnalysisDialog from '@/components/analyze/AdvancedAnalysisDialog.vue'
 
 const props = defineProps<{ id: string }>()
 const analysis = useAnalysisStore()
 
 const drawerOpen = ref(false)
 const manualOpen = ref(false)
+const advancedOpen = ref(false)
+const advancedKind = ref<'' | 'multitest' | 'subgroup' | 'sensitivity' | 'consort' | 'baseline_balance'>('')
 let wsClose: (() => void) | null = null
+
+function openAdvanced(kind: 'multitest' | 'subgroup' | 'sensitivity' | 'consort' | 'baseline_balance'): void {
+  advancedKind.value = kind
+  advancedOpen.value = true
+}
 
 const typeColor: Record<string, string> = {
   descriptive: '',
@@ -20,6 +28,11 @@ const typeColor: Record<string, string> = {
   survival: 'warning',
   safety: 'danger',
   custom: 'info',
+  multitest: 'info',
+  subgroup: 'success',
+  sensitivity: 'warning',
+  consort: '',
+  baseline_balance: 'info',
 }
 
 const typeLabel: Record<string, string> = {
@@ -28,6 +41,11 @@ const typeLabel: Record<string, string> = {
   survival: '生存分析',
   safety: '安全性',
   custom: '自定义',
+  multitest: '多重比较',
+  subgroup: '亚组分析',
+  sensitivity: '敏感性',
+  consort: 'CONSORT',
+  baseline_balance: '基线平衡',
 }
 
 const sortedBlocks = computed(() => [...analysis.blocks])
@@ -88,6 +106,18 @@ function fmtDate(s: string): string {
           自动分析（基于已清洗数据）
         </el-button>
         <el-button @click="manualOpen = true">手动新增分析</el-button>
+        <el-dropdown trigger="click" @command="(c: any) => openAdvanced(c)">
+          <el-button>高级分析<el-icon class="el-icon--right">▾</el-icon></el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="multitest">多重比较校正</el-dropdown-item>
+              <el-dropdown-item command="subgroup">亚组分析（森林图）</el-dropdown-item>
+              <el-dropdown-item command="sensitivity">敏感性分析（ITT/PP/LOCF/MMRM）</el-dropdown-item>
+              <el-dropdown-item command="consort">CONSORT 流程</el-dropdown-item>
+              <el-dropdown-item command="baseline_balance">基线平衡 SMD</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
       </div>
     </header>
 
@@ -140,6 +170,9 @@ function fmtDate(s: string): string {
     <StatBlockDrawer v-model:open="drawerOpen" :block="analysis.selected" />
     <ManualAnalysisDialog v-model:open="manualOpen" :project-id="props.id"
                           @submitted="onManualSubmit" />
+    <AdvancedAnalysisDialog v-model:open="advancedOpen" :project-id="props.id"
+                             :kind="advancedKind"
+                             @done="analysis.refresh(props.id)" />
   </div>
 </template>
 

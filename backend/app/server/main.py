@@ -15,6 +15,8 @@ from app.server.routes import (
     admin, alerts, comments, diff, health, import_csr, llm_ping, plan, projects,
     review, upload, ingest, cleansing, corpus, principles,
     analysis, outline, report, chat, export, sandbox,
+    # V2-E M14
+    coding, analysis_advanced,
 )
 from app.server.ws import router as ws_router
 
@@ -61,6 +63,9 @@ def create_app() -> FastAPI:
     app.include_router(alerts.router, prefix="/api")
     # V2-D M13 — CSR reverse-import
     app.include_router(import_csr.router, prefix="/api")
+    # V2-E M14 — medical coding + advanced stats + TLF export
+    app.include_router(coding.router, prefix="/api")
+    app.include_router(analysis_advanced.router, prefix="/api")
 
     # WebSocket hub (no /api prefix — exposed at /ws/{pid})
     app.include_router(ws_router)

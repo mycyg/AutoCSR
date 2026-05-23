@@ -1,0 +1,209 @@
+code,term,hierarchy
+718-7,Hemoglobin [Mass/volume] in Blood,Hematology|CBC
+4544-3,Hematocrit [Volume Fraction] of Blood by Automated count,Hematology|CBC
+789-8,Erythrocytes [#/volume] in Blood by Automated count,Hematology|CBC
+787-2,MCV [Entitic volume] by Automated count,Hematology|CBC
+785-6,MCH [Entitic mass] by Automated count,Hematology|CBC
+786-4,MCHC [Mass/volume] by Automated count,Hematology|CBC
+21000-5,Erythrocyte distribution width [Entitic volume] by Automated count,Hematology|CBC
+777-3,Platelets [#/volume] in Blood by Automated count,Hematology|CBC
+6690-2,Leukocytes [#/volume] in Blood by Automated count,Hematology|CBC
+770-8,Neutrophils/100 leukocytes in Blood by Automated count,Hematology|CBC
+736-9,Lymphocytes/100 leukocytes in Blood by Automated count,Hematology|CBC
+5905-5,Monocytes/100 leukocytes in Blood by Automated count,Hematology|CBC
+713-8,Eosinophils/100 leukocytes in Blood by Automated count,Hematology|CBC
+706-2,Basophils/100 leukocytes in Blood by Automated count,Hematology|CBC
+38518-7,Neutrophils [#/volume] in Blood by Automated count,Hematology|CBC
+5902-2,Prothrombin time (PT),Hematology|Coagulation
+6301-6,INR in Platelet poor plasma by Coagulation assay,Hematology|Coagulation
+14979-9,aPTT in Platelet poor plasma by Coagulation assay,Hematology|Coagulation
+3255-7,Fibrinogen [Mass/volume] in Platelet poor plasma by Coagulation assay,Hematology|Coagulation
+48065-7,D-dimer FEU [Mass/volume] in Platelet poor plasma,Hematology|Coagulation
+2345-7,Glucose [Mass/volume] in Serum or Plasma,Chemistry|Metabolic
+4548-4,Hemoglobin A1c/Hemoglobin.total in Blood,Chemistry|Metabolic
+2160-0,Creatinine [Mass/volume] in Serum or Plasma,Chemistry|Renal
+3094-0,Urea nitrogen [Mass/volume] in Serum or Plasma,Chemistry|Renal
+33914-3,Glomerular filtration rate/1.73 sq M.predicted by Creatinine-based formula (MDRD),Chemistry|Renal
+2823-3,Potassium [Moles/volume] in Serum or Plasma,Chemistry|Electrolytes
+2951-2,Sodium [Moles/volume] in Serum or Plasma,Chemistry|Electrolytes
+2075-0,Chloride [Moles/volume] in Serum or Plasma,Chemistry|Electrolytes
+1963-8,Bicarbonate [Moles/volume] in Serum or Plasma,Chemistry|Electrolytes
+17861-6,Calcium [Mass/volume] in Serum or Plasma,Chemistry|Electrolytes
+2777-1,Phosphate [Mass/volume] in Serum or Plasma,Chemistry|Electrolytes
+19123-9,Magnesium [Moles/volume] in Serum or Plasma,Chemistry|Electrolytes
+2885-2,Protein [Mass/volume] in Serum or Plasma,Chemistry|Liver
+1751-7,Albumin [Mass/volume] in Serum or Plasma,Chemistry|Liver
+10834-0,Globulin [Mass/volume] in Serum by Calculation,Chemistry|Liver
+1968-7,Bilirubin.direct [Mass/volume] in Serum or Plasma,Chemistry|Liver
+1975-2,Bilirubin.total [Mass/volume] in Serum or Plasma,Chemistry|Liver
+1742-6,Alanine aminotransferase (ALT) [Enzymatic activity/volume] in Serum or Plasma,Chemistry|Liver
+1920-8,Aspartate aminotransferase (AST) [Enzymatic activity/volume] in Serum or Plasma,Chemistry|Liver
+6768-6,Alkaline phosphatase [Enzymatic activity/volume] in Serum or Plasma,Chemistry|Liver
+2324-2,Gamma glutamyl transferase [Enzymatic activity/volume] in Serum or Plasma,Chemistry|Liver
+2532-0,Lactate dehydrogenase [Enzymatic activity/volume] in Serum or Plasma,Chemistry|Liver
+2157-6,Creatine kinase [Enzymatic activity/volume] in Serum or Plasma,Chemistry|Cardiac
+13969-1,Creatine kinase.MB [Mass/volume] in Serum or Plasma,Chemistry|Cardiac
+10839-9,Troponin I.cardiac [Mass/volume] in Serum or Plasma,Chemistry|Cardiac
+33762-6,NT-proBNP [Mass/volume] in Serum or Plasma,Chemistry|Cardiac
+2093-3,Cholesterol [Mass/volume] in Serum or Plasma,Chemistry|Lipids
+2571-8,Triglyceride [Mass/volume] in Serum or Plasma,Chemistry|Lipids
+2085-9,Cholesterol in HDL [Mass/volume] in Serum or Plasma,Chemistry|Lipids
+13457-7,Cholesterol in LDL [Mass/volume] in Serum or Plasma by calculation,Chemistry|Lipids
+3043-7,Lactate [Mass/volume] in Serum or Plasma,Chemistry|Other
+3016-3,Thyrotropin [Units/volume] in Serum or Plasma,Endocrine|Thyroid
+3024-7,Thyroxine (T4) free [Mass/volume] in Serum or Plasma,Endocrine|Thyroid
+3051-0,Triiodothyronine (T3) free [Mass/volume] in Serum or Plasma,Endocrine|Thyroid
+2986-8,Testosterone [Mass/volume] in Serum or Plasma,Endocrine|Sex hormones
+83088-6,Estradiol [Mass/volume] in Serum or Plasma,Endocrine|Sex hormones
+2243-4,Estriol [Mass/volume] in Serum or Plasma,Endocrine|Sex hormones
+19080-1,Estradiol panel - Serum or Plasma,Endocrine|Sex hormones
+2839-9,Progesterone [Mass/volume] in Serum or Plasma,Endocrine|Sex hormones
+2842-3,Prolactin [Mass/volume] in Serum or Plasma,Endocrine|Sex hormones
+1988-5,C reactive protein [Mass/volume] in Serum or Plasma,Chemistry|Inflammation
+4537-7,Erythrocyte sedimentation rate (ESR) by Westergren,Hematology|Inflammation
+48421-2,Procalcitonin [Mass/volume] in Serum or Plasma,Chemistry|Inflammation
+5811-5,Specific gravity of Urine by Test strip,Urinalysis
+5803-2,pH of Urine by Test strip,Urinalysis
+5804-0,Protein [Mass/volume] in Urine by Test strip,Urinalysis
+5792-7,Glucose [Mass/volume] in Urine by Test strip,Urinalysis
+5797-6,Ketones [Mass/volume] in Urine by Test strip,Urinalysis
+5794-3,Hemoglobin [Mass/volume] in Urine by Test strip,Urinalysis
+5802-4,Nitrite [Mass/volume] in Urine by Test strip,Urinalysis
+5799-2,Leukocyte esterase [Mass/volume] in Urine by Test strip,Urinalysis
+2161-8,Creatinine [Mass/volume] in Urine,Urinalysis
+13986-5,Albumin/Creatinine [Mass Ratio] in Urine,Urinalysis
+2890-2,Albumin [Mass/volume] in 24 hour Urine,Urinalysis
+32623-1,Hepatitis B virus surface Ag [Presence] in Serum,Microbiology|Hepatitis
+13954-3,Hepatitis B virus core Ab [Presence] in Serum,Microbiology|Hepatitis
+13955-0,Hepatitis B virus DNA [#/volume] in Serum by NAA with probe detection,Microbiology|Hepatitis
+11259-9,Hepatitis C virus Ab [Presence] in Serum,Microbiology|Hepatitis
+38180-6,HIV 1+2 Ab+HIV1 p24 Ag [Presence] in Serum or Plasma,Microbiology|Viral
+94500-6,SARS-CoV-2 (COVID-19) RNA [Presence] in Respiratory specimen by NAA,Microbiology|Viral
+24323-8,Comprehensive metabolic 2000 panel - Serum or Plasma,Panels
+57021-8,CBC W Auto Differential panel - Blood,Panels
+57022-6,CBC W Differential panel - Blood,Panels
+24320-4,Basic metabolic 1998 panel - Serum or Plasma,Panels
+57698-3,Lipid panel with direct LDL - Serum or Plasma,Panels
+24356-8,Urinalysis complete panel - Urine,Panels
+24357-6,Urinalysis microscopic panel - Urine,Panels
+8867-4,Heart rate,Vital signs
+8480-6,Systolic blood pressure,Vital signs
+8462-4,Diastolic blood pressure,Vital signs
+8310-5,Body temperature,Vital signs
+9279-1,Respiratory rate,Vital signs
+2710-2,Oxygen saturation in Arterial blood by Pulse oximetry,Vital signs
+8302-2,Body height,Anthropometric
+29463-7,Body weight,Anthropometric
+39156-5,Body mass index (BMI) [Ratio],Anthropometric
+8277-6,Body surface area,Anthropometric
+3137-7,Body height measured,Anthropometric
+3141-9,Body weight measured,Anthropometric
+1986-9,Alpha-1-fetoprotein [Mass/volume] in Serum or Plasma,Chemistry|Tumor markers
+2030-5,Carcinoembryonic Ag [Mass/volume] in Serum or Plasma,Chemistry|Tumor markers
+83112-4,CA 125 [Units/volume] in Serum or Plasma,Chemistry|Tumor markers
+83113-2,CA 19-9 [Units/volume] in Serum or Plasma,Chemistry|Tumor markers
+83114-0,CA 15-3 [Units/volume] in Serum or Plasma,Chemistry|Tumor markers
+2857-1,Prostate specific Ag [Mass/volume] in Serum or Plasma,Chemistry|Tumor markers
+2498-4,Iron [Mass/volume] in Serum or Plasma,Hematology|Iron studies
+2500-7,Iron binding capacity [Mass/volume] in Serum or Plasma,Hematology|Iron studies
+2501-5,Iron saturation [Mass Fraction] in Serum or Plasma,Hematology|Iron studies
+2276-4,Ferritin [Mass/volume] in Serum or Plasma,Hematology|Iron studies
+2132-9,Vitamin B12 [Mass/volume] in Serum or Plasma,Hematology|Vitamins
+2284-8,Folate [Mass/volume] in Serum or Plasma,Hematology|Vitamins
+1989-3,25-Hydroxycholecalciferol [Mass/volume] in Serum or Plasma,Endocrine|Vitamin D
+2019-8,Carbon dioxide [Partial pressure] in Arterial blood,Chemistry|Blood gas
+2703-7,Oxygen [Partial pressure] in Arterial blood,Chemistry|Blood gas
+2744-1,pH of Arterial blood,Chemistry|Blood gas
+1959-6,Bicarbonate [Moles/volume] in Arterial blood,Chemistry|Blood gas
+11556-8,Base excess in Arterial blood,Chemistry|Blood gas
+3187-2,Coagulation factor II actual/normal in Platelet poor plasma,Hematology|Coagulation
+13965-9,Microscopic observation [Identifier] in Urine sediment,Urinalysis
+3091-6,Urate [Mass/volume] in Serum or Plasma,Chemistry|Metabolic
+2885-2,Total protein [Mass/volume] in Serum or Plasma,Chemistry|Liver
+3091-6,Uric acid [Mass/volume] in Serum or Plasma,Chemistry|Metabolic
+32309-7,Anion gap 4 in Serum or Plasma,Chemistry|Electrolytes
+44963-7,Estimated GFR by CKD-EPI formula,Chemistry|Renal
+47532-7,INR result interpretation,Hematology|Coagulation
+2516-3,"Carbon dioxide, total [Moles/volume] in Serum or Plasma",Chemistry|Electrolytes
+13965-9,Microalbumin/Creatinine ratio (Albumin/Creatinine),Urinalysis
+13458-5,"Cholesterol, non-HDL [Mass/volume] in Serum or Plasma",Chemistry|Lipids
+3026-2,Thyroxine (T4) total [Mass/volume] in Serum or Plasma,Endocrine|Thyroid
+3053-6,Triiodothyronine (T3) total [Mass/volume] in Serum or Plasma,Endocrine|Thyroid
+8061-4,Adrenocorticotropin [Mass/volume] in Plasma,Endocrine|Pituitary
+2143-6,Cortisol [Mass/volume] in Serum or Plasma,Endocrine|Adrenal
+83001-9,Vitamin D 25 hydroxy total [Mass/volume],Endocrine|Vitamin D
+2218-6,Insulin [Units/volume] in Serum or Plasma,Endocrine|Diabetes
+1492-8,Glucose [Mass/volume] in 2 hour post 75 g glucose PO Serum or Plasma,Endocrine|Diabetes
+32483-0,Hemoglobin A1c (NGSP),Endocrine|Diabetes
+32484-8,Hemoglobin A1c (IFCC),Endocrine|Diabetes
+3380-3,Digoxin [Mass/volume] in Serum or Plasma,TDM|Cardiac
+3431-4,Lithium [Moles/volume] in Serum or Plasma,TDM|Mental
+4049-3,Valproate [Mass/volume] in Serum or Plasma,TDM|Neurology
+3948-7,Phenytoin [Mass/volume] in Serum or Plasma,TDM|Neurology
+3382-9,Carbamazepine [Mass/volume] in Serum or Plasma,TDM|Neurology
+3493-4,Theophylline [Mass/volume] in Serum or Plasma,TDM|Respiratory
+4023-8,Tacrolimus [Mass/volume] in Blood,TDM|Immunosuppressant
+4022-0,Sirolimus [Mass/volume] in Blood,TDM|Immunosuppressant
+3974-3,Cyclosporine [Mass/volume] in Blood,TDM|Immunosuppressant
+3717-6,Methotrexate [Mass/volume] in Serum or Plasma,TDM|Oncology
+3987-5,Mycophenolate [Mass/volume] in Serum or Plasma,TDM|Immunosuppressant
+3548-5,Gentamicin [Mass/volume] in Serum or Plasma trough,TDM|Antibiotics
+3672-3,Vancomycin trough [Mass/volume] in Serum or Plasma,TDM|Antibiotics
+5630-9,Ethanol [Mass/volume] in Blood,Toxicology
+5640-8,Salicylates [Mass/volume] in Serum or Plasma,Toxicology
+3899-2,Acetaminophen [Mass/volume] in Serum or Plasma,Toxicology
+3596-4,Lead [Mass/volume] in Blood,Toxicology|Heavy metals
+600-7,Bacteria identified in Blood by Culture,Microbiology|Culture
+630-4,Bacteria identified in Urine by Culture,Microbiology|Culture
+6463-4,Bacteria identified in Sputum by Culture,Microbiology|Culture
+612-2,Bacteria identified in Stool by Culture,Microbiology|Culture
+17928-3,Sensitivity testing by Disk diffusion,Microbiology|Susceptibility
+13950-1,Hepatitis B virus surface Ab [Presence] in Serum,Microbiology|Hepatitis
+16128-1,Hepatitis A virus IgM Ab [Presence] in Serum,Microbiology|Hepatitis
+13952-7,Hepatitis B virus e Ag [Presence] in Serum,Microbiology|Hepatitis
+13955-0,HCV RNA [#/volume] in Serum or Plasma by NAA,Microbiology|Hepatitis
+48159-8,HIV 1 RNA [#/volume] (viral load) in Plasma by NAA,Microbiology|Viral
+49473-1,Epstein Barr virus DNA [#/volume] in Plasma by NAA,Microbiology|Viral
+21626-7,Cytomegalovirus DNA [#/volume] in Plasma by NAA,Microbiology|Viral
+19113-0,IgE [Mass/volume] in Serum,Immunology
+2458-8,IgA [Mass/volume] in Serum or Plasma,Immunology
+2465-3,IgG [Mass/volume] in Serum or Plasma,Immunology
+2472-9,IgM [Mass/volume] in Serum or Plasma,Immunology
+11572-5,Complement C3 [Mass/volume] in Serum or Plasma,Immunology
+4485-9,Complement C4 [Mass/volume] in Serum or Plasma,Immunology
+11580-8,Antinuclear Ab [Titer] in Serum by Immunofluorescence,Immunology|Autoimmune
+31041-7,Anti-cyclic citrullinated peptide Ab [Mass/volume] in Serum,Immunology|Autoimmune
+11572-5,Rheumatoid factor [Mass/volume] in Serum or Plasma,Immunology|Autoimmune
+30934-4,Troponin T.cardiac [Mass/volume] in Serum or Plasma,Chemistry|Cardiac
+89579-7,High sensitivity troponin I [Mass/volume] in Serum or Plasma,Chemistry|Cardiac
+30341-2,Erythrocyte sedimentation rate by Wintrobe,Hematology|Inflammation
+76770-3,High sensitivity CRP [Mass/volume] in Serum or Plasma,Chemistry|Inflammation
+2106-3,Chorionic gonadotropin [Units/volume] in Serum or Plasma,Endocrine|Pregnancy
+2842-3,Prolactin [Mass/volume],Endocrine|Pregnancy
+3045-2,Lactate [Moles/volume] in Arterial blood,Chemistry|Blood gas
+32554-8,Base excess in Venous blood,Chemistry|Blood gas
+33037-3,Haptoglobin [Mass/volume] in Serum or Plasma,Hematology|Iron studies
+4679-7,Reticulocytes [#/volume] in Blood,Hematology|CBC
+8625-6,Reticulocyte/100 erythrocytes in Blood,Hematology|CBC
+38483-4,Creatinine [Mass/volume] in Body fluid,Chemistry|Other
+36643-5,XR Chest 2 Views,Imaging|X-ray
+30746-2,CT Head W/O contrast,Imaging|CT
+30621-7,CT Chest W/O contrast,Imaging|CT
+30577-1,CT Abdomen W/O contrast,Imaging|CT
+24590-2,MRI Brain W/O contrast,Imaging|MRI
+36849-8,MRI Lumbar spine W/O contrast,Imaging|MRI
+39127-6,Echocardiography study,Imaging|US
+11524-6,Electrocardiogram (EKG),Diagnostic|ECG
+19868-9,FEV1 (forced expiratory volume in 1 second),Diagnostic|Spirometry
+19870-5,FVC (forced vital capacity),Diagnostic|Spirometry
+19926-5,FEV1/FVC,Diagnostic|Spirometry
+33452-4,Predicted FEV1,Diagnostic|Spirometry
+1968-7,Bilirubin.direct (conjugated),Chemistry|Liver
+1971-1,Bilirubin.indirect (unconjugated),Chemistry|Liver
+32623-1,Amylase [Enzymatic activity/volume] in Serum or Plasma,Chemistry|Pancreatic
+1798-8,Lipase [Enzymatic activity/volume] in Serum or Plasma,Chemistry|Pancreatic
+72514-3,Pain severity - 0-10 verbal numeric rating,Functional
+72172-0,Mini-mental state examination score,Functional
+94762-2,SARS-CoV-2 spike IgG Ab [Presence] in Serum,Microbiology|Viral
+94504-8,SARS-CoV-2 Ag [Presence] in Respiratory specimen,Microbiology|Viral
+94531-1,SARS-CoV-2 RNA panel - Respiratory specimen,Microbiology|Viral

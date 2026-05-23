@@ -3,6 +3,8 @@ import { computed, ref, watch } from 'vue'
 import { MdPreview } from 'md-editor-v3'
 import 'md-editor-v3/lib/preview.css'
 import type { StatBlockDTO } from '@/api/rest'
+import SubgroupForest from '@/components/analyze/SubgroupForest.vue'
+import ConsortFlow from '@/components/analyze/ConsortFlow.vue'
 
 const props = defineProps<{ open: boolean; block: StatBlockDTO | null }>()
 const emit = defineEmits<{ (e: 'update:open', v: boolean): void }>()
@@ -45,6 +47,19 @@ function refCopy(): void {
     void navigator.clipboard.writeText(props.block.ref_code)
   }
 }
+
+const subgroupRows = computed(() => {
+  const b = props.block
+  if (!b || b.analysis_type !== 'subgroup') return null
+  const rows = (b.result_json as any)?.rows
+  return Array.isArray(rows) ? rows : null
+})
+const consortPayload = computed(() => {
+  const b = props.block
+  if (!b || b.analysis_type !== 'consort') return null
+  const rj = (b.result_json as any) || {}
+  return rj.stages ? { stages: rj.stages, arms: rj.arms || [], mermaid: rj.mermaid || '' } : null
+})
 </script>
 
 <template>
@@ -59,6 +74,15 @@ function refCopy(): void {
       </div>
     </template>
     <div v-if="block" class="body">
+      <section v-if="subgroupRows" class="card">
+        <h4>森林图（亚组）</h4>
+        <SubgroupForest :rows="subgroupRows" />
+      </section>
+      <section v-if="consortPayload" class="card">
+        <h4>CONSORT 受试者流程</h4>
+        <ConsortFlow :stages="consortPayload.stages" :arms="consortPayload.arms"
+                     :mermaid="consortPayload.mermaid" />
+      </section>
       <section class="card">
         <h4>渲染后表格
           <span v-if="paged.total > 20" class="muted">

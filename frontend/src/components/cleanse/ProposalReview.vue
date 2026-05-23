@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import type { DataProfileDTO, IngestResultDTO, ProposalDTO } from '@/api/rest'
 import { getIngestResult } from '@/api/rest'
+import CodingMapDrawer from '@/components/cleanse/CodingMapDrawer.vue'
 
 const props = defineProps<{
   projectId: string
@@ -84,6 +85,28 @@ const sortedProposals = computed(() => [...props.proposals].sort((a, b) => {
   const order: Record<string, number> = { pending: 0, edited: 1, accepted: 2, rejected: 3, applied: 4 }
   return (order[a.status] ?? 9) - (order[b.status] ?? 9)
 }))
+
+// CodingMapDrawer wiring (M14)
+const drawerOpen = ref(false)
+const drawerProposal = ref<ProposalDTO | null>(null)
+
+function openCodingDrawer(p: ProposalDTO): void {
+  drawerProposal.value = p
+  drawerOpen.value = true
+}
+
+function applyCodingSelections(selections: Record<string, string>): void {
+  if (!drawerProposal.value) return
+  const params = {
+    ...(drawerProposal.value.parameters as Record<string, unknown>),
+    user_selections: selections,
+  }
+  emit('patch', drawerProposal.value.id, {
+    parameters: params,
+    status: Object.keys(selections).length ? 'accepted' : 'edited',
+  })
+  ElMessage.success(`已选定 ${Object.keys(selections).length} 个 term`)
+}
 </script>
 
 <template>
@@ -126,12 +149,16 @@ const sortedProposals = computed(() => [...props.proposals].sort((a, b) => {
                    :disabled="p.status === 'applied'"
                    @click="accept(p)">接受</el-button>
         <el-button size="small" @click="startEdit(p)" :disabled="p.status === 'applied'">编辑参数</el-button>
+        <el-button v-if="p.type === 'map_to_cdisc'" size="small" type="primary" plain
+                   :disabled="p.status === 'applied'"
+                   @click="openCodingDrawer(p)">查字典</el-button>
         <el-button size="small" type="danger" :disabled="p.mandatory || p.status === 'applied'"
                    @click="reject(p)">
           {{ p.mandatory ? '强制保留' : '拒绝' }}
         </el-button>
       </div>
     </div>
+    <CodingMapDrawer v-model:open="drawerOpen" :proposal="drawerProposal" @apply="applyCodingSelections" />
   </div>
 </template>
 

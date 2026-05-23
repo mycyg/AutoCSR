@@ -1,0 +1,324 @@
+code,term,hierarchy
+A,Alimentary tract and metabolism,
+B,Blood and blood forming organs,
+C,Cardiovascular system,
+D,Dermatologicals,
+G,Genito urinary system and sex hormones,
+H,"Systemic hormonal preparations, excl. sex hormones and insulins",
+J,Antiinfectives for systemic use,
+L,Antineoplastic and immunomodulating agents,
+M,Musculo-skeletal system,
+N,Nervous system,
+P,"Antiparasitic products, insecticides and repellents",
+R,Respiratory system,
+S,Sensory organs,
+V,Various,
+A01,Stomatological preparations,A
+A02,Drugs for acid related disorders,A
+A03,Drugs for functional gastrointestinal disorders,A
+A04,Antiemetics and antinauseants,A
+A05,Bile and liver therapy,A
+A06,Drugs for constipation,A
+A07,"Antidiarrheals, intestinal antiinflammatory/antiinfective agents",A
+A08,"Antiobesity preparations, excl. diet products",A
+A09,"Digestives, incl. enzymes",A
+A10,Drugs used in diabetes,A
+A11,Vitamins,A
+A12,Mineral supplements,A
+A14,Anabolic agents for systemic use,A
+A16,Other alimentary tract and metabolism products,A
+A02BC01,Omeprazole,A|A02|A02B|A02BC
+A02BC02,Pantoprazole,A|A02|A02B|A02BC
+A02BC03,Lansoprazole,A|A02|A02B|A02BC
+A02BC05,Esomeprazole,A|A02|A02B|A02BC
+A02BA02,Ranitidine,A|A02|A02B|A02BA
+A02BA03,Famotidine,A|A02|A02B|A02BA
+A03FA01,Metoclopramide,A|A03|A03F|A03FA
+A04AA01,Ondansetron,A|A04|A04A|A04AA
+A04AA02,Granisetron,A|A04|A04A|A04AA
+A04AA05,Palonosetron,A|A04|A04A|A04AA
+A06AB02,Bisacodyl,A|A06|A06A|A06AB
+A06AD11,Lactulose,A|A06|A06A|A06AD
+A07EC01,Sulfasalazine,A|A07|A07E|A07EC
+A07EC02,Mesalazine,A|A07|A07E|A07EC
+A10BA02,Metformin,A|A10|A10B|A10BA
+A10BB01,Glibenclamide,A|A10|A10B|A10BB
+A10BB07,Glipizide,A|A10|A10B|A10BB
+A10BB09,Gliclazide,A|A10|A10B|A10BB
+A10BB12,Glimepiride,A|A10|A10B|A10BB
+A10BD07,Metformin and sitagliptin,A|A10|A10B|A10BD
+A10BG01,Troglitazone,A|A10|A10B|A10BG
+A10BG02,Rosiglitazone,A|A10|A10B|A10BG
+A10BG03,Pioglitazone,A|A10|A10B|A10BG
+A10BH01,Sitagliptin,A|A10|A10B|A10BH
+A10BH02,Vildagliptin,A|A10|A10B|A10BH
+A10BJ01,Exenatide,A|A10|A10B|A10BJ
+A10BJ02,Liraglutide,A|A10|A10B|A10BJ
+A10BJ05,Dulaglutide,A|A10|A10B|A10BJ
+A10BJ06,Semaglutide,A|A10|A10B|A10BJ
+A10BK01,Dapagliflozin,A|A10|A10B|A10BK
+A10BK02,Canagliflozin,A|A10|A10B|A10BK
+A10BK03,Empagliflozin,A|A10|A10B|A10BK
+A10AB01,Insulin (human) – short acting,A|A10|A10A|A10AB
+A10AC01,Insulin (human) – intermediate acting,A|A10|A10A|A10AC
+A10AE04,Insulin glargine,A|A10|A10A|A10AE
+A10AE05,Insulin detemir,A|A10|A10A|A10AE
+A11CC05,Colecalciferol,A|A11|A11C|A11CC
+A12AA04,Calcium carbonate,A|A12|A12A|A12AA
+B01,Antithrombotic agents,B
+B02,Antihemorrhagics,B
+B03,Antianemic preparations,B
+B05,Blood substitutes and perfusion solutions,B
+B06,Other haematological agents,B
+B01AA03,Warfarin,B|B01|B01A|B01AA
+B01AB01,Heparin,B|B01|B01A|B01AB
+B01AB04,Dalteparin,B|B01|B01A|B01AB
+B01AB05,Enoxaparin,B|B01|B01A|B01AB
+B01AC04,Clopidogrel,B|B01|B01A|B01AC
+B01AC06,Acetylsalicylic acid,B|B01|B01A|B01AC
+B01AC22,Prasugrel,B|B01|B01A|B01AC
+B01AC24,Ticagrelor,B|B01|B01A|B01AC
+B01AE07,Dabigatran etexilate,B|B01|B01A|B01AE
+B01AF01,Rivaroxaban,B|B01|B01A|B01AF
+B01AF02,Apixaban,B|B01|B01A|B01AF
+B01AF03,Edoxaban,B|B01|B01A|B01AF
+B02BX04,Romiplostim,B|B02|B02B|B02BX
+B03AA02,Ferrous fumarate,B|B03|B03A|B03AA
+B03AA07,Ferrous sulfate,B|B03|B03A|B03AA
+B03BA01,Cyanocobalamin,B|B03|B03B|B03BA
+B03BB01,Folic acid,B|B03|B03B|B03BB
+B03XA01,Erythropoietin,B|B03|B03X|B03XA
+B03XA02,Darbepoetin alfa,B|B03|B03X|B03XA
+C01,Cardiac therapy,C
+C02,Antihypertensives,C
+C03,Diuretics,C
+C04,Peripheral vasodilators,C
+C05,Vasoprotectives,C
+C07,Beta blocking agents,C
+C08,Calcium channel blockers,C
+C09,Agents acting on the renin-angiotensin system,C
+C10,Lipid modifying agents,C
+C01AA05,Digoxin,C|C01|C01A|C01AA
+C01BD01,Amiodarone,C|C01|C01B|C01BD
+C01CA04,Dopamine,C|C01|C01C|C01CA
+C01CA07,Dobutamine,C|C01|C01C|C01CA
+C01CA24,Epinephrine,C|C01|C01C|C01CA
+C01EB17,Ivabradine,C|C01|C01E|C01EB
+C03AA03,Hydrochlorothiazide,C|C03|C03A|C03AA
+C03BA04,Chlortalidone,C|C03|C03B|C03BA
+C03CA01,Furosemide,C|C03|C03C|C03CA
+C03CA02,Bumetanide,C|C03|C03C|C03CA
+C03DA01,Spironolactone,C|C03|C03D|C03DA
+C03DA04,Eplerenone,C|C03|C03D|C03DA
+C07AA05,Propranolol,C|C07|C07A|C07AA
+C07AB02,Metoprolol,C|C07|C07A|C07AB
+C07AB03,Atenolol,C|C07|C07A|C07AB
+C07AB07,Bisoprolol,C|C07|C07A|C07AB
+C07AB12,Nebivolol,C|C07|C07A|C07AB
+C07AG01,Labetalol,C|C07|C07A|C07AG
+C07AG02,Carvedilol,C|C07|C07A|C07AG
+C08CA01,Amlodipine,C|C08|C08C|C08CA
+C08CA05,Nifedipine,C|C08|C08C|C08CA
+C08CA13,Lercanidipine,C|C08|C08C|C08CA
+C08DA01,Verapamil,C|C08|C08D|C08DA
+C08DB01,Diltiazem,C|C08|C08D|C08DB
+C09AA01,Captopril,C|C09|C09A|C09AA
+C09AA02,Enalapril,C|C09|C09A|C09AA
+C09AA03,Lisinopril,C|C09|C09A|C09AA
+C09AA05,Ramipril,C|C09|C09A|C09AA
+C09AA08,Cilazapril,C|C09|C09A|C09AA
+C09AA10,Trandolapril,C|C09|C09A|C09AA
+C09CA01,Losartan,C|C09|C09C|C09CA
+C09CA03,Valsartan,C|C09|C09C|C09CA
+C09CA06,Candesartan,C|C09|C09C|C09CA
+C09CA07,Telmisartan,C|C09|C09C|C09CA
+C09CA08,Olmesartan medoxomil,C|C09|C09C|C09CA
+C09DX04,Sacubitril and valsartan,C|C09|C09D|C09DX
+C10AA01,Simvastatin,C|C10|C10A|C10AA
+C10AA02,Lovastatin,C|C10|C10A|C10AA
+C10AA03,Pravastatin,C|C10|C10A|C10AA
+C10AA04,Fluvastatin,C|C10|C10A|C10AA
+C10AA05,Atorvastatin,C|C10|C10A|C10AA
+C10AA07,Rosuvastatin,C|C10|C10A|C10AA
+C10AA08,Pitavastatin,C|C10|C10A|C10AA
+C10AB04,Gemfibrozil,C|C10|C10A|C10AB
+C10AB05,Fenofibrate,C|C10|C10A|C10AB
+C10AX09,Ezetimibe,C|C10|C10A|C10AX
+C10AX13,Evolocumab,C|C10|C10A|C10AX
+J01,Antibacterials for systemic use,J
+J02,Antimycotics for systemic use,J
+J04,Antimycobacterials,J
+J05,Antivirals for systemic use,J
+J06,Immune sera and immunoglobulins,J
+J07,Vaccines,J
+J01AA02,Doxycycline,J|J01|J01A|J01AA
+J01AA07,Tetracycline,J|J01|J01A|J01AA
+J01CA04,Amoxicillin,J|J01|J01C|J01CA
+J01CA08,Pivmecillinam,J|J01|J01C|J01CA
+J01CE02,Phenoxymethylpenicillin,J|J01|J01C|J01CE
+J01CR02,Amoxicillin and beta-lactamase inhibitor,J|J01|J01C|J01CR
+J01CR05,Piperacillin and beta-lactamase inhibitor,J|J01|J01C|J01CR
+J01DB01,Cefalexin,J|J01|J01D|J01DB
+J01DC02,Cefuroxime,J|J01|J01D|J01DC
+J01DD04,Ceftriaxone,J|J01|J01D|J01DD
+J01DD08,Cefixime,J|J01|J01D|J01DD
+J01DH02,Meropenem,J|J01|J01D|J01DH
+J01DH51,Imipenem and cilastatin,J|J01|J01D|J01DH
+J01EE01,Sulfamethoxazole and trimethoprim,J|J01|J01E|J01EE
+J01FA01,Erythromycin,J|J01|J01F|J01FA
+J01FA09,Clarithromycin,J|J01|J01F|J01FA
+J01FA10,Azithromycin,J|J01|J01F|J01FA
+J01FF01,Clindamycin,J|J01|J01F|J01FF
+J01GB03,Gentamicin,J|J01|J01G|J01GB
+J01GB06,Amikacin,J|J01|J01G|J01GB
+J01MA01,Ofloxacin,J|J01|J01M|J01MA
+J01MA02,Ciprofloxacin,J|J01|J01M|J01MA
+J01MA12,Levofloxacin,J|J01|J01M|J01MA
+J01MA14,Moxifloxacin,J|J01|J01M|J01MA
+J01XA01,Vancomycin,J|J01|J01X|J01XA
+J01XD01,Metronidazole,J|J01|J01X|J01XD
+J02AC01,Fluconazole,J|J02|J02A|J02AC
+J02AC03,Voriconazole,J|J02|J02A|J02AC
+J02AC04,Posaconazole,J|J02|J02A|J02AC
+J04AB02,Rifampicin,J|J04|J04A|J04AB
+J04AC01,Isoniazid,J|J04|J04A|J04AC
+J05AB01,Aciclovir,J|J05|J05A|J05AB
+J05AB14,Valganciclovir,J|J05|J05A|J05AB
+J05AF05,Lamivudine,J|J05|J05A|J05AF
+J05AF07,Tenofovir disoproxil,J|J05|J05A|J05AF
+J05AH02,Oseltamivir,J|J05|J05A|J05AH
+J05AP01,Ribavirin,J|J05|J05A|J05AP
+J05AP07,Sofosbuvir,J|J05|J05A|J05AP
+J05AR03,Tenofovir disoproxil and emtricitabine,J|J05|J05A|J05AR
+L01,Antineoplastic agents,L
+L02,Endocrine therapy,L
+L03,Immunostimulants,L
+L04,Immunosuppressants,L
+L01AA01,Cyclophosphamide,L|L01|L01A|L01AA
+L01AA02,Chlorambucil,L|L01|L01A|L01AA
+L01BA01,Methotrexate,L|L01|L01B|L01BA
+L01BC02,Fluorouracil,L|L01|L01B|L01BC
+L01BC06,Capecitabine,L|L01|L01B|L01BC
+L01CB01,Etoposide,L|L01|L01C|L01CB
+L01CD01,Paclitaxel,L|L01|L01C|L01CD
+L01CD02,Docetaxel,L|L01|L01C|L01CD
+L01XA01,Cisplatin,L|L01|L01X|L01XA
+L01XA02,Carboplatin,L|L01|L01X|L01XA
+L01XA03,Oxaliplatin,L|L01|L01X|L01XA
+L01XC02,Rituximab,L|L01|L01X|L01XC
+L01XC03,Trastuzumab,L|L01|L01X|L01XC
+L01XC07,Bevacizumab,L|L01|L01X|L01XC
+L01XC08,Panitumumab,L|L01|L01X|L01XC
+L01XC17,Nivolumab,L|L01|L01X|L01XC
+L01XC18,Pembrolizumab,L|L01|L01X|L01XC
+L01XE01,Imatinib,L|L01|L01X|L01XE
+L01XE03,Erlotinib,L|L01|L01X|L01XE
+L01XE07,Lapatinib,L|L01|L01X|L01XE
+L01XE13,Afatinib,L|L01|L01X|L01XE
+L02BA01,Tamoxifen,L|L02|L02B|L02BA
+L02BB03,Bicalutamide,L|L02|L02B|L02BB
+L02BG03,Anastrozole,L|L02|L02B|L02BG
+L02BG04,Letrozole,L|L02|L02B|L02BG
+L02BG06,Exemestane,L|L02|L02B|L02BG
+L03AB07,Interferon beta-1a,L|L03|L03A|L03AB
+L04AA13,Leflunomide,L|L04|L04A|L04AA
+L04AA27,Fingolimod,L|L04|L04A|L04AA
+L04AD01,Ciclosporin,L|L04|L04A|L04AD
+L04AD02,Tacrolimus,L|L04|L04A|L04AD
+L04AX01,Azathioprine,L|L04|L04A|L04AX
+L04AX03,Methotrexate (immunosuppressant),L|L04|L04A|L04AX
+N01,Anesthetics,N
+N02,Analgesics,N
+N03,Antiepileptics,N
+N04,Anti-Parkinson drugs,N
+N05,Psycholeptics,N
+N06,Psychoanaleptics,N
+N07,Other nervous system drugs,N
+N02AA01,Morphine,N|N02|N02A|N02AA
+N02AA05,Oxycodone,N|N02|N02A|N02AA
+N02AB02,Pethidine,N|N02|N02A|N02AB
+N02AB03,Fentanyl,N|N02|N02A|N02AB
+N02AX02,Tramadol,N|N02|N02A|N02AX
+N02BA01,Acetylsalicylic acid (analgesic),N|N02|N02B|N02BA
+N02BE01,Paracetamol,N|N02|N02B|N02BE
+N03AB02,Phenytoin,N|N03|N03A|N03AB
+N03AF01,Carbamazepine,N|N03|N03A|N03AF
+N03AG01,Valproic acid,N|N03|N03A|N03AG
+N03AX09,Lamotrigine,N|N03|N03A|N03AX
+N03AX12,Gabapentin,N|N03|N03A|N03AX
+N03AX14,Levetiracetam,N|N03|N03A|N03AX
+N03AX16,Pregabalin,N|N03|N03A|N03AX
+N04BA02,Levodopa and decarboxylase inhibitor,N|N04|N04B|N04BA
+N04BC05,Pramipexole,N|N04|N04B|N04BC
+N05AA01,Chlorpromazine,N|N05|N05A|N05AA
+N05AD01,Haloperidol,N|N05|N05A|N05AD
+N05AH03,Olanzapine,N|N05|N05A|N05AH
+N05AH04,Quetiapine,N|N05|N05A|N05AH
+N05AX08,Risperidone,N|N05|N05A|N05AX
+N05AX12,Aripiprazole,N|N05|N05A|N05AX
+N05BA01,Diazepam,N|N05|N05B|N05BA
+N05BA04,Oxazepam,N|N05|N05B|N05BA
+N05BA06,Lorazepam,N|N05|N05B|N05BA
+N05BA12,Alprazolam,N|N05|N05B|N05BA
+N05CD08,Midazolam,N|N05|N05C|N05CD
+N05CF01,Zopiclone,N|N05|N05C|N05CF
+N05CF02,Zolpidem,N|N05|N05C|N05CF
+N06AA09,Amitriptyline,N|N06|N06A|N06AA
+N06AB03,Fluoxetine,N|N06|N06A|N06AB
+N06AB04,Citalopram,N|N06|N06A|N06AB
+N06AB05,Paroxetine,N|N06|N06A|N06AB
+N06AB06,Sertraline,N|N06|N06A|N06AB
+N06AB10,Escitalopram,N|N06|N06A|N06AB
+N06AX11,Mirtazapine,N|N06|N06A|N06AX
+N06AX16,Venlafaxine,N|N06|N06A|N06AX
+N06AX21,Duloxetine,N|N06|N06A|N06AX
+N06DA02,Donepezil,N|N06|N06D|N06DA
+N06DA03,Rivastigmine,N|N06|N06D|N06DA
+N06DX01,Memantine,N|N06|N06D|N06DX
+R01,Nasal preparations,R
+R03,Drugs for obstructive airway diseases,R
+R05,Cough and cold preparations,R
+R06,Antihistamines for systemic use,R
+R03AC02,Salbutamol,R|R03|R03A|R03AC
+R03AC03,Terbutaline,R|R03|R03A|R03AC
+R03AC12,Salmeterol,R|R03|R03A|R03AC
+R03AC13,Formoterol,R|R03|R03A|R03AC
+R03AC18,Indacaterol,R|R03|R03A|R03AC
+R03BA01,Beclometasone,R|R03|R03B|R03BA
+R03BA02,Budesonide,R|R03|R03B|R03BA
+R03BA05,Fluticasone,R|R03|R03B|R03BA
+R03BB01,Ipratropium bromide,R|R03|R03B|R03BB
+R03BB04,Tiotropium bromide,R|R03|R03B|R03BB
+R03DA04,Theophylline,R|R03|R03D|R03DA
+R03DC03,Montelukast,R|R03|R03D|R03DC
+R06AE07,Cetirizine,R|R06|R06A|R06AE
+R06AE09,Levocetirizine,R|R06|R06A|R06AE
+R06AX13,Loratadine,R|R06|R06A|R06AX
+R06AX27,Desloratadine,R|R06|R06A|R06AX
+R06AX26,Fexofenadine,R|R06|R06A|R06AX
+H02AB02,Dexamethasone,H|H02|H02A|H02AB
+H02AB06,Prednisolone,H|H02|H02A|H02AB
+H02AB07,Prednisone,H|H02|H02A|H02AB
+H02AB09,Hydrocortisone,H|H02|H02A|H02AB
+H02AB10,Cortisone,H|H02|H02A|H02AB
+H03AA01,Levothyroxine sodium,H|H03|H03A|H03AA
+H03BA02,Propylthiouracil,H|H03|H03B|H03BA
+H03BB02,Carbimazole,H|H03|H03B|H03BB
+H04AA01,Glucagon,H|H04|H04A|H04AA
+H05BA01,Calcitonin (salmon synthetic),H|H05|H05B|H05BA
+M01AB05,Diclofenac,M|M01|M01A|M01AB
+M01AE01,Ibuprofen,M|M01|M01A|M01AE
+M01AE02,Naproxen,M|M01|M01A|M01AE
+M01AH01,Celecoxib,M|M01|M01A|M01AH
+M01AH05,Etoricoxib,M|M01|M01A|M01AH
+M01CB01,Sodium aurothiomalate,M|M01|M01C|M01CB
+M04AA01,Allopurinol,M|M04|M04A|M04AA
+M04AA03,Febuxostat,M|M04|M04A|M04AA
+M05BA04,Alendronic acid,M|M05|M05B|M05BA
+M05BA08,Zoledronic acid,M|M05|M05B|M05BA
+D01AC01,Clotrimazole,D|D01|D01A|D01AC
+D06AX09,Mupirocin,D|D06|D06A|D06AX
+D07AB02,Hydrocortisone butyrate,D|D07|D07A|D07AB
+D07AC01,Betamethasone (topical),D|D07|D07A|D07AC
+D08AC02,Chlorhexidine,D|D08|D08A|D08AC
+D10AD01,Tretinoin,D|D10|D10A|D10AD

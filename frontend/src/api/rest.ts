@@ -224,7 +224,9 @@ export async function getPreview(pid: string, fileId: string, n = 50): Promise<{
 export interface StatBlockSummaryDTO {
   id: string
   project_id: string
-  analysis_type: 'descriptive' | 'inferential' | 'survival' | 'safety' | 'custom'
+  analysis_type:
+    | 'descriptive' | 'inferential' | 'survival' | 'safety' | 'custom'
+    | 'multitest' | 'subgroup' | 'sensitivity' | 'consort' | 'baseline_balance'
   title: string
   source_files: string[]
   created_at: string
@@ -857,6 +859,94 @@ export interface StateSummaryDTO {
 }
 export async function getStateSummary(pid: string): Promise<StateSummaryDTO> {
   return (await api.get(`/projects/${pid}/state_summary`)).data
+}
+
+// ---------------------------------------------------------------------------
+// V2-E (M14) — coding + advanced analysis + TLF export
+// ---------------------------------------------------------------------------
+
+export interface CodingSystemDTO {
+  id: string
+  name: string
+  version: string
+  source: string
+  license: string
+  available: boolean
+  n_codes: number
+  notes: string
+}
+export interface CodingCandidateDTO {
+  system: string
+  code: string
+  preferred_term: string
+  hierarchy: string[]
+  score: number
+}
+export async function listCodingSystems(): Promise<CodingSystemDTO[]> {
+  return (await api.get('/coding/systems')).data
+}
+export async function lookupCoding(
+  system: string, term: string, topK = 5,
+): Promise<{ system: string; term: string; candidates: CodingCandidateDTO[] }> {
+  return (await api.post('/coding/lookup', { system, term, top_k: topK })).data
+}
+export async function lookupCodingMany(
+  system: string, terms: string[], topK = 3,
+): Promise<{ system: string; results: Record<string, CodingCandidateDTO[]> }> {
+  return (await api.post('/coding/lookup_many', { system, terms, top_k: topK })).data
+}
+
+export interface AdvancedStatBlockDTO {
+  id: string
+  block?: Record<string, unknown>
+}
+
+export async function runMultitest(
+  pid: string, pValues: number[], method = 'fdr_bh', labels?: string[],
+): Promise<AdvancedStatBlockDTO> {
+  return (await api.post(`/projects/${pid}/analysis/multitest`,
+    { p_values: pValues, method, labels })).data
+}
+export async function runSubgroup(
+  pid: string, outcomeCol: string, groupCol: string,
+  subgroupCols: string[], fileId?: string,
+): Promise<AdvancedStatBlockDTO> {
+  return (await api.post(`/projects/${pid}/analysis/subgroup`,
+    { outcome_col: outcomeCol, group_col: groupCol,
+      subgroup_cols: subgroupCols, file_id: fileId })).data
+}
+export async function runSensitivity(
+  pid: string, outcomeCol: string, groupCol: string,
+  methods: string[] = ['itt','pp','locf','mmrm'], fileId?: string,
+): Promise<{ ids: string[]; n: number }> {
+  return (await api.post(`/projects/${pid}/analysis/sensitivity`,
+    { outcome_col: outcomeCol, group_col: groupCol,
+      methods, file_id: fileId })).data
+}
+export async function runConsort(pid: string): Promise<AdvancedStatBlockDTO> {
+  return (await api.post(`/projects/${pid}/analysis/consort`, {})).data
+}
+export async function runBaselineBalance(
+  pid: string, groupCol: string, vars: string[], fileId?: string,
+): Promise<AdvancedStatBlockDTO> {
+  return (await api.post(`/projects/${pid}/analysis/baseline_balance`,
+    { group_col: groupCol, vars, file_id: fileId })).data
+}
+
+export interface TLFExportRecordDTO {
+  filename: string
+  size_bytes: number
+  created_at: string
+  path: string
+}
+export async function runTlfExport(pid: string): Promise<{ filename: string; size_bytes: number }> {
+  return (await api.post(`/projects/${pid}/export/tlf`, null, { timeout: 300_000 })).data
+}
+export async function listTlfExports(pid: string): Promise<TLFExportRecordDTO[]> {
+  return (await api.get(`/projects/${pid}/exports/tlf`)).data
+}
+export function tlfDownloadUrl(pid: string, filename: string): string {
+  return `/api/projects/${pid}/exports/tlf/${encodeURIComponent(filename)}`
 }
 
 export default api

@@ -5,7 +5,9 @@ import { useExportStore } from '@/stores/export'
 import {
   exportDownloadUrl, getExportTemplateConfig, listExportTemplates,
   patchExportTemplateConfig, uploadExportTemplate,
-  type DocxTemplateConfigDTO, type ExportOptions, type UploadedTemplateDTO,
+  listTlfExports, runTlfExport, tlfDownloadUrl,
+  type DocxTemplateConfigDTO, type ExportOptions, type TLFExportRecordDTO,
+  type UploadedTemplateDTO,
 } from '@/api/rest'
 import { connectProjectWS } from '@/api/ws'
 
@@ -23,6 +25,25 @@ const opts = ref<ExportOptions>({
 const cfg = ref<DocxTemplateConfigDTO | null>(null)
 const uploadedTemplates = ref<UploadedTemplateDTO[]>([])
 const savingCfg = ref(false)
+const tlfHistory = ref<TLFExportRecordDTO[]>([])
+const tlfBuilding = ref(false)
+
+async function refreshTlf(): Promise<void> {
+  try { tlfHistory.value = await listTlfExports(props.id) } catch { tlfHistory.value = [] }
+}
+
+async function onBuildTlf(): Promise<void> {
+  tlfBuilding.value = true
+  try {
+    const r = await runTlfExport(props.id)
+    ElMessage.success(`${r.filename} (${(r.size_bytes / 1024).toFixed(1)} KB)`)
+    await refreshTlf()
+  } catch (e) {
+    ElMessage.error(e instanceof Error ? e.message : String(e))
+  } finally {
+    tlfBuilding.value = false
+  }
+}
 
 onMounted(async () => {
   await exportStore.refresh(props.id)
@@ -31,6 +52,7 @@ onMounted(async () => {
     cfg.value = await getExportTemplateConfig(props.id)
     uploadedTemplates.value = await listExportTemplates(props.id)
   } catch { /* harmless */ }
+  await refreshTlf()
 })
 
 onUnmounted(() => {
@@ -241,6 +263,29 @@ const previewHeadingStyle = computed(() => {
         </div>
       </el-collapse-item>
     </el-collapse>
+
+    <div class="panel">
+      <h3>TLF 包（Table-Listing-Figure）</h3>
+      <p class="hint">把项目内所有 StatBlock 打成 RTF + CSV + define-XML zip 给监管 QC 复核。</p>
+      <div class="trigger">
+        <el-button type="primary" :loading="tlfBuilding" @click="onBuildTlf">
+          {{ tlfBuilding ? '正在生成…' : '生成 TLF zip' }}
+        </el-button>
+      </div>
+      <el-table v-if="tlfHistory.length" :data="tlfHistory" size="small">
+        <el-table-column prop="filename" label="文件" />
+        <el-table-column label="大小" width="100">
+          <template #default="{ row }">{{ fmtSize(row.size_bytes) }}</template>
+        </el-table-column>
+        <el-table-column prop="created_at" label="创建时间" width="220" />
+        <el-table-column label="—" width="120">
+          <template #default="{ row }">
+            <el-link :href="tlfDownloadUrl(props.id, row.filename)" type="primary" target="_blank">⬇ 下载</el-link>
+          </template>
+        </el-table-column>
+      </el-table>
+      <p v-else class="empty">尚无 TLF 包导出记录</p>
+    </div>
 
     <div class="panel">
       <h3>{{ $t('export.history') }}</h3>
