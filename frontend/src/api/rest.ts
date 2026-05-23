@@ -6,6 +6,73 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
+// ---------------------------------------------------------------------------
+// M21 — JWT bearer injection + auto-refresh on 401.
+// We read tokens straight out of localStorage so this module does not
+// circularly import the pinia auth store.
+// ---------------------------------------------------------------------------
+const LS_ACCESS = 'autocsr.access_token'
+const LS_REFRESH = 'autocsr.refresh_token'
+
+api.interceptors.request.use((config) => {
+  // Skip auth header on auth endpoints (otherwise refresh w/ expired token loops).
+  const url = config.url || ''
+  if (url.startsWith('/auth/login') || url.startsWith('/auth/register')
+      || url.startsWith('/auth/refresh')) {
+    return config
+  }
+  const token = localStorage.getItem(LS_ACCESS)
+  if (token) {
+    config.headers = config.headers || {}
+    ;(config.headers as Record<string, string>)['Authorization'] = `Bearer ${token}`
+  }
+  return config
+})
+
+let _refreshing: Promise<boolean> | null = null
+
+async function _doRefresh(): Promise<boolean> {
+  if (_refreshing) return _refreshing
+  _refreshing = (async () => {
+    const rt = localStorage.getItem(LS_REFRESH)
+    if (!rt) return false
+    try {
+      const r = await axios.post('/api/auth/refresh', { refresh_token: rt },
+        { headers: { 'Content-Type': 'application/json' } })
+      const newAccess = r.data?.access_token
+      if (newAccess) {
+        localStorage.setItem(LS_ACCESS, newAccess)
+        return true
+      }
+    } catch { /* ignore */ }
+    return false
+  })().finally(() => { _refreshing = null })
+  return _refreshing
+}
+
+api.interceptors.response.use(
+  (resp) => resp,
+  async (err) => {
+    const cfg = err?.config || {}
+    const status = err?.response?.status
+    const url = cfg.url || ''
+    if (status === 401 && !cfg.__retried
+        && !url.startsWith('/auth/refresh') && !url.startsWith('/auth/login')) {
+      cfg.__retried = true
+      const ok = await _doRefresh()
+      if (ok) return api.request(cfg)
+      // refresh failed — drop credentials and let the router guard send the user to /login
+      localStorage.removeItem(LS_ACCESS)
+      localStorage.removeItem(LS_REFRESH)
+      localStorage.removeItem('autocsr.me')
+      if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+        window.location.assign('/login')
+      }
+    }
+    return Promise.reject(err)
+  },
+)
+
 export interface ProjectDTO {
   id: string
   name: string
@@ -1338,6 +1405,134 @@ export async function createSnapshot(pid: string, nodeId: string,
     const id = `${nodeId}-${Date.now()}`
     return { id, url: `${window.location.origin}/p/${pid}/report?node=${encodeURIComponent(nodeId)}` }
   }
+}
+
+// ---------------------------------------------------------------------------
+// M21 (v2.3) — auth + member ACL + reverse import + advanced viz
+// ---------------------------------------------------------------------------
+
+export interface ProjectMemberDTO {
+  project_id: string
+  user_id: string
+  role: 'owner' | 'editor' | 'reviewer' | 'viewer'
+  granted_at: string
+  granted_by: string
+  user?: { id: string; email: string; display_name: string } | null
+}
+
+export async function listProjectMembers(pid: string): Promise<ProjectMemberDTO[]> {
+  return (await api.get<ProjectMemberDTO[]>(`/projects/${pid}/members`)).data
+}
+
+export async function addProjectMember(pid: string, userId: string,
+                                          role: ProjectMemberDTO['role']): Promise<{ ok: boolean; member: ProjectMemberDTO }> {
+  return (await api.post(`/projects/${pid}/members`, { user_id: userId, role })).data
+}
+
+export async function patchProjectMember(pid: string, userId: string,
+                                            role: ProjectMemberDTO['role']): Promise<{ ok: boolean; member: ProjectMemberDTO }> {
+  return (await api.patch(`/projects/${pid}/members/${userId}`, { role })).data
+}
+
+export async function removeProjectMember(pid: string, userId: string): Promise<{ ok: boolean }> {
+  return (await api.delete(`/projects/${pid}/members/${userId}`)).data
+}
+
+export interface TenantUserDTO {
+  id: string
+  email: string
+  display_name: string
+  role: 'admin' | 'user'
+}
+
+export async function getTenantInfo(): Promise<{
+  tenant: { id: string; name: string; plan: string } | null
+  users: TenantUserDTO[]
+}> {
+  return (await api.get(`/tenant/me`)).data
+}
+
+// --- Reverse import --------------------------------------------------------
+
+export async function importProtocolPdf(pid: string, file: File): Promise<Record<string, unknown>> {
+  const fd = new FormData()
+  fd.append('file', file, file.name)
+  return (await api.post(`/projects/${pid}/import/protocol`, fd, {
+    headers: { 'Content-Type': 'multipart/form-data' }, timeout: 120_000,
+  })).data
+}
+export async function importSapDocx(pid: string, file: File): Promise<Record<string, unknown>> {
+  const fd = new FormData()
+  fd.append('file', file, file.name)
+  return (await api.post(`/projects/${pid}/import/sap`, fd, {
+    headers: { 'Content-Type': 'multipart/form-data' }, timeout: 120_000,
+  })).data
+}
+export async function importDefineXml(pid: string, file: File): Promise<Record<string, unknown>> {
+  const fd = new FormData()
+  fd.append('file', file, file.name)
+  return (await api.post(`/projects/${pid}/import/define`, fd, {
+    headers: { 'Content-Type': 'multipart/form-data' }, timeout: 120_000,
+  })).data
+}
+
+// --- Advanced viz ----------------------------------------------------------
+
+export async function runKmWithRisk(pid: string, body: {
+  file_id?: string; time_col?: string; event_col?: string;
+  group_col?: string; time_points?: number[]; parquet_path?: string
+} = {}): Promise<{ id: string; block: StatBlockDTO }> {
+  return (await api.post(`/projects/${pid}/analysis/km_with_risk`, body,
+    { timeout: 180_000 })).data
+}
+export async function runBlandAltman(pid: string, body: {
+  col_method1: string; col_method2: string; file_id?: string; parquet_path?: string
+}): Promise<{ id: string; block: StatBlockDTO }> {
+  return (await api.post(`/projects/${pid}/analysis/bland_altman`, body,
+    { timeout: 120_000 })).data
+}
+export async function runHeatmap(pid: string, body: {
+  row_col: string; col_col: string; value_col: string;
+  aggfunc?: string; file_id?: string; parquet_path?: string
+}): Promise<{ id: string; block: StatBlockDTO }> {
+  return (await api.post(`/projects/${pid}/analysis/heatmap`, body,
+    { timeout: 120_000 })).data
+}
+export async function runPkProfile3D(pid: string, body: {
+  subject_col?: string; time_col?: string; conc_col?: string;
+  file_id?: string; parquet_path?: string
+} = {}): Promise<{ id: string; block: StatBlockDTO }> {
+  return (await api.post(`/projects/${pid}/analysis/pk_profile_3d`, body,
+    { timeout: 120_000 })).data
+}
+
+// --- Dashboard -------------------------------------------------------------
+
+export interface DashboardCellDTO {
+  cell_id?: string
+  stat_id: string
+  title?: string
+  chart_type?: string
+  position: { x: number; y: number; w: number; h: number }
+}
+export interface DashboardConfigDTO {
+  id: string
+  project_id: string
+  name: string
+  layout: DashboardCellDTO[]
+  created_at: string
+  updated_at: string
+}
+export async function listDashboards(pid: string): Promise<DashboardConfigDTO[]> {
+  return (await api.get<DashboardConfigDTO[]>(`/projects/${pid}/dashboards`)).data
+}
+export async function createDashboard(pid: string, name: string,
+                                         layout: DashboardCellDTO[]): Promise<DashboardConfigDTO> {
+  return (await api.post<DashboardConfigDTO>(`/projects/${pid}/dashboard`,
+    { name, layout })).data
+}
+export async function deleteDashboard(pid: string, id: string): Promise<{ ok: boolean }> {
+  return (await api.delete(`/projects/${pid}/dashboard/${id}`)).data
 }
 
 export default api

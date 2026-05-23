@@ -50,3 +50,6 @@ class Project(BaseModel):
     language: str = "zh"
     notes: str | None = None
     template_id: str | None = None
+    # M21 (v2.3) additions — multi-tenant + creator stamp.
+    tenant_id: str = "default"
+    created_by: str | None = None

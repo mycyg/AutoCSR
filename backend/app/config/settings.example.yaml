@@ -57,3 +57,16 @@ queue:
 
 collab:
   dev_seed_users: true        # create demo_author/demo_reviewer/... on first boot
+
+# ---------------------------------------------------------------
+# M21 (v2.3) — JWT auth + multi-tenant
+# ---------------------------------------------------------------
+auth:
+  # When true (default), an unauthenticated request falls back to the
+  # X-User-Id header and synthesises a demo dev user if the header is
+  # absent.  Set this to ``false`` in production so /api routes require
+  # a valid JWT bearer token.
+  dev_mode: true
+  # jwt_secret is generated on first boot and persisted to settings.yaml
+  # (gitignored).  Do not commit a real secret here.
+  jwt_secret: ""

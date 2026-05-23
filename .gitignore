@@ -56,6 +56,13 @@ data/projects/*/keys/
 data/projects/*/signatures/
 data/users.json
 
+# M21 (v2.3) — multi-tenant runtime artefacts (per-installation)
+data/tenants.json
+data/tenants/
+data/auth/
+data.pre-tenant.bak/
+data/projects.json
+
 # V3-A M17 — generated SDKs (regenerate from live openapi.json)
 sdk/ts/
 sdk/py/

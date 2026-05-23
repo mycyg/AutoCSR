@@ -26,6 +26,11 @@ from app.server.routes import (
     backup,
     # M20 (v2.2) — sample projects + literature + polish + chart + formula
     sample_projects, literature_search, polish, chart_recommend,
+    # M21 (v2.3) — JWT auth + tenants + reverse import + advanced viz
+    auth as auth_routes,
+    import_aux,
+    analysis_viz,
+    dashboard as dashboard_routes,
 )
 from app.server.ws import router as ws_router
 
@@ -132,6 +137,11 @@ def create_app() -> FastAPI:
     app.include_router(literature_search.router, prefix="/api")
     app.include_router(polish.router, prefix="/api")
     app.include_router(chart_recommend.router, prefix="/api")
+    # M21 (v2.3) — auth + reverse import + advanced viz + dashboard
+    app.include_router(auth_routes.router, prefix="/api")
+    app.include_router(import_aux.router, prefix="/api")
+    app.include_router(analysis_viz.router, prefix="/api")
+    app.include_router(dashboard_routes.router, prefix="/api")
     try:
         from app.observability.metrics import router as metrics_router
         app.include_router(metrics_router)
@@ -148,6 +158,18 @@ def create_app() -> FastAPI:
     @app.on_event("startup")
     async def _log_startup() -> None:
         logger.info("server.start", settings=config_summary())
+        # M21 — make sure the default tenant exists + back-fill tenant_id on
+        # any legacy project records. This is idempotent and very cheap.
+        try:
+            from app.auth.models import ensure_default_tenant
+            ensure_default_tenant()
+        except Exception as e:  # noqa: BLE001
+            logger.warning("default_tenant_init_failed: %s", e)
+        try:
+            from scripts_helpers.multitenant import backfill_tenant_id
+            backfill_tenant_id()
+        except Exception as e:  # noqa: BLE001
+            logger.debug("backfill_tenant_id_skip: %s", e)
 
     # M17 — global exception bridge to the pluggable error_hook registry.
     # HTTPException stays untouched so 4xx aren't broadcast as runtime

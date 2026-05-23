@@ -50,6 +50,7 @@
     "review": "Review",
     "tasks": "Tasks",
     "export": "Export",
+    "dashboard": "Dashboard",
     "audit": "Audit",
     "next_hint": "Tip: finishing the current step unlocks the next."
   },

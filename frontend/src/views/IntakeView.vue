@@ -7,6 +7,7 @@ import { useIngestStore } from '@/stores/ingest'
 import { connectProjectWS } from '@/api/ws'
 import {
   commitCsrImport, importCsrDocx,
+  importDefineXml, importProtocolPdf, importSapDocx,
   type ImportCsrResultDTO, type ImportCsrSectionDTO,
 } from '@/api/rest'
 
@@ -17,7 +18,7 @@ const { t } = useI18n()
 
 const pending = ref<File[]>([])
 const uploading = ref(false)
-const tab = ref<'upload' | 'import'>('upload')
+const tab = ref<'upload' | 'import' | 'aux'>('upload')
 
 let wsClose: (() => void) | null = null
 let pollFallback = false
@@ -151,6 +152,37 @@ function toTree(sections: ImportCsrSectionDTO[]): TreeNode[] {
 const csrTree = computed<TreeNode[]>(() =>
   csrResult.value ? toTree(csrResult.value.root_sections) : []
 )
+
+// M21 — aux import (protocol / SAP / define.xml)
+const auxFiles = ref<{ protocol?: File; sap?: File; define?: File }>({})
+const auxBusy = ref<{ protocol?: boolean; sap?: boolean; define?: boolean }>({})
+const auxResult = ref<{ protocol?: Record<string, unknown>; sap?: Record<string, unknown>; define?: Record<string, unknown> }>({})
+
+function onAuxChosen(file: { raw?: File }, kind: 'protocol' | 'sap' | 'define') {
+  if (file?.raw) auxFiles.value = { ...auxFiles.value, [kind]: file.raw }
+}
+
+async function doAux(kind: 'protocol' | 'sap' | 'define') {
+  const f = auxFiles.value[kind]
+  if (!f) return
+  auxBusy.value = { ...auxBusy.value, [kind]: true }
+  try {
+    let res: Record<string, unknown>
+    if (kind === 'protocol') res = await importProtocolPdf(props.id, f)
+    else if (kind === 'sap') res = await importSapDocx(props.id, f)
+    else res = await importDefineXml(props.id, f)
+    auxResult.value = { ...auxResult.value, [kind]: res }
+    ElMessage.success(`${kind} imported`)
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.detail || `${kind} import failed`)
+  } finally {
+    auxBusy.value = { ...auxBusy.value, [kind]: false }
+  }
+}
+
+function formatAux(r: Record<string, unknown>): string {
+  try { return JSON.stringify(r, null, 2).slice(0, 800) } catch { return String(r) }
+}
 </script>
 
 <template>
@@ -248,6 +280,55 @@ const csrTree = computed<TreeNode[]>(() =>
           <el-tree :data="csrTree" node-key="id" default-expand-all />
         </div>
       </el-tab-pane>
+
+      <!-- M21 — auxiliary document import -->
+      <el-tab-pane label="导入辅助文档 / Aux import" name="aux">
+        <p class="hint">
+          Protocol PDF, SAP docx, or define.xml. Extracted metadata is
+          mirrored into the project corpus + outline stat_hints.
+        </p>
+        <div class="aux-grid">
+          <div class="aux-card">
+            <h4>Protocol (PDF)</h4>
+            <p class="muted">Extracts: study_id, phase, indication, treatment, endpoints, design, sample size.</p>
+            <el-upload :auto-upload="false" accept=".pdf"
+                        :on-change="(f: any) => onAuxChosen(f, 'protocol')"
+                        :show-file-list="false">
+              <el-button plain>{{ auxFiles.protocol?.name || 'Pick PDF' }}</el-button>
+            </el-upload>
+            <el-button type="primary" size="small" :loading="auxBusy.protocol"
+                        :disabled="!auxFiles.protocol" @click="doAux('protocol')"
+                        style="margin-top:8px">Import</el-button>
+            <pre v-if="auxResult.protocol" class="aux-out">{{ formatAux(auxResult.protocol) }}</pre>
+          </div>
+          <div class="aux-card">
+            <h4>SAP (DOCX)</h4>
+            <p class="muted">Walks headings, attaches analysis-section text as stat_hints.</p>
+            <el-upload :auto-upload="false" accept=".docx"
+                        :on-change="(f: any) => onAuxChosen(f, 'sap')"
+                        :show-file-list="false">
+              <el-button plain>{{ auxFiles.sap?.name || 'Pick DOCX' }}</el-button>
+            </el-upload>
+            <el-button type="primary" size="small" :loading="auxBusy.sap"
+                        :disabled="!auxFiles.sap" @click="doAux('sap')"
+                        style="margin-top:8px">Import</el-button>
+            <pre v-if="auxResult.sap" class="aux-out">{{ formatAux(auxResult.sap) }}</pre>
+          </div>
+          <div class="aux-card">
+            <h4>define.xml</h4>
+            <p class="muted">Loads ItemGroupDef / ItemDef → corpus notes.</p>
+            <el-upload :auto-upload="false" accept=".xml"
+                        :on-change="(f: any) => onAuxChosen(f, 'define')"
+                        :show-file-list="false">
+              <el-button plain>{{ auxFiles.define?.name || 'Pick XML' }}</el-button>
+            </el-upload>
+            <el-button type="primary" size="small" :loading="auxBusy.define"
+                        :disabled="!auxFiles.define" @click="doAux('define')"
+                        style="margin-top:8px">Import</el-button>
+            <pre v-if="auxResult.define" class="aux-out">{{ formatAux(auxResult.define) }}</pre>
+          </div>
+        </div>
+      </el-tab-pane>
     </el-tabs>
   </div>
 </template>
@@ -270,4 +351,12 @@ const csrTree = computed<TreeNode[]>(() =>
 .csr-result { margin-top: 12px; background: #fff; border-radius: 6px; padding: 14px 18px; }
 .csr-result h4 { margin: 0 0 10px 0; font-size: 14px; color: #1f2937; }
 .hint { color: #6b7280; font-size: 13px; margin-bottom: 12px; }
+.aux-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+.aux-card { background: #fff; border-radius: 6px; padding: 16px; border: 1px solid #e5e7eb; }
+.aux-card h4 { margin: 0 0 8px; font-size: 14px; color: #1f2937; }
+.aux-out {
+  background: #f3f4f6; padding: 8px; border-radius: 4px;
+  font-size: 11px; max-height: 220px; overflow: auto; white-space: pre-wrap;
+  word-break: break-all; margin-top: 8px;
+}
 </style>

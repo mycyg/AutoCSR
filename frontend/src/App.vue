@@ -9,7 +9,9 @@ import ShortcutsHelpModal from '@/components/global/ShortcutsHelpModal.vue'
 import GlobalSearchModal from '@/components/global/GlobalSearchModal.vue'
 import PIIWarningBanner from '@/components/global/PIIWarningBanner.vue'
 import UserSwitch from '@/components/global/UserSwitch.vue'
+import UserAvatar from '@/components/global/UserAvatar.vue'
 import TaskBadge from '@/components/global/TaskBadge.vue'
+import { useAuthStore } from '@/stores/auth'
 import TaskProgressOverlay from '@/components/global/TaskProgressOverlay.vue'
 import OnboardingTour from '@/components/global/OnboardingTour.vue'
 import HelpMenu from '@/components/global/HelpMenu.vue'
@@ -36,6 +38,7 @@ const steps = [
   { key: 'review', i18nKey: 'steps.review', path: 'review' },
   { key: 'tasks', i18nKey: 'steps.tasks', path: 'tasks' },
   { key: 'export', i18nKey: 'steps.export', path: 'export' },
+  { key: 'dashboard', i18nKey: 'steps.dashboard', path: 'dashboard' },
   { key: 'audit', i18nKey: 'steps.audit', path: 'audit' },
 ]
 
@@ -63,6 +66,11 @@ async function refreshChips(): Promise<void> {
 }
 onMounted(refreshChips)
 watch(projectId, refreshChips)
+
+// M21 — hydrate the JWT-resolved user (if any) on first paint so
+// UserAvatar shows the real account, not the dev fallback.
+const auth = useAuthStore()
+onMounted(() => { auth.fetchMe() })
 
 const activeKey = computed(() => {
   const n = String(route.name || '')
@@ -118,7 +126,8 @@ function goCommand(key: string): void {
         <el-tag v-if="blinded" type="primary" size="small">● {{ $t('common.status') }}</el-tag>
         <el-tag v-if="locked" type="warning" size="small">●</el-tag>
         <TaskBadge v-if="projectId" :project-id="projectId" />
-        <UserSwitch />
+        <UserSwitch v-if="!auth.isAuthenticated" />
+        <UserAvatar v-else />
         <LanguageSwitch />
         <ThemeToggle />
         <HelpMenu />

@@ -23,9 +23,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, Body, HTTPException, Query
+from fastapi import APIRouter, Body, Depends, HTTPException, Query
 
+from app.auth.middleware import get_current_user, ensure_permission
+from app.auth.models import User
 from app.config import data_dir
+from app.projects.manager import ensure_owner_member, project_record
 from app.projects.templates import get_template, list_templates
 from app.schemas.project import Project, ProjectCreate, ProjectUpdate
 
@@ -62,14 +65,17 @@ def _project_dir(pid: str) -> Path:
 
 
 def _normalize(item: dict[str, Any]) -> dict[str, Any]:
-    """Back-fill M12 fields on historical records so the API surface is
-    uniform regardless of when the project was created."""
+    """Back-fill M12 / M21 fields on historical records so the API surface
+    is uniform regardless of when the project was created."""
     item.setdefault("tags", [])
     item.setdefault("archived", False)
     item.setdefault("last_opened_at", None)
     item.setdefault("language", "zh")
     item.setdefault("notes", None)
     item.setdefault("template_id", None)
+    # M21 — multi-tenant back-fill.
+    item.setdefault("tenant_id", "default")
+    item.setdefault("created_by", None)
     return item
 
 
@@ -97,7 +103,8 @@ def list_templates_endpoint() -> list[dict[str, Any]]:
 
 
 @router.post("/projects/from_template/{template_id}", status_code=201)
-def create_from_template(template_id: str, body: dict = Body(default_factory=dict)) -> dict[str, Any]:
+def create_from_template(template_id: str, body: dict = Body(default_factory=dict),
+                          user: User = Depends(get_current_user)) -> dict[str, Any]:
     tpl = get_template(template_id)
     if tpl is None:
         raise HTTPException(status_code=404, detail=f"template {template_id} not found")
@@ -117,6 +124,8 @@ def create_from_template(template_id: str, body: dict = Body(default_factory=dic
         language=tpl.language or "zh",
         notes=tpl.notes,
         template_id=tpl.id,
+        tenant_id=user.tenant_id,
+        created_by=user.id,
     )
     with _LOCK:
         items = _load_all()
@@ -129,6 +138,11 @@ def create_from_template(template_id: str, body: dict = Body(default_factory=dic
     try:
         from app.state import default_machine
         default_machine.get_record(pid)
+    except Exception:
+        pass
+    # M21 — creator becomes the owner member.
+    try:
+        ensure_owner_member(pid, user.tenant_id, user.id)
     except Exception:
         pass
     return json.loads(proj.model_dump_json())
@@ -145,9 +159,12 @@ def list_projects(
     tag: str | None = Query(default=None),
     archived: bool | None = Query(default=None),
     sort: str = Query(default="last_opened"),
+    user: User = Depends(get_current_user),
 ) -> list[dict[str, Any]]:
     with _LOCK:
         items = [_normalize(dict(it)) for it in _load_all()]
+    # M21 — tenant isolation hard wall. Admins see all projects in their tenant.
+    items = [it for it in items if str(it.get("tenant_id") or "default") == user.tenant_id]
     # Filter
     if search:
         s_lc = search.lower()
@@ -176,7 +193,8 @@ def list_projects(
 
 
 @router.post("/projects", status_code=201)
-def create_project(body: ProjectCreate) -> dict[str, Any]:
+def create_project(body: ProjectCreate,
+                    user: User = Depends(get_current_user)) -> dict[str, Any]:
     pid = uuid.uuid4().hex[:12]
     proj = Project(
         id=pid,
@@ -187,6 +205,8 @@ def create_project(body: ProjectCreate) -> dict[str, Any]:
         language=(body.language or "zh"),
         notes=body.notes,
         template_id=body.template_id,
+        tenant_id=user.tenant_id,
+        created_by=user.id,
     )
     with _LOCK:
         items = _load_all()
@@ -203,14 +223,22 @@ def create_project(body: ProjectCreate) -> dict[str, Any]:
         default_machine.get_record(pid)
     except Exception:
         pass
+    # M21 — creator becomes the owner member.
+    try:
+        ensure_owner_member(pid, user.tenant_id, user.id)
+    except Exception:
+        pass
     return json.loads(proj.model_dump_json())
 
 
 @router.get("/projects/{pid}")
-def get_project(pid: str) -> dict[str, Any]:
+def get_project(pid: str,
+                 user: User = Depends(get_current_user)) -> dict[str, Any]:
     with _LOCK:
         for item in _load_all():
             if item.get("id") == pid:
+                tid = str(item.get("tenant_id") or "default")
+                ensure_permission(user, tid, pid, "read")
                 # Touch last_opened_at as a side effect of "opening".
                 _touch_last_opened(pid)
                 # Reload to surface the new last_opened value.
@@ -222,13 +250,16 @@ def get_project(pid: str) -> dict[str, Any]:
 
 
 @router.patch("/projects/{pid}")
-def update_project(pid: str, body: ProjectUpdate) -> dict[str, Any]:
+def update_project(pid: str, body: ProjectUpdate,
+                    user: User = Depends(get_current_user)) -> dict[str, Any]:
     patch = body.model_dump(exclude_unset=True)
     with _LOCK:
         items = _load_all()
         for it in items:
             if it.get("id") != pid:
                 continue
+            tid = str(it.get("tenant_id") or "default")
+            ensure_permission(user, tid, pid, "write")
             for k, v in patch.items():
                 it[k] = v
             _save_all(items)
@@ -237,12 +268,15 @@ def update_project(pid: str, body: ProjectUpdate) -> dict[str, Any]:
 
 
 @router.delete("/projects/{pid}")
-def delete_project(pid: str, force: bool = Query(default=False)) -> dict[str, Any]:
+def delete_project(pid: str, force: bool = Query(default=False),
+                    user: User = Depends(get_current_user)) -> dict[str, Any]:
     with _LOCK:
         items = _load_all()
         target = next((it for it in items if it.get("id") == pid), None)
         if target is None:
             raise HTTPException(status_code=404, detail=f"project {pid} not found")
+        tid = str(target.get("tenant_id") or "default")
+        ensure_permission(user, tid, pid, "delete")
         if not bool(target.get("archived")) and not force:
             raise HTTPException(
                 status_code=409,
@@ -395,3 +429,123 @@ def state_summary(pid: str) -> dict[str, Any]:
     if summary["review"]["done"] > 0 or summary["export"]["done"] > 0:
         current = "export"
     return {"steps": summary, "current_step": current}
+
+
+# ---------------------------------------------------------------------------
+# M21 — project-level membership (owner/editor/reviewer/viewer)
+# ---------------------------------------------------------------------------
+
+
+@router.get("/projects/{pid}/members")
+def list_project_members(pid: str,
+                           user: User = Depends(get_current_user)) -> list[dict[str, Any]]:
+    rec = project_record(pid)
+    if rec is None:
+        raise HTTPException(status_code=404, detail=f"project {pid} not found")
+    tid = str(rec.get("tenant_id") or "default")
+    ensure_permission(user, tid, pid, "read")
+    from app.auth.models import list_members, get_user_by_id
+    out: list[dict[str, Any]] = []
+    for m in list_members(tid, pid):
+        u = get_user_by_id(m.user_id)
+        out.append({
+            "project_id": m.project_id,
+            "user_id": m.user_id,
+            "role": m.role,
+            "granted_at": m.granted_at.isoformat() if hasattr(m.granted_at, "isoformat") else str(m.granted_at),
+            "granted_by": m.granted_by,
+            "user": {
+                "id": u.id if u else m.user_id,
+                "email": u.email if u else "",
+                "display_name": (u.display_name or u.name) if u else m.user_id,
+            } if u else None,
+        })
+    return out
+
+
+@router.post("/projects/{pid}/members", status_code=201)
+def add_project_member(pid: str, body: dict = Body(...),
+                        user: User = Depends(get_current_user)) -> dict[str, Any]:
+    rec = project_record(pid)
+    if rec is None:
+        raise HTTPException(status_code=404, detail=f"project {pid} not found")
+    tid = str(rec.get("tenant_id") or "default")
+    ensure_permission(user, tid, pid, "manage_members")
+    target_uid = str(body.get("user_id") or "").strip()
+    role = str(body.get("role") or "viewer")
+    if not target_uid:
+        raise HTTPException(status_code=400, detail="user_id required")
+    if role not in ("owner", "editor", "reviewer", "viewer"):
+        raise HTTPException(status_code=400, detail="invalid role")
+    from app.auth.models import (
+        ProjectMember, get_user_by_id, upsert_member,
+    )
+    target = get_user_by_id(target_uid)
+    if target is None:
+        raise HTTPException(status_code=404, detail="target user not found")
+    if target.tenant_id != tid:
+        raise HTTPException(status_code=400,
+                            detail="cross-tenant membership not allowed")
+    from datetime import datetime, timezone
+    m = ProjectMember(project_id=pid, user_id=target_uid, role=role,
+                      granted_by=user.id,
+                      granted_at=datetime.now(timezone.utc))
+    upsert_member(tid, pid, m)
+    return {"ok": True, "member": json.loads(m.model_dump_json())}
+
+
+@router.patch("/projects/{pid}/members/{target_uid}")
+def patch_project_member(pid: str, target_uid: str, body: dict = Body(...),
+                          user: User = Depends(get_current_user)) -> dict[str, Any]:
+    rec = project_record(pid)
+    if rec is None:
+        raise HTTPException(status_code=404, detail=f"project {pid} not found")
+    tid = str(rec.get("tenant_id") or "default")
+    ensure_permission(user, tid, pid, "manage_members")
+    role = str(body.get("role") or "")
+    if role not in ("owner", "editor", "reviewer", "viewer"):
+        raise HTTPException(status_code=400, detail="invalid role")
+    from app.auth.models import get_member, upsert_member
+    m = get_member(tid, pid, target_uid)
+    if m is None:
+        raise HTTPException(status_code=404, detail="member not found")
+    m = m.model_copy(update={"role": role})
+    upsert_member(tid, pid, m)
+    return {"ok": True, "member": json.loads(m.model_dump_json())}
+
+
+@router.delete("/projects/{pid}/members/{target_uid}")
+def delete_project_member(pid: str, target_uid: str,
+                           user: User = Depends(get_current_user)) -> dict[str, Any]:
+    rec = project_record(pid)
+    if rec is None:
+        raise HTTPException(status_code=404, detail=f"project {pid} not found")
+    tid = str(rec.get("tenant_id") or "default")
+    ensure_permission(user, tid, pid, "manage_members")
+    from app.auth.models import remove_member
+    ok = remove_member(tid, pid, target_uid)
+    return {"ok": ok}
+
+
+# ---------------------------------------------------------------------------
+# M21 — tenant info + cross-tenant user lookup for member-invite UI
+# ---------------------------------------------------------------------------
+
+
+@router.get("/tenant/me")
+def tenant_me(user: User = Depends(get_current_user)) -> dict[str, Any]:
+    from app.auth.models import get_tenant, load_users
+    tenant = get_tenant(user.tenant_id)
+    users_in_tenant = [
+        {
+            "id": u.id,
+            "email": u.email,
+            "display_name": u.display_name or u.name,
+            "role": u.role,
+        }
+        for u in load_users() if u.tenant_id == user.tenant_id
+    ]
+    return {
+        "tenant": json.loads(tenant.model_dump_json()) if tenant else None,
+        "users": users_in_tenant,
+    }

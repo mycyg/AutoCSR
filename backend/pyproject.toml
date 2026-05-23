@@ -42,6 +42,13 @@ dependencies = [
     "reportlab>=4.0",
     "python-pptx>=1.0",
     "jinja2>=3.1",
+    # M21 (v2.3) — multi-tenant auth
+    "bcrypt>=4.0",
+    "passlib>=1.7",
+    "python-jose[cryptography]>=3.3",
+    "pyjwt>=2.8",
+    # M21 — define.xml parsing
+    "lxml>=4.9",
 ]
 
 [project.optional-dependencies]
@@ -52,7 +59,7 @@ dev = ["openapi-python-client>=0.20", "ruff>=0.5"]
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["app*"]
+include = ["app*", "scripts_helpers*"]
 
 [tool.pytest.ini_options]
 addopts = "-q --cov=app --cov-report=term-missing --cov-config=.coveragerc"
