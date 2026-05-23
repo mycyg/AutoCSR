@@ -7,6 +7,18 @@ import { useProjectStore } from '@/stores/project'
 import type { ProjectDTO } from '@/api/rest'
 import { confirmAction } from '@/composables/useConfirm'
 import { handleApiError } from '@/utils/errors'
+import {
+  FlaskConical, Sparkles, Syringe, Baby, HeartPulse,
+  Search, FileText, Play, MoreVertical, Star, Shield, Cog, Beaker,
+} from 'lucide-vue-next'
+
+const DOMAIN_ICON_MAP = {
+  oncology: Sparkles,
+  rare_disease: FlaskConical,
+  vaccine: Syringe,
+  pediatric: Baby,
+  cardiovascular: HeartPulse,
+} as const
 
 const router = useRouter()
 const store = useProjectStore()
@@ -64,16 +76,15 @@ onMounted(async () => {
   void loadSampleDomains()
 })
 
-// M22 — visual helpers for the hero domain grid.
-const DOMAIN_ICONS: Record<string, string> = {
-  oncology: '🧬',
-  rare_disease: '🧪',
-  vaccine: '💉',
-  pediatric: '👶',
-  cardiovascular: '❤️',
+// M22 — visual helpers for the hero domain grid (lucide-vue-next).
+function domainIconComp(domain: string) {
+  return (DOMAIN_ICON_MAP as Record<string, any>)[domain] || FileText
 }
-function domainIcon(domain: string): string {
-  return DOMAIN_ICONS[domain] || '📋'
+function templateIconComp(id: string) {
+  if (id.includes('safety')) return Shield
+  if (id.includes('onco')) return Sparkles
+  if (id.includes('device')) return Cog
+  return FileText
 }
 
 let searchTimer: number | null = null
@@ -174,7 +185,9 @@ const tagOptions = computed(() => store.allTags.map((t) => ({ value: t, label: t
         <el-dropdown trigger="click" @command="(v: any) => createFromSample(String(v))"
                       @visible-change="(v: boolean) => v && loadSampleDomains()">
           <el-button :loading="submitting || sampleLoading">
-            🧪 Try with Sample Data <el-icon class="el-icon--right">▾</el-icon>
+            <FlaskConical class="lc-icon" />
+            <span style="margin-left: 6px">Try with Sample Data</span>
+            <el-icon class="el-icon--right">▾</el-icon>
           </el-button>
           <template #dropdown>
             <el-dropdown-menu>
@@ -207,7 +220,9 @@ const tagOptions = computed(() => store.allTags.map((t) => ({ value: t, label: t
 
     <div class="filters">
       <el-input v-model="searchQ" :placeholder="$t('projects.search_placeholder')" clearable
-                class="search" prefix-icon="🔍" />
+                class="search">
+        <template #prefix><Search class="lc-icon" /></template>
+      </el-input>
       <el-select v-model="tagQ" :placeholder="$t('projects.tag_filter')" clearable
                  class="tag-filter">
         <el-option v-for="o in tagOptions" :key="o.value" :value="o.value" :label="o.label" />
@@ -222,7 +237,7 @@ const tagOptions = computed(() => store.allTags.map((t) => ({ value: t, label: t
 
     <div class="layout">
       <aside class="recent" v-if="store.recent.length">
-        <h3>★ {{ $t('projects.recent') }}</h3>
+        <h3><Star class="lc-icon" /> <span>{{ $t('projects.recent') }}</span></h3>
         <ul>
           <li v-for="r in store.recent" :key="r.id">
             <router-link :to="`/p/${r.id}`" class="link">{{ r.name }}</router-link>
@@ -234,13 +249,13 @@ const tagOptions = computed(() => store.allTags.map((t) => ({ value: t, label: t
       <section class="main">
         <div v-if="!store.loading && !store.projects.length" class="hero-empty">
           <div class="hero">
-            <div class="hero-icon" aria-hidden="true">📑</div>
+            <div class="hero-icon" aria-hidden="true"><FileText :size="32" :stroke-width="1.5" /></div>
             <h1>{{ $t('app.title') }}</h1>
             <p class="hero-pitch">{{ $t('projects.hero_pitch') }}</p>
             <!-- TODO: hero video — replace with real demo .mp4 / .gif when ready -->
             <div class="hero-video" role="img"
                   :aria-label="$t('projects.hero_video_alt')">
-              <span aria-hidden="true">▶</span>
+              <Play :size="20" :stroke-width="1.5" aria-hidden="true" />
               <span class="muted">30s demo video — coming soon</span>
             </div>
             <el-button type="primary" size="large" @click="openCreate('')">
@@ -258,7 +273,9 @@ const tagOptions = computed(() => store.allTags.map((t) => ({ value: t, label: t
                         :aria-label="`${d.name}: ${d.blurb}`"
                         @click="createFromSample(d.domain)"
                         @keyup.enter="createFromSample(d.domain)">
-                <div class="dom-icon" aria-hidden="true">{{ domainIcon(d.domain) }}</div>
+                <div class="dom-icon" aria-hidden="true">
+                  <component :is="domainIconComp(d.domain)" :size="24" :stroke-width="1.5" />
+                </div>
                 <div class="dom-name">{{ d.name }}</div>
                 <div class="dom-blurb">{{ d.blurb }}</div>
                 <div class="dom-cta">{{ $t('projects.start_demo') }} →</div>
@@ -274,11 +291,9 @@ const tagOptions = computed(() => store.allTags.map((t) => ({ value: t, label: t
                         :aria-label="tpl.name"
                         @click="openCreate(tpl.id)"
                         @keyup.enter="openCreate(tpl.id)">
-                <div class="tpl-icon" aria-hidden="true">{{
-                  tpl.id.includes('safety') ? '🛡' :
-                  tpl.id.includes('onco') ? '🧬' :
-                  tpl.id.includes('device') ? '⚙' : '📋'
-                }}</div>
+                <div class="tpl-icon" aria-hidden="true">
+                  <component :is="templateIconComp(tpl.id)" :size="22" :stroke-width="1.5" />
+                </div>
                 <div class="tpl-name">{{ tpl.name }}</div>
                 <div class="tpl-desc">{{ tpl.description || $t('projects.tpl_default_desc') }}</div>
                 <div class="tpl-cta">{{ $t('projects.use_template') }} →</div>
@@ -319,7 +334,9 @@ const tagOptions = computed(() => store.allTags.map((t) => ({ value: t, label: t
           <el-table-column :label="$t('common.more')" width="100">
             <template #default="{ row }">
               <el-dropdown trigger="click" @command="(v: string) => onContext(row, v)">
-                <el-button link size="small" :aria-label="$t('common.more')">⋮</el-button>
+                <el-button link size="small" :aria-label="$t('common.more')">
+                  <MoreVertical class="lc-icon" />
+                </el-button>
                 <template #dropdown>
                   <el-dropdown-menu>
                     <el-dropdown-item command="duplicate">{{ $t('projects.duplicate') }}</el-dropdown-item>
@@ -363,6 +380,8 @@ const tagOptions = computed(() => store.allTags.map((t) => ({ value: t, label: t
 </template>
 
 <style scoped>
+.lc-icon { width: 16px; height: 16px; stroke-width: 1.5; display: inline-block; vertical-align: middle; }
+.recent h3 { display: flex; align-items: center; gap: 6px; }
 .project-list {
   padding: 24px 32px;
   max-width: 1280px;
@@ -460,11 +479,11 @@ const tagOptions = computed(() => store.allTags.map((t) => ({ value: t, label: t
   border-radius: var(--radius-lg);
   padding: 20px;
   cursor: pointer;
-  transition: border-color 120ms, transform 120ms;
+  transition: background-color 150ms ease, border-color 150ms ease;
 }
 .tpl-card:hover, .tpl-card:focus-visible {
   border-color: var(--color-primary);
-  transform: translateY(-2px);
+  background-color: var(--color-surface-3);
 }
 .tpl-icon { font-size: 28px; margin-bottom: 8px; }
 .tpl-name {
@@ -512,13 +531,12 @@ const tagOptions = computed(() => store.allTags.map((t) => ({ value: t, label: t
   padding: 18px 16px;
   cursor: pointer;
   text-align: center;
-  transition: border-color 120ms, transform 120ms, box-shadow 120ms;
+  transition: background-color 150ms ease, border-color 150ms ease;
 }
 .dom-card:hover,
 .dom-card:focus-visible {
   border-color: var(--color-primary);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  background-color: var(--color-surface-3);
   outline: none;
 }
 .dom-icon { font-size: 36px; line-height: 1; margin-bottom: 8px; }

@@ -148,31 +148,30 @@ function go(step: StepDef): void {
   gap: 6px;
   cursor: pointer;
   padding: 4px 8px;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   border: 0;
   background: transparent;
   color: inherit;
   font: inherit;
-  transition: background 120ms ease;
+  transition: background 150ms ease;
   white-space: nowrap;
 }
-.step:hover:not(.disabled) { background: var(--color-surface-muted); color: var(--color-text-strong); }
+.step:hover:not(.disabled) { background: var(--color-surface-3); color: var(--color-text-strong); }
 .step.active { background: var(--color-primary-soft); color: var(--color-primary); }
 .step.is-current::after {
   content: '';
   position: absolute;
   left: 8px; right: 8px; bottom: -3px;
   height: 2px;
-  background: linear-gradient(90deg, var(--color-primary), var(--color-info));
-  border-radius: 2px;
-  opacity: 0.7;
+  background: var(--color-primary);
+  border-radius: 0;
 }
 .step.disabled { cursor: not-allowed; opacity: 0.45; }
 .step .num {
   display: inline-flex; align-items: center; justify-content: center;
   width: 20px; height: 20px;
   border-radius: 50%;
-  background: var(--color-surface-muted);
+  background: var(--color-surface-3);
   font-size: 11px;
 }
 .step.active .num { background: var(--color-primary); color: #fff; }

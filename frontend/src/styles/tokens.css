@@ -1,41 +1,61 @@
-/* AutoCSR design tokens — v1.0 (M18).
+/* AutoCSR design tokens — v2.1 (Claude-aligned warm orange).
  *
  * All colors / spacing / typography flow from CSS variables defined here.
  * Dark mode is achieved by setting `data-theme="dark"` on the <html>
  * element; both palettes use the same variable names.
  *
- * Component styles should reference var(--color-*) instead of hardcoded
- * hex values. A small set of legacy hex values (#fff/#000/#fafbfc/#1f2937
- * etc.) still exist in scoped styles — they are visually acceptable in
- * light mode and a fallback in dark mode, but new code MUST use tokens.
+ * v2.1 redesign:
+ *   - Primary moved from cyan #0891b2 to warm red-orange #BA5535
+ *     (light) / #DA7756 (dark) to match Claude product aesthetic.
+ *   - Dark mode background swapped to true black #0a0a0a (was #081421
+ *     blue-tinted) so the accent reads as warm against a neutral field.
+ *   - Shadows flattened to 0 1px 2px / 0 2px 6px / 0 4px 12px with
+ *     rgba 0.04 alpha — no more heavy elevation halos.
+ *   - Inter web font set as default family (Google Fonts in index.html).
+ *   - Type scale lifted (body 15px from 13px) for readability.
+ *
+ * Legacy variable names (--color-surface-2/3, --color-text-strong/faint,
+ * --color-border-strong, --color-info, --spacing-xs..2xl, --font-size-*)
+ * are kept as aliases so existing component styles don't break.
  */
 
 :root {
-  /* Surfaces */
-  --color-bg: #f4f8fb;
-  --color-surface: #ffffff;
-  --color-surface-2: #f8fbfd;
-  --color-surface-3: #eef6f8;
+  /* === Brand === */
+  --color-primary: #BA5535;
+  --color-primary-hover: #A04A2E;
+  --color-primary-soft: #FBF3EE;
 
-  /* Text */
-  --color-text: #1f2937;
-  --color-text-strong: #111827;
-  --color-text-mute: #6b7280;   /* WCAG AA on white ≥ 4.5 */
-  --color-text-faint: #9ca3af;  /* used only on non-essential captions */
+  /* === Surfaces === */
+  --color-bg: #ffffff;
+  --color-surface: #fafafa;
+  --color-surface-2: #fafafa;     /* legacy alias */
+  --color-surface-3: #f5f5f5;     /* legacy alias */
 
-  /* Borders */
-  --color-border: #e5e7eb;
-  --color-border-strong: #d1d5db;
+  /* === Text === */
+  --color-text: #1a1a1a;
+  --color-text-strong: #0a0a0a;   /* legacy alias */
+  --color-text-mute: #6b7280;
+  --color-text-faint: #9ca3af;    /* legacy alias */
 
-  /* Brand + semantic */
-  --color-primary: #0891b2;
-  --color-primary-soft: #e6f7fb;
+  /* === Borders === */
+  --color-border: #e5e5e5;
+  --color-border-strong: #d4d4d4; /* legacy alias */
+
+  /* === Semantic === */
   --color-success: #059669;
-  --color-warn: #d97706;
-  --color-error: #e11d48;
-  --color-info: #2563eb;
+  --color-warn: #D97706;
+  --color-error: #DC2626;
+  --color-info: #2563eb;          /* legacy alias */
 
-  /* Spacing scale (4-pt grid) */
+  /* === Spacing (4-pt grid) === */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  /* legacy aliases */
   --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 12px;
@@ -43,52 +63,67 @@
   --spacing-xl: 24px;
   --spacing-2xl: 32px;
 
-  /* Type scale */
-  --font-size-xs: 11px;
-  --font-size-sm: 12px;
-  --font-size-md: 13px;
-  --font-size-lg: 14px;
-  --font-size-xl: 16px;
-  --font-size-2xl: 18px;
+  /* === Type === */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+                  Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --line-height-base: 1.6;
+  /* legacy aliases — kept so existing scoped styles compile */
+  --font-size-xs: 12px;
+  --font-size-sm: 13px;
+  --font-size-md: 14px;
+  --font-size-lg: 15px;
+  --font-size-xl: 17px;
+  --font-size-2xl: 20px;
 
-  /* Misc */
+  /* === Geometry === */
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 8px;
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.18);
+
+  /* === Elevation === */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.04);
 }
 
 :root[data-theme="dark"] {
-  --color-bg: #081421;
-  --color-surface: #102235;
-  --color-surface-2: #0d1b2c;
-  --color-surface-3: #163047;
+  --color-primary: #DA7756;
+  --color-primary-hover: #E68A6E;
+  --color-primary-soft: #2a1d18;
 
-  --color-text: #e5e7eb;
-  --color-text-strong: #f9fafb;
-  --color-text-mute: #9ca3af;
-  --color-text-faint: #6b7280;
+  --color-bg: #0a0a0a;
+  --color-surface: #171717;
+  --color-surface-2: #171717;
+  --color-surface-3: #1f1f1f;
 
-  --color-border: #334155;
-  --color-border-strong: #475569;
+  --color-text: #f5f5f5;
+  --color-text-strong: #ffffff;
+  --color-text-mute: #a3a3a3;
+  --color-text-faint: #737373;
 
-  --color-primary: #67e8f9;
-  --color-primary-soft: #12384a;
-  --color-success: #34d399;
-  --color-warn: #fbbf24;
-  --color-error: #f87171;
-  --color-info: #94a3b8;
+  --color-border: #262626;
+  --color-border-strong: #404040;
 
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.45);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.55);
-  --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.7);
+  --color-success: #10b981;
+  --color-warn: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #60a5fa;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.6);
 }
 
-/* Apply tokens to body so first-paint already follows the theme.
- * Element Plus components reach in via their own CSS vars (see main.ts). */
-html, body, #app {
+body {
+  font-family: var(--font-family);
+  line-height: var(--line-height-base);
+  color: var(--color-text);
+  background: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html, #app {
   background: var(--color-bg);
   color: var(--color-text);
 }
@@ -96,8 +131,13 @@ html, body, #app {
 html { color-scheme: light; }
 html[data-theme="dark"] { color-scheme: dark; }
 
+*:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
 /* Dark-mode tweaks for components that don't ship full token support
- * (kept minimal — we rely on Element Plus dark theme CSS for the rest). */
+ * (kept minimal — we rely on Element Plus theme override CSS for the rest). */
 html[data-theme="dark"] .el-card,
 html[data-theme="dark"] .el-message-box {
   background: var(--color-surface);

@@ -9,6 +9,7 @@ import 'md-editor-v3/lib/style.css'
 // Design tokens + a11y must load BEFORE per-component styles so they
 // can be overridden by component scoped styles where needed.
 import '@/styles/tokens.css'
+import '@/styles/element-overrides.css'
 import '@/styles/a11y.css'
 
 import App from './App.vue'

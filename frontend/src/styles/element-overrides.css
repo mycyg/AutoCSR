@@ -1,0 +1,78 @@
+/* AutoCSR — Element Plus theme override (v2.1).
+ *
+ * Element Plus reads its primary palette + sizing tokens from a fixed
+ * set of CSS variables (--el-color-primary-* etc.). We redirect them
+ * to the project tokens so EP buttons / inputs / dialogs adopt the
+ * warm-orange Claude palette without touching component templates.
+ *
+ * Loaded after tokens.css in main.ts so the var() refs are resolvable
+ * at first paint.
+ */
+
+:root {
+  /* Primary palette — derived from --color-primary #BA5535. */
+  --el-color-primary: var(--color-primary);
+  --el-color-primary-light-3: #C8694F;
+  --el-color-primary-light-5: #D78771;
+  --el-color-primary-light-7: #E5A593;
+  --el-color-primary-light-8: #EEBAAB;
+  --el-color-primary-light-9: var(--color-primary-soft);
+  --el-color-primary-dark-2: var(--color-primary-hover);
+
+  /* Surfaces + borders */
+  --el-bg-color: var(--color-bg);
+  --el-bg-color-page: var(--color-surface);
+  --el-bg-color-overlay: var(--color-bg);
+  --el-border-color: var(--color-border);
+  --el-border-color-light: var(--color-border);
+  --el-border-color-lighter: var(--color-border);
+  --el-border-color-extra-light: var(--color-border);
+  --el-fill-color: var(--color-surface);
+  --el-fill-color-light: var(--color-surface);
+  --el-fill-color-lighter: var(--color-surface);
+
+  /* Text */
+  --el-text-color-primary: var(--color-text);
+  --el-text-color-regular: var(--color-text);
+  --el-text-color-secondary: var(--color-text-mute);
+  --el-text-color-placeholder: var(--color-text-mute);
+
+  /* Geometry */
+  --el-border-radius-base: var(--radius-md);
+  --el-border-radius-small: var(--radius-sm);
+  --el-border-radius-round: 999px;
+
+  /* Elevation — flat */
+  --el-box-shadow: var(--shadow-md);
+  --el-box-shadow-light: var(--shadow-sm);
+  --el-box-shadow-lighter: var(--shadow-sm);
+  --el-box-shadow-dark: var(--shadow-lg);
+
+  /* Type */
+  --el-font-size-base: 15px;
+  --el-font-family: var(--font-family);
+}
+
+:root[data-theme="dark"] {
+  --el-color-primary: var(--color-primary);
+  --el-color-primary-light-3: #DE8E72;
+  --el-color-primary-light-5: #E5A189;
+  --el-color-primary-light-7: #EBB7A3;
+  --el-color-primary-light-8: #EEC1B0;
+  --el-color-primary-light-9: var(--color-primary-soft);
+  --el-color-primary-dark-2: var(--color-primary-hover);
+
+  --el-bg-color: var(--color-bg);
+  --el-bg-color-page: var(--color-surface);
+  --el-bg-color-overlay: var(--color-surface);
+  --el-border-color: var(--color-border);
+  --el-border-color-light: var(--color-border);
+  --el-border-color-lighter: var(--color-border);
+  --el-fill-color: var(--color-surface);
+  --el-fill-color-light: var(--color-surface-3);
+
+  --el-text-color-primary: var(--color-text);
+  --el-text-color-regular: var(--color-text);
+  --el-text-color-secondary: var(--color-text-mute);
+  --el-text-color-placeholder: var(--color-text-mute);
+}

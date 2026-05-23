@@ -133,7 +133,7 @@ function fmtDate(s: string): string {
     <section class="content">
       <div v-if="analysis.loading" class="empty">{{ $t('common.loading') }}</div>
       <EmptyState v-else-if="!sortedBlocks.length"
-                   icon="📊"
+                   icon="..."
                    :title="$t('analyze.empty_title')"
                    :description="$t('analyze.empty_desc')"
                    :cta-text="$t('analyze.auto_run')"

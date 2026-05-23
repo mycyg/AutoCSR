@@ -13,6 +13,7 @@ import { useResponsive } from '@/composables/useResponsive'
 import { useLongPress } from '@/composables/useTouchGestures'
 import { handleApiError } from '@/utils/errors'
 import { sanitizeMarkdownHtml } from '@/utils/sanitize'
+import { Pencil, Save, Copy, MoreHorizontal, Link2 } from 'lucide-vue-next'
 const { t } = useI18n()
 const { isMobile } = useResponsive()
 
@@ -220,21 +221,26 @@ onBeforeUnmount(clearSaveTimer)
         <span class="spacer" />
         <el-button size="small" :type="locked ? 'default' : 'success'" plain
                    @click="toggleLock" :aria-label="locked ? t('report.edit') : t('common.save')">
-          {{ locked ? '✎' : '💾' }}
+          <Pencil v-if="locked" class="lc-icon" />
+          <Save v-else class="lc-icon" />
         </el-button>
-        <el-button size="small" @click="onCopy" :aria-label="t('report.copy_md')">⧉</el-button>
+        <el-button size="small" @click="onCopy" :aria-label="t('report.copy_md')">
+          <Copy class="lc-icon" />
+        </el-button>
         <el-dropdown trigger="click" @command="(c: string) => {
           if (c === 'history') showExtra = false;
           if (c === 'regen') onRegenerate();
           if (c === 'share') onShareSnapshot();
           if (c === 'extra') showExtra = !showExtra;
         }">
-          <el-button size="small" :aria-label="t('common.more')">⋯</el-button>
+          <el-button size="small" :aria-label="t('common.more')">
+            <MoreHorizontal class="lc-icon" />
+          </el-button>
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item command="extra">{{ showExtra ? '收起指令' : '+ 指令' }}</el-dropdown-item>
               <el-dropdown-item command="regen">{{ $t('report.regenerate') }}</el-dropdown-item>
-              <el-dropdown-item command="share">🔗 {{ $t('common.share') }}</el-dropdown-item>
+              <el-dropdown-item command="share">{{ $t('common.share') }}</el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
@@ -242,7 +248,7 @@ onBeforeUnmount(clearSaveTimer)
                    class="ver-select" clearable :aria-label="$t('report.history')">
           <el-option v-for="v in versions" :key="v" :label="`v${v}`" :value="v" />
         </el-select>
-        <el-button v-if="pickedVersion !== null" size="small" @click="onRollback">↻</el-button>
+        <el-button v-if="pickedVersion !== null" size="small" @click="onRollback">{{ t('common.rollback') }}</el-button>
       </div>
       <div v-else class="toolbar" role="toolbar"
             :aria-label="t('report.toolbar_aria')">
@@ -271,10 +277,10 @@ onBeforeUnmount(clearSaveTimer)
         </el-button>
         <el-button size="small" type="primary" plain @click="onRegenerate">重写本节</el-button>
         <el-button size="small" @click="onCopy" :aria-label="t('report.copy_md')">
-          ⧉ {{ t('report.copy_md') }}
+          <Copy class="lc-icon" /> <span>{{ t('report.copy_md') }}</span>
         </el-button>
         <el-button size="small" @click="onShareSnapshot" :aria-label="t('report.share_snapshot')">
-          🔗 {{ t('common.share') }}
+          <Link2 class="lc-icon" /> <span>{{ t('common.share') }}</span>
         </el-button>
       </div>
       <div v-if="showExtra" class="extra">
@@ -301,10 +307,10 @@ onBeforeUnmount(clearSaveTimer)
         <div v-if="ctxMenuOpen" class="ctx-mask" @click="closeCtxMenu" />
         <ul v-if="ctxMenuOpen" class="ctx-menu" role="menu"
              :style="{ top: ctxMenuY + 'px', left: ctxMenuX + 'px' }">
-          <li role="menuitem" @click="() => { onCopy(); closeCtxMenu() }">⧉ {{ t('report.copy_md') }}</li>
-          <li role="menuitem" @click="() => { onShareSnapshot(); closeCtxMenu() }">🔗 {{ t('common.share') }}</li>
+          <li role="menuitem" @click="() => { onCopy(); closeCtxMenu() }">{{ t('report.copy_md') }}</li>
+          <li role="menuitem" @click="() => { onShareSnapshot(); closeCtxMenu() }">{{ t('common.share') }}</li>
           <li role="menuitem" @click="() => { onRegenerate(); closeCtxMenu() }">{{ t('report.regenerate') }}</li>
-          <li v-if="!locked" role="menuitem" @click="() => { toggleLock(); closeCtxMenu() }">💾 {{ t('common.save') }}</li>
+          <li v-if="!locked" role="menuitem" @click="() => { toggleLock(); closeCtxMenu() }">{{ t('common.save') }}</li>
         </ul>
       </Teleport>
       <div v-if="draft.citations?.length" class="cites">
@@ -322,8 +328,9 @@ onBeforeUnmount(clearSaveTimer)
 </template>
 
 <style scoped>
+.lc-icon { width: 14px; height: 14px; stroke-width: 1.5; display: inline-block; vertical-align: middle; }
 .chapter-reader { height: 100%; display: flex; flex-direction: column; }
-.empty { padding: 80px 0; text-align: center; color: #9ca3af; }
+.empty { padding: 80px 0; text-align: center; color: var(--color-text-mute); }
 .toolbar {
   display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
   padding: 8px 12px; border-bottom: 1px solid #e5e7eb; background: #fff;

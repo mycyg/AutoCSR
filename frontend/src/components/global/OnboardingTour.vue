@@ -24,18 +24,21 @@ const dontShow = ref(false)
 interface Step {
   title: string
   body: string
-  icon: string
 }
 
 const steps: Step[] = [
-  { icon: '👋', title: 'onboarding.s1_title', body: 'onboarding.s1_body' },
-  { icon: '🧪', title: 'onboarding.s_demo_title', body: 'onboarding.s_demo_body' },
-  { icon: '📤', title: 'onboarding.s2_title', body: 'onboarding.s2_body' },
-  { icon: '🧹', title: 'onboarding.s3_title', body: 'onboarding.s3_body' },
-  { icon: '✍️', title: 'onboarding.s4_title', body: 'onboarding.s4_body' },
-  { icon: '📦', title: 'onboarding.s5_title', body: 'onboarding.s5_body' },
-  { icon: '🎉', title: 'onboarding.s6_title', body: 'onboarding.s6_body' },
+  { title: 'onboarding.s1_title', body: 'onboarding.s1_body' },
+  { title: 'onboarding.s_demo_title', body: 'onboarding.s_demo_body' },
+  { title: 'onboarding.s2_title', body: 'onboarding.s2_body' },
+  { title: 'onboarding.s3_title', body: 'onboarding.s3_body' },
+  { title: 'onboarding.s4_title', body: 'onboarding.s4_body' },
+  { title: 'onboarding.s5_title', body: 'onboarding.s5_body' },
+  { title: 'onboarding.s6_title', body: 'onboarding.s6_body' },
 ]
+
+function ordinal(n: number): string {
+  return String(n + 1).padStart(2, '0')
+}
 
 function open(): void {
   step.value = 0
@@ -94,7 +97,7 @@ defineExpose({ open })
               :aria-label="t('onboarding.aria')"
               class="onboarding-tour">
     <div class="step">
-      <div class="icon" aria-hidden="true">{{ steps[step].icon }}</div>
+      <div class="step-num" aria-hidden="true">{{ ordinal(step) }} <span class="step-total">/ {{ steps.length }}</span></div>
       <h2 class="title">{{ t(steps[step].title) }}</h2>
       <p class="body">{{ t(steps[step].body) }}</p>
       <div class="dots" :aria-label="t('onboarding.progress', { n: step + 1, total: steps.length })">
@@ -120,10 +123,16 @@ defineExpose({ open })
   text-align: center;
   padding: 8px 4px 12px;
 }
-.step .icon {
-  font-size: 56px;
-  margin-bottom: 8px;
-  line-height: 1;
+.step .step-num {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-mute);
+  margin-bottom: 18px;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+.step .step-num .step-total {
+  color: var(--color-text-faint);
 }
 .step .title {
   margin: 0 0 12px 0;

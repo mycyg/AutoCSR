@@ -54,24 +54,25 @@ async function onSubmit() {
   min-height: 100vh;
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, #f3f7ff, #eaf3ff);
+  background: var(--color-bg);
 }
 .auth-card {
   width: 380px;
-  background: #fff;
-  border-radius: 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
   padding: 32px 28px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
 }
 .auth-card h1 {
   margin: 0 0 4px;
   font-size: 28px;
-  color: #1f2937;
+  color: var(--color-text);
+  font-weight: 600;
 }
 .subtitle {
   margin: 0 0 24px;
-  color: #4b5563;        /* M22 — bumped from #6b7280 for >= 4.5:1 contrast */
-  font-size: 14px;
+  color: var(--color-text-mute);
+  font-size: 15px;
 }
 @media (max-width: 767px) {
   .auth-card { width: 92vw; padding: 24px 18px; }
@@ -85,11 +86,11 @@ async function onSubmit() {
 .auth-footer {
   margin-top: 18px;
   text-align: center;
-  color: #6b7280;
+  color: var(--color-text-mute);
   font-size: 13px;
 }
 .auth-footer a {
-  color: #2563eb;
+  color: var(--color-primary);
   text-decoration: none;
 }
 </style>

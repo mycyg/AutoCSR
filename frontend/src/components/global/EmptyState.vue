@@ -4,7 +4,7 @@
  *
  * Usage:
  *   <EmptyState v-if="!items.length"
- *               icon="📊"
+ *               icon="..."
  *               :title="$t('analyze.empty_title')"
  *               :description="$t('analyze.empty_desc')"
  *               :cta-text="$t('analyze.auto_run')"

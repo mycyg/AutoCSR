@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useShortcuts } from '@/composables/useShortcuts'
+import { PenLine, Search, HelpCircle, Package } from 'lucide-vue-next'
 
 const visible = ref(false)
 const tab = ref<'keys' | 'workflows'>('keys')
@@ -58,19 +59,19 @@ const mod = isMac ? '⌘' : 'Ctrl'
       </el-tab-pane>
       <el-tab-pane :label="$t('shortcuts.tab_workflows')" name="workflows">
         <div class="workflow">
-          <h4>✍ {{ $t('shortcuts.workflows.writing') }}</h4>
+          <h4><PenLine class="lc-icon" /> <span>{{ $t('shortcuts.workflows.writing') }}</span></h4>
           <div class="steps">{{ $t('shortcuts.workflows.writing_steps') }}</div>
         </div>
         <div class="workflow">
-          <h4>🔍 {{ $t('shortcuts.workflows.review') }}</h4>
+          <h4><Search class="lc-icon" /> <span>{{ $t('shortcuts.workflows.review') }}</span></h4>
           <div class="steps">{{ $t('shortcuts.workflows.review_steps') }}</div>
         </div>
         <div class="workflow">
-          <h4>❓ {{ $t('shortcuts.workflows.data_ask') }}</h4>
+          <h4><HelpCircle class="lc-icon" /> <span>{{ $t('shortcuts.workflows.data_ask') }}</span></h4>
           <div class="steps">{{ $t('shortcuts.workflows.data_ask_steps') }}</div>
         </div>
         <div class="workflow">
-          <h4>📦 {{ $t('shortcuts.workflows.export') }}</h4>
+          <h4><Package class="lc-icon" /> <span>{{ $t('shortcuts.workflows.export') }}</span></h4>
           <div class="steps">{{ $t('shortcuts.workflows.export_steps') }}</div>
         </div>
       </el-tab-pane>
@@ -79,6 +80,7 @@ const mod = isMac ? '⌘' : 'Ctrl'
 </template>
 
 <style scoped>
+.lc-icon { width: 16px; height: 16px; stroke-width: 1.5; display: inline-block; vertical-align: middle; }
 .grid { width: 100%; border-collapse: collapse; }
 .grid td {
   padding: 8px 6px;
@@ -108,6 +110,9 @@ kbd {
   font-size: var(--font-size-md);
   color: var(--color-text-strong);
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 .steps {
   font-size: var(--font-size-sm);
