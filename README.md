@@ -1,5 +1,11 @@
 # AutoCSR
 
+[![Release](https://img.shields.io/github/v/release/mycyg/AutoCSR)](https://github.com/mycyg/AutoCSR/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+[![Tests](https://img.shields.io/badge/e2e-17%20passing-brightgreen)](./scripts)
+[![Backend](https://img.shields.io/badge/Python-3.11+-blue)](./backend)
+[![Frontend](https://img.shields.io/badge/Vue-3.5-42b883)](./frontend)
+
 **Turn raw clinical data — including messy real-world inputs — into an
 ICH E3 / NMPA-aligned Clinical Study Report (CSR) in Word.**
 
@@ -7,41 +13,138 @@ ICH E3 / NMPA-aligned Clinical Study Report (CSR) in Word.**
 
 AutoCSR is an open-source, end-to-end pipeline: upload → router →
 cleansing → analysis → outline → multi-agent writing → conversational
-editing → DOCX export. Every step keeps an audit trail; nothing leaves
-the cleansing stage without a human-readable rule yaml.
+editing → DOCX / TLF / eCTD export. Every step keeps an audit trail;
+nothing leaves the cleansing stage without a human-readable rule yaml;
+every LLM call is logged; every reference is validated against the
+corpus.
 
 ---
 
 ## Features
 
-- **Heterogeneous ingest router** — auto-classifies six input types
-  (SDTM/ADaM, messy Excel, PDF forms, scanned CRFs, handwritten notes,
-  literature) and dispatches them to parallel workers.
-- **Cleansing workbench** — LLM proposes rules (rename, cast, unit
-  convert, normalize, CDISC map, impute, outlier flag, PII hash, derive…);
-  user accepts/edits/rejects each one. Output is an exportable
-  `cleansing_pipeline.yaml` that can be re-applied to a new batch.
-- **Clinical analysis modules** — descriptive baseline tables,
-  inferential tests (t / Wilcoxon / chi-square / Fisher), survival
-  (Kaplan–Meier + Cox via lifelines), safety (AE × SOC × severity).
-  Each output is a `StatBlock` that becomes a corpus citation.
-- **Outline builder** — hard-coded ICH E3 / CDE skeleton plus
-  project-specific binding of `StatBlock` refs to leaves.
-- **Multi-agent writer** — `asyncio.gather` over leaves with a
-  `Semaphore`-bounded parallelism cap, three-phase DAG
-  (background → results → discussion), then a harmonizer pass to
-  unify tone.
-- **Conversational editor** — per-section chat with 4 atomic patch ops
-  (`replace_section` / `insert_paragraph` / `replace_paragraph` /
-  `patch_field`), automatic version snapshots, and one-click rollback.
-- **DOCX export** — programmatic ICH E3 template with cover page,
-  automatic TOC field, header/footer with page numbering, real Word
-  tables (not images), References chapter, and appendices documenting
-  the cleansing pipeline + analysis methods.
-- **Privacy by default** — `hash_pii` is a mandatory cleansing rule;
-  LLM calls never see raw patient identifiers. Configurable via
-  `pipeline.pii_strip` and `pipeline.llm_data_redaction` in
-  `settings.yaml`.
+### 🧪 Data → Statistics
+- **Heterogeneous ingest router** — six typed workers (SDTM/ADaM,
+  messy Excel, PDF forms, scanned CRFs, handwritten notes, literature)
+  routed by mime + content heuristics + LLM tiebreaker.
+- **Cleansing workbench** — 10 proposal types (rename, cast, unit
+  convert, normalize, **map_to_cdisc**, impute, outlier flag, PII hash,
+  split, merge, derive) with mandatory `hash_pii`; user accepts /
+  edits / rejects each rule; exportable `cleansing_pipeline.yaml`
+  re-applicable to new batches.
+- **Medical coding** — bundled CC0 dictionaries (ICD-10 / ATC /
+  LOINC, ~1500 codes) plus configurable paths for commercial
+  dictionaries (MedDRA, WHODrug, SNOMED-CT).
+- **Clinical analysis** — basics (descriptive, inferential
+  t/Wilcoxon/chi-square/Fisher, survival KM+Cox via lifelines,
+  safety AE × SOC × severity) + advanced (multitest Bonferroni/FDR,
+  subgroup forest plots, sensitivity ITT/PP/LOCF/MMRM, CONSORT flow
+  diagram, SMD baseline balance).
+
+### 🤖 Multi-agent Writing
+- **Plan-first mode** — outline points editable before full draft.
+- **Writer tool loop** — autonomous calls to `sandbox_python` /
+  `search_corpus` / `call_analyst` / `fetch_ref` / etc., with `respond`
+  terminator, capped at 5 turns, JSON schema constrained.
+- **Three-phase orchestrator** — background → results → discussion;
+  `asyncio.gather` with bounded parallelism; `AnalystFuturePool`
+  dedupes identical queries across parallel writers.
+- **Harmonizer** — pairwise tone + terminology unification; rejects
+  LLM output that drops `Ref<…>` codes or changes paragraph length
+  beyond a threshold.
+- **Data Ask** — natural-language query → analyst writes Python →
+  sandbox runs → returns `StatBlock` with both markdown table and
+  ECharts JSON.
+
+### 📝 Editing & Collaboration
+- **Conversational editor** — 4 atomic patch ops (`replace_section` /
+  `insert_paragraph` / `replace_paragraph` / `patch_field`), automatic
+  version snapshots, one-click rollback.
+- **Comments + apply batch** — collect inline comments, then one call
+  applies all unresolved comments via editor LLM.
+- **Markers** — 4 colored tags (important / todo / question / risk)
+  with character-range anchoring.
+- **Multi-version diff** — paragraph-level structured diff between
+  any two SectionDraft revisions.
+- **Multi-user tasks** — Kanban (open / in_progress / resolved /
+  wont_fix), from-issue / from-comment promotion, per-task assignee.
+- **Cross-project compare** — outline + draft diff across two projects
+  for protocol-amendment impact analysis.
+
+### 🔬 Reviewers & Quality
+- **Four parallel checkers** (M10): structure (ICH E3 coverage),
+  consistency (sandbox cross-checks numbers vs StatBlock), citation
+  (every `Ref<…>` resolves), completeness (outline required + bound
+  stat_refs + non-empty markdown).
+- **Three expert reviewer agents** (M16): statistician (assumptions,
+  CI/p-value reporting, subgroup interpretation), medical
+  (dose / regimen / AE causality / drug interactions), regulatory
+  (ICH E3 / FDA / NMPA jurisdiction-specific compliance).
+- **Hallucination guard** — every `Ref<…>` produced by writer or
+  editor is validated against the corpus; unresolved refs flag the
+  paragraph and surface in DOCX export.
+
+### 🛡 Compliance & AI Safety
+- **21 CFR Part 11 audit trail** — append-only JSONL with SHA-256
+  chain; pluggable `AuditBackend` for S3 Object Lock / IPFS upgrade;
+  monthly file rotation with gzip.
+- **ed25519 e-signatures** — per-project keypair (HSM-ready
+  interface); demo signing for unblind / database-lock / final
+  approval.
+- **Sequential sign chain** — `statistician → medical → regulatory →
+  approver`; out-of-order advance returns 403.
+- **PII pre-check** — regex + optional LLM second-pass scans every
+  LLM payload (ID / phone / email / MRN / names / address); four
+  modes: strict / auto_redact / warn / off.
+- **LLM call logging** — full prompt / response / tokens / latency
+  per call, hash-only mode available.
+- **AI provenance markers** — every paragraph tracks `source:
+  ai|human|hybrid`; optional grey shading in DOCX export.
+- **Blinding mode** — arm names masked in LLM context until
+  unblind-with-signature.
+- **Database lock** — mutations 403 unless `X-Addendum: true`.
+
+### 📦 Export
+- **DOCX** — programmatic ICH E3 template, cover with cleansing
+  pipeline reference, auto TOC field, real Word tables (not images),
+  References + Appendix A (cleansing) + Appendix B (analyses);
+  4 presets (standard / pharma / academic / regulatory) + user
+  `.docx` template upload with placeholder injection; configurable
+  fonts / sizes / margins / header / footer / watermark.
+- **TLF zip** — per-StatBlock RTF + CSV + minimal define.xml.
+- **eCTD M5.3.5 package** — `m1/cover` + `m5/53-clin-stud-rep/...`
+  directory with CSR docx, TLF zip, define.xml, signed sign_chain
+  manifest.
+- **CSR reverse import** — parse existing `.docx` CSR back into
+  outline + drafts via Heading-style detection.
+
+### 🌐 UX
+- **Bilingual UI** (zh / en) — vue-i18n with ja stub for future.
+- **Multi-language prompts** — writer / harmonizer / proposer /
+  analyst / reviewer prompt libraries per project language.
+- **Dark mode** — design tokens + Element Plus dark + md-editor-v3
+  dark + ECharts dark theme.
+- **Responsive** — ≥ 1280 three-pane; < 1280 drawer + bottom sheet;
+  < 1024 card stack (mobile not supported below 768).
+- **Onboarding tour** — first-visit walkthrough + inline tooltips
+  for advanced features.
+- **Keyboard shortcuts** — j/k tree navigation, ⌘+S save, ⌘+K
+  search, Esc close, Tab pane cycle.
+- **Accessibility** — aria-labels, focus indicators, role semantics,
+  WCAG-AA contrast.
+
+### 🔌 Developer Experience
+- **OpenAPI 3.0** — `/openapi.json`, Swagger UI `/docs`, ReDoc
+  `/redoc`; routes tagged into 14 logical groups.
+- **SDK generation** — `scripts/generate_sdk.py` produces TypeScript
+  (`sdk/ts/`) and Python (`sdk/py/`) SDKs from the live OpenAPI spec.
+- **Prometheus `/metrics`** — agent runs, LLM tokens, queue depth,
+  active projects, request latency histograms.
+- **Error sink hooks** — `register_error_sink(callable)` for Sentry
+  / Webhook / custom error reporting; no SaaS dependency by default.
+- **Checkpoint resume** — long tasks (report generation, cleansing
+  apply) can resume from disk after SIGTERM.
+- **Pluggable LLM backend** — DeepSeek / OpenAI / Ark / Anthropic-
+  compatible endpoints; mock mode (`CSR_*_MOCK=1`) for all agents.
 
 ---
 
@@ -206,3 +309,36 @@ AutoCSR is designed so **patient identifiers never leave your machine**:
 
 Audit the redaction yourself: every LLM payload is logged at
 `DEBUG` level in `backend/app/llm/ark_client.py`.
+
+---
+
+## Release Notes
+
+### v1.0.0 — 2026-05-22
+
+The first production-ready release. 18 milestones, 14 commits since
+init, ~50K lines net added across 302 tracked files. 17 e2e scripts
+(`scripts/m2_e2e_test.py` … `m18_e2e_test.py`) and 64 unit tests all
+passing.
+
+**Highlights**
+
+- Full ICH E3 pipeline from raw clinical data to signed DOCX +
+  TLF + eCTD M5.3.5.
+- Six typed ingest workers, ten cleansing proposal types with
+  mandatory PII hashing, four basic + five advanced statistical
+  modules, multi-agent writer with autonomous tool loop.
+- Eight reviewer perspectives (structure / consistency / citation /
+  completeness / statistician / medical / regulatory / hallucination).
+- 21 CFR Part 11 audit trail, ed25519 e-signatures, sequential
+  sign chain, blinding mode, database lock, AI provenance markers.
+- Bilingual UI (zh/en), dark mode, responsive ≥ 1024px, onboarding
+  tour, keyboard navigation, full a11y pass.
+- OpenAPI 3.0 + Swagger UI + auto-generated TypeScript / Python
+  SDKs, Prometheus `/metrics`, pluggable error sinks, checkpoint
+  resume for long tasks.
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md#roadmap) for the v2.x
+roadmap (PDF/HTML/PPT export, real OCR vision, treatment-area
+templates, Docker compose, multi-study knowledge base, regulatory
+inquiry tracker, and more).
