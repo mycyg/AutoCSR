@@ -22,7 +22,7 @@ corpus.
 
 ## Features
 
-### 🧪 Data → Statistics
+### Data → Statistics
 - **Heterogeneous ingest router** — six typed workers (SDTM/ADaM,
   messy Excel, PDF forms, scanned CRFs, handwritten notes, literature)
   routed by mime + content heuristics + LLM tiebreaker.
@@ -40,7 +40,7 @@ corpus.
   subgroup forest plots, sensitivity ITT/PP/LOCF/MMRM, CONSORT flow
   diagram, SMD baseline balance).
 
-### 🤖 Multi-agent Writing
+### Multi-agent Writing
 - **Plan-first mode** — outline points editable before full draft.
 - **Writer tool loop** — autonomous calls to `sandbox_python` /
   `search_corpus` / `call_analyst` / `fetch_ref` / etc., with `respond`
@@ -55,7 +55,7 @@ corpus.
   sandbox runs → returns `StatBlock` with both markdown table and
   ECharts JSON.
 
-### 📝 Editing & Collaboration
+### Editing & Collaboration
 - **Conversational editor** — 4 atomic patch ops (`replace_section` /
   `insert_paragraph` / `replace_paragraph` / `patch_field`), automatic
   version snapshots, one-click rollback.
@@ -70,7 +70,7 @@ corpus.
 - **Cross-project compare** — outline + draft diff across two projects
   for protocol-amendment impact analysis.
 
-### 🔬 Reviewers & Quality
+### Reviewers & Quality
 - **Four parallel checkers** (M10): structure (ICH E3 coverage),
   consistency (sandbox cross-checks numbers vs StatBlock), citation
   (every `Ref<…>` resolves), completeness (outline required + bound
@@ -83,7 +83,7 @@ corpus.
   editor is validated against the corpus; unresolved refs flag the
   paragraph and surface in DOCX export.
 
-### 🛡 Compliance & AI Safety
+### Compliance & AI Safety
 - **21 CFR Part 11 audit trail** — append-only JSONL with SHA-256
   chain; pluggable `AuditBackend` for S3 Object Lock / IPFS upgrade;
   monthly file rotation with gzip.
@@ -103,7 +103,7 @@ corpus.
   unblind-with-signature.
 - **Database lock** — mutations 403 unless `X-Addendum: true`.
 
-### 📦 Export
+### Export
 - **DOCX** — programmatic ICH E3 template, cover with cleansing
   pipeline reference, auto TOC field, real Word tables (not images),
   References + Appendix A (cleansing) + Appendix B (analyses);
@@ -117,7 +117,7 @@ corpus.
 - **CSR reverse import** — parse existing `.docx` CSR back into
   outline + drafts via Heading-style detection.
 
-### 🌐 UX
+### UX
 - **Bilingual UI** (zh / en) — vue-i18n with ja stub for future.
 - **Multi-language prompts** — writer / harmonizer / proposer /
   analyst / reviewer prompt libraries per project language.
@@ -132,7 +132,7 @@ corpus.
 - **Accessibility** — aria-labels, focus indicators, role semantics,
   WCAG-AA contrast.
 
-### 🔌 Developer Experience
+### Developer Experience
 - **OpenAPI 3.0** — `/openapi.json`, Swagger UI `/docs`, ReDoc
   `/redoc`; routes tagged into 14 logical groups.
 - **SDK generation** — `scripts/generate_sdk.py` produces TypeScript

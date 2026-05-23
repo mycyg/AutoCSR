@@ -115,14 +115,14 @@ async function onRollback(): Promise<void> {
   const v = pickedVersion.value
   try {
     await ElMessageBox.confirm(
-      `将回滚本节到版本 v${v}，当前内容将被覆盖（不影响已存在的版本快照）。`,
-      '版本回滚',
+      t('report.rollback_confirm_msg', { v }),
+      t('report.rollback_title'),
       { type: 'warning' },
     )
   } catch { return }
   try {
     await rollbackSection(props.projectId, props.nodeId, v)
-    ElMessage.success(`已回滚到 v${v}`)
+    ElMessage.success(t('report.rollback_success', { v }))
     emit('changed')
     await refreshVersions()
   } catch (e) {
@@ -134,8 +134,8 @@ async function onRegenerate(): Promise<void> {
   if (!props.nodeId) return
   try {
     await ElMessageBox.confirm(
-      '会调用 writer agent 重新生成本节，旧版本会保留在历史中。',
-      '重写本节',
+      t('report.regenerate_confirm_msg'),
+      t('report.regenerate_title'),
       { type: 'warning' },
     )
   } catch {
@@ -205,10 +205,10 @@ onBeforeUnmount(clearSaveTimer)
 <template>
   <div class="chapter-reader" ref="readerRoot" :class="{ 'is-compact': compact }" :data-highlight="props.highlight || ''">
     <div v-if="empty" class="empty">
-      <p v-if="nodeId">本节尚无草稿。</p>
-      <p v-else>← 在左侧选择章节</p>
+      <p v-if="nodeId">{{ t('report.empty_no_draft') }}</p>
+      <p v-else>{{ t('report.empty_no_selection') }}</p>
       <el-button v-if="nodeId" type="primary" plain size="small" @click="onRegenerate">
-        生成本节
+        {{ t('report.generate_this') }}
       </el-button>
     </div>
     <template v-else-if="draft">
@@ -238,7 +238,7 @@ onBeforeUnmount(clearSaveTimer)
           </el-button>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item command="extra">{{ showExtra ? '收起指令' : '+ 指令' }}</el-dropdown-item>
+              <el-dropdown-item command="extra">{{ showExtra ? t('report.collapse_instruction') : t('report.add_instruction') }}</el-dropdown-item>
               <el-dropdown-item command="regen">{{ $t('report.regenerate') }}</el-dropdown-item>
               <el-dropdown-item command="share">{{ $t('common.share') }}</el-dropdown-item>
             </el-dropdown-menu>
@@ -258,24 +258,24 @@ onBeforeUnmount(clearSaveTimer)
                                        : draft.status === 'harmonized' ? 'success' : 'info'">
             {{ draft.status }}
           </el-tag>
-          <span class="words">{{ draft.word_count }} 字</span>
+          <span class="words">{{ draft.word_count }} {{ t('report.word_unit') }}</span>
           <span class="tokens">tok in {{ draft.llm_meta.tokens_in }} / out {{ draft.llm_meta.tokens_out }}</span>
-          <span v-if="saving" class="saving">保存中…</span>
+          <span v-if="saving" class="saving">{{ t('report.saving') }}</span>
         </span>
         <span class="spacer" />
-        <el-select v-model="pickedVersion" placeholder="历史版本" size="small"
+        <el-select v-model="pickedVersion" :placeholder="t('report.history_versions')" size="small"
                    class="ver-select" clearable :disabled="!versions.length">
           <el-option v-for="v in versions" :key="v" :label="`v${v}`" :value="v" />
         </el-select>
-        <el-button size="small" :disabled="pickedVersion === null" @click="onRollback">回滚</el-button>
+        <el-button size="small" :disabled="pickedVersion === null" @click="onRollback">{{ t('common.rollback') }}</el-button>
         <el-button size="small" :type="locked ? 'default' : 'success'" plain
                    @click="toggleLock">
-          {{ locked ? '手工微调' : '锁定 (保存)' }}
+          {{ locked ? t('report.unlock') : t('report.lock') }}
         </el-button>
         <el-button size="small" plain @click="showExtra = !showExtra">
-          {{ showExtra ? '收起' : '+ 指令' }}
+          {{ showExtra ? t('report.collapse') : t('report.add_instruction') }}
         </el-button>
-        <el-button size="small" type="primary" plain @click="onRegenerate">重写本节</el-button>
+        <el-button size="small" type="primary" plain @click="onRegenerate">{{ t('report.regenerate_title') }}</el-button>
         <el-button size="small" @click="onCopy" :aria-label="t('report.copy_md')">
           <Copy class="lc-icon" /> <span>{{ t('report.copy_md') }}</span>
         </el-button>
@@ -285,7 +285,7 @@ onBeforeUnmount(clearSaveTimer)
       </div>
       <div v-if="showExtra" class="extra">
         <el-input v-model="extraInstruction" type="textarea" :rows="2"
-                  placeholder="给 writer 一些额外说明（例：聚焦在安全性叙事；引用 ADAE 表）" />
+                  :placeholder="t('report.extra_placeholder')" />
       </div>
       <div v-if="draft.warnings?.length" class="warnings">
         <el-alert type="warning" :closable="false">
@@ -314,7 +314,7 @@ onBeforeUnmount(clearSaveTimer)
         </ul>
       </Teleport>
       <div v-if="draft.citations?.length" class="cites">
-        <h4>引用</h4>
+        <h4>{{ t('report.citations') }}</h4>
         <ul>
           <li v-for="c in draft.citations" :key="c.ref_code">
             <code>{{ c.ref_code }}</code>
