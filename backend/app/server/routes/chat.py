@@ -12,7 +12,9 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from fastapi import APIRouter, Body, HTTPException
+from fastapi import APIRouter, Body, HTTPException, Request
+
+from app.state import guard_locked
 
 from app.config import data_dir
 from app.outline.store import load as load_outline
@@ -45,8 +47,9 @@ def _hist_to_models(items: list[dict[str, Any]]) -> list[ChatMessage]:
 
 
 @router.post("/projects/{pid}/chapters/{node_id}/chat")
-async def post_chat(pid: str, node_id: str, body: dict = Body(...)) -> dict[str, Any]:
+async def post_chat(pid: str, node_id: str, request: Request, body: dict = Body(...)) -> dict[str, Any]:
     _ensure_project(pid)
+    guard_locked(pid, request)
     if load_draft(pid, node_id) is None:
         raise HTTPException(status_code=404, detail=f"draft {node_id} not found — generate it first")
     message = str(body.get("message") or "").strip()
@@ -117,7 +120,7 @@ def get_versions(pid: str, node_id: str) -> list[int]:
 
 
 @router.put("/projects/{pid}/report/drafts/{node_id}/markdown")
-async def put_draft_markdown(pid: str, node_id: str, body: dict = Body(...)) -> dict[str, Any]:
+async def put_draft_markdown(pid: str, node_id: str, request: Request, body: dict = Body(...)) -> dict[str, Any]:
     """Manual edit: overwrite a section's markdown and snapshot as a new version.
 
     Citations are re-validated against the project corpus + stat store so the
@@ -125,6 +128,7 @@ async def put_draft_markdown(pid: str, node_id: str, body: dict = Body(...)) -> 
     for the ChapterReader's MdEditor "lock/unlock" mode.
     """
     _ensure_project(pid)
+    guard_locked(pid, request)
     draft = load_draft(pid, node_id)
     if draft is None:
         raise HTTPException(status_code=404, detail=f"draft {node_id} not found")
@@ -138,9 +142,17 @@ async def put_draft_markdown(pid: str, node_id: str, body: dict = Body(...)) -> 
         _validate_refs as _wa_validate_refs,
         _word_count as _wa_word_count,
     )
+    from app.schemas.report import Provenance
     refs = _wa_extract_refs(new_md)
     citations, ref_warnings = _wa_validate_refs(pid, refs)
     new_warns = list(draft.warnings or []) + ref_warnings + ["manual_edit"]
+    # M15: manual edit is human-authored
+    new_prov = list(draft.provenance or [])
+    new_prov.append(Provenance(
+        range=(0, len(new_md)), source="human",
+        confidence=1.0, agent_name="user_manual_edit",
+        ts=datetime.now(timezone.utc),
+    ))
     updated = draft.model_copy(update={
         "markdown": new_md,
         "citations": citations,
@@ -148,6 +160,7 @@ async def put_draft_markdown(pid: str, node_id: str, body: dict = Body(...)) -> 
         "generated_at": datetime.now(timezone.utc),
         "status": "draft",
         "warnings": new_warns,
+        "provenance": new_prov,
     })
     save_draft(pid, updated)
     version = snapshot_draft(pid, updated)

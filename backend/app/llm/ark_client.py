@@ -223,18 +223,40 @@ def responses(
     max_tokens: int | None = None,
     temperature: float | None = None,
     reasoning_effort: str | None = None,
+    project_id: str | None = None,
+    caller_agent: str = "llm",
 ) -> dict[str, Any]:
     """Single-turn chat. Returns {text, raw, via}.
 
     Dispatches to OpenAI-compat /chat/completions or Anthropic /v1/messages
     based on settings.llm.api_format (auto-detected from base_url).
+
+    ``project_id`` + ``caller_agent`` are M15 hooks: when supplied they
+    enable PII pre-check + LLM call audit logging. Existing call sites
+    that omit them keep behaving as before.
     """
+    # M15: PII pre-check (no-op when settings.safety.pii_pre_check='off')
+    try:
+        from app.llm.policy import pii_guard
+        messages = pii_guard(messages, project_id=project_id, caller=caller_agent)
+    except Exception:
+        # Re-raise PIIError explicitly so strict mode actually blocks
+        from app.safety.pii_scanner import PIIError
+        try:
+            raise
+        except PIIError:
+            raise
+        except Exception:
+            pass
+
     if _llm_api_format() == "anthropic":
-        return _responses_anthropic(
+        out = _responses_anthropic(
             messages, json_schema=json_schema, timeout=timeout,
             max_retries=max_retries, max_tokens=max_tokens,
             temperature=temperature,
         )
+        _audit_call(project_id, caller_agent, out, messages)
+        return out
     base, key, model, ua, via = _llm_conf()
     chat_messages = _to_chat_messages(messages)
 
@@ -271,7 +293,35 @@ def responses(
     if r.status_code >= 400:
         raise ArkError(f"{via} chat/completions HTTP {r.status_code}: {r.text[:500]}")
     data = r.json()
-    return {"text": _extract_chat_text(data), "raw": data, "via": via}
+    out = {"text": _extract_chat_text(data), "raw": data, "via": via}
+    _audit_call(project_id, caller_agent, out, messages)
+    return out
+
+
+def _audit_call(project_id: str | None,
+                caller_agent: str,
+                out: dict[str, Any],
+                messages: list[dict[str, Any]]) -> None:
+    """M15 — drop one row into data/projects/<pid>/llm_calls/<day>.jsonl."""
+    if not project_id:
+        return
+    try:
+        from app.safety.llm_audit import log_llm_call
+        raw = out.get("raw") or {}
+        usage = raw.get("usage") or {}
+        model_str = str(raw.get("model") or "")
+        log_llm_call(
+            project_id,
+            caller_agent=caller_agent or "llm",
+            model=model_str,
+            messages=messages,
+            response_text=str(out.get("text") or ""),
+            tokens_in=int(usage.get("prompt_tokens", usage.get("input_tokens", 0)) or 0),
+            tokens_out=int(usage.get("completion_tokens", usage.get("output_tokens", 0)) or 0),
+            via=str(out.get("via") or ""),
+        )
+    except Exception:
+        pass
 
 
 def _extract_chat_text(data: dict) -> str:

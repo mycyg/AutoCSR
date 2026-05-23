@@ -40,7 +40,9 @@
     "outline": "Outline",
     "report": "Write",
     "review": "Review",
+    "tasks": "Tasks",
     "export": "Export",
+    "audit": "Audit",
     "next_hint": "Tip: finishing the current step unlocks the next."
   },
   "projects": {

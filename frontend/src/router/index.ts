@@ -54,6 +54,24 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/ExportView.vue'),
     props: true,
   },
+  // V2-F M15 + M16
+  {
+    path: '/p/:id/audit',
+    name: 'project-audit',
+    component: () => import('@/views/AuditView.vue'),
+    props: true,
+  },
+  {
+    path: '/p/:id/tasks',
+    name: 'project-tasks',
+    component: () => import('@/views/TasksView.vue'),
+    props: true,
+  },
+  {
+    path: '/compare',
+    name: 'compare',
+    component: () => import('@/views/CompareView.vue'),
+  },
 ]
 
 const router = createRouter({

@@ -11,12 +11,15 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import summary as config_summary
 from app.observability.logger import configure_logging, get_logger
+from app.audit.middleware import AuditMiddleware
 from app.server.routes import (
     admin, alerts, comments, diff, health, import_csr, llm_ping, plan, projects,
     review, upload, ingest, cleansing, corpus, principles,
     analysis, outline, report, chat, export, sandbox,
     # V2-E M14
     coding, analysis_advanced,
+    # V2-F M15+M16
+    audit, collab, compliance, multi_review,
 )
 from app.server.ws import router as ws_router
 
@@ -38,6 +41,9 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    # M15 — append-only audit chain for every mutation route.
+    app.add_middleware(AuditMiddleware)
 
     # Routes are mounted under /api so the Vite proxy can forward them cleanly.
     app.include_router(health.router, prefix="/api")
@@ -66,6 +72,12 @@ def create_app() -> FastAPI:
     # V2-E M14 — medical coding + advanced stats + TLF export
     app.include_router(coding.router, prefix="/api")
     app.include_router(analysis_advanced.router, prefix="/api")
+    # V2-F M15 — audit trail + e-sig + blinding/lock
+    app.include_router(audit.router, prefix="/api")
+    app.include_router(compliance.router, prefix="/api")
+    # V2-F M16 — multi-reviewer + collab + queue
+    app.include_router(multi_review.router, prefix="/api")
+    app.include_router(collab.router, prefix="/api")
 
     # WebSocket hub (no /api prefix — exposed at /ws/{pid})
     app.include_router(ws_router)

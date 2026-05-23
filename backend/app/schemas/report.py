@@ -40,6 +40,25 @@ class LLMMeta(BaseModel):
     via: str = ""           # "llm" / "mock" / "fallback"
 
 
+ProvenanceSource = Literal["ai", "human", "hybrid"]
+
+
+class Provenance(BaseModel):
+    """M15 — per-range authorship marker for the section.
+
+    ``range`` is ``(start, end)`` character offsets in ``markdown``. The
+    writer agent pushes ``source='ai'`` blocks; chat_editor.apply_patch
+    pushes ``source='human'`` or ``'hybrid'`` depending on whether the
+    LLM proposed the change or the user typed it. Older drafts that
+    lack the field stay loadable (default ``[]``).
+    """
+    range: tuple[int, int] = (0, 0)
+    source: ProvenanceSource = "ai"
+    confidence: float = 1.0
+    agent_name: str | None = None
+    ts: datetime | None = None
+
+
 class SectionDraft(BaseModel):
     node_id: str
     title: str = ""
@@ -54,6 +73,9 @@ class SectionDraft(BaseModel):
     # Stored as plain dicts so older draft files without the field stay
     # loadable (Pydantic supplies a default empty list).
     markers: list[dict] = Field(default_factory=list)
+    # M15 — authorship spans (ai / human / hybrid). Default empty so
+    # older drafts on disk still validate.
+    provenance: list[Provenance] = Field(default_factory=list)
 
 
 class WriterTokens(BaseModel):

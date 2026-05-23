@@ -40,7 +40,9 @@
     "outline": "大纲",
     "report": "撰写",
     "review": "审查",
+    "tasks": "任务",
     "export": "导出",
+    "audit": "审计",
     "next_hint": "提示：完成当前步骤后将自动解锁下一步。"
   },
   "projects": {

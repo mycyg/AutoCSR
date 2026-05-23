@@ -29,7 +29,7 @@ from app.corpus.index import fetch_ref, parse_ref, search as corpus_search
 from app.llm import policy as _policy
 from app.llm.ark_client import ArkError, responses as llm_responses
 from app.schemas.outline import OutlineNode
-from app.schemas.report import CitationRef, LLMMeta, SectionDraft
+from app.schemas.report import CitationRef, LLMMeta, Provenance, SectionDraft
 
 logger = logging.getLogger("autocsr.report.writer")
 
@@ -477,11 +477,28 @@ async def write_section(
     requirements = _principle_requirements(outline_node)
     sys_msg, user_msg = _build_prompt(outline_node, ctx, stat_ev, lit_ev, requirements, style_guide)
 
+    # M15: when project is blinded, mask arm names in BOTH the system and
+    # user messages so the LLM never sees raw arm labels.
+    try:
+        from app.state import blinding as _blinding
+        if _blinding.is_blinded(project_id):
+            mapping = _blinding.arm_map(project_id)
+            if mapping:
+                sys_msg = _blinding.mask_arms(sys_msg, mapping)
+                user_msg = _blinding.mask_arms(user_msg, mapping)
+                warnings_seed = ["blinded:arms_masked"]
+            else:
+                warnings_seed = []
+        else:
+            warnings_seed = []
+    except Exception:
+        warnings_seed = []
+
     t0 = time.time()
     markdown = ""
     via = "mock"
     tokens_in = tokens_out = 0
-    warnings: list[str] = []
+    warnings: list[str] = list(warnings_seed)
     status: str = "draft"
     tool_loop_meta: dict[str, Any] | None = None
 
@@ -542,6 +559,8 @@ async def write_section(
                     max_tokens=policy.max_tokens,
                     temperature=policy.temperature,
                     reasoning_effort=policy.reasoning_effort,
+                    project_id=project_id,
+                    caller_agent="writer",
                 )
             out = await asyncio.to_thread(_call)
             markdown = (out.get("text") or "").strip()
@@ -572,6 +591,15 @@ async def write_section(
         warnings.append("no_citation_but_stat_refs_present")
 
     latency_ms = int((time.time() - t0) * 1000)
+    # M15: mark whole-section content as AI-authored. chat_editor turns
+    # patches will downgrade individual ranges to hybrid/human as needed.
+    provenance = [Provenance(
+        range=(0, len(markdown)),
+        source="ai",
+        confidence=1.0 if via in ("llm", "llm-tools") else 0.5,
+        agent_name="writer",
+        ts=datetime.now(timezone.utc),
+    )]
     draft = SectionDraft(
         node_id=outline_node.id,
         title=outline_node.title,
@@ -586,5 +614,6 @@ async def write_section(
         ),
         warnings=warnings,
         status=status if status == "error" else "draft",
+        provenance=provenance,
     )
     return draft

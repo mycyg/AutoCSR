@@ -949,4 +949,220 @@ export function tlfDownloadUrl(pid: string, filename: string): string {
   return `/api/projects/${pid}/exports/tlf/${encodeURIComponent(filename)}`
 }
 
+// ---------------------------------------------------------------------------
+// V2-F M15 — audit + signature + safety
+// ---------------------------------------------------------------------------
+
+export interface AuditEventDTO {
+  id: string
+  ts: string
+  actor: string
+  action: string
+  resource_type: string
+  resource_id: string
+  before_hash: string | null
+  after_hash: string | null
+  reason: string | null
+  ip: string | null
+  extra: Record<string, unknown>
+  prev_event_hash: string
+  curr_event_hash: string
+}
+
+export interface AuditChainResultDTO {
+  verified: boolean
+  total: number
+  broken_at: string | null
+  error: string | null
+}
+
+export interface SignatureDTO {
+  id: string
+  ts: string
+  signer: string
+  reason: string
+  signed_artifact_type: string
+  signed_artifact_id: string
+  signed_artifact_hash: string
+  public_key_id: string
+  signature: string
+  algorithm: 'ed25519' | 'fallback-hmac'
+}
+
+export async function listAuditEvents(pid: string,
+                                       params: { actor?: string; action?: string; resource_type?: string; limit?: number } = {}): Promise<AuditEventDTO[]> {
+  return (await api.get(`/projects/${pid}/audit`, { params })).data
+}
+export async function verifyAuditChain(pid: string): Promise<AuditChainResultDTO> {
+  return (await api.get(`/projects/${pid}/audit/verify`)).data
+}
+export async function signArtifact(pid: string, body: {
+  artifact_type: string; artifact_id: string; reason?: string; signer?: string
+}): Promise<SignatureDTO> {
+  return (await api.post(`/projects/${pid}/sign`, body)).data
+}
+export async function listSignatures(pid: string): Promise<SignatureDTO[]> {
+  return (await api.get(`/projects/${pid}/signatures`)).data
+}
+export async function verifySignature(pid: string, sigId: string): Promise<{ id: string; verified: boolean }> {
+  return (await api.get(`/projects/${pid}/signatures/${sigId}/verify`)).data
+}
+
+// Blinding + lock
+export interface BlindingDTO {
+  blinded: boolean
+  arm_map: Record<string, string>
+  last_changed_at: string | null
+  signature_id: string | null
+}
+export interface LockStateDTO {
+  locked: boolean
+  reason: string
+  ts: string | null
+  signature_id: string | null
+}
+export async function getBlinding(pid: string): Promise<BlindingDTO> {
+  return (await api.get(`/projects/${pid}/state/blinding`)).data
+}
+export async function setBlinding(pid: string, blinded: boolean,
+                                    sigId?: string, arms?: string[]): Promise<BlindingDTO> {
+  return (await api.patch(`/projects/${pid}/state/blinding`,
+                            { blinded, signature_id: sigId, arms })).data
+}
+export async function getLock(pid: string): Promise<LockStateDTO> {
+  return (await api.get(`/projects/${pid}/state/lock`)).data
+}
+export async function postLock(pid: string, reason: string,
+                                 sigId: string): Promise<LockStateDTO> {
+  return (await api.post(`/projects/${pid}/state/lock`,
+                           { reason, signature_id: sigId })).data
+}
+export async function deleteLock(pid: string, sigId: string): Promise<LockStateDTO> {
+  return (await api.delete(`/projects/${pid}/state/lock`,
+                             { headers: { 'X-Signature-Id': sigId } })).data
+}
+
+// ---------------------------------------------------------------------------
+// V2-F M16 — multi-reviewer + collab + queue
+// ---------------------------------------------------------------------------
+
+export interface MultiReviewDTO {
+  project_id: string
+  statistician: ReviewResultDTO | null
+  medical: ReviewResultDTO | null
+  regulatory: ReviewResultDTO | null
+  combined_count: Record<string, number>
+  created_at: string | null
+}
+export async function runMultiReview(pid: string): Promise<MultiReviewDTO> {
+  return (await api.post(`/projects/${pid}/multi_review`, { sync: true },
+                          { timeout: 300_000 })).data
+}
+export async function getMultiReview(pid: string): Promise<MultiReviewDTO> {
+  return (await api.get(`/projects/${pid}/multi_review`)).data
+}
+
+export interface UserDTO {
+  id: string
+  name: string
+  email: string
+  role: 'author' | 'reviewer' | 'approver' | 'admin'
+}
+export async function listUsers(): Promise<UserDTO[]> {
+  return (await api.get(`/users`)).data
+}
+export async function whoami(asUser?: string): Promise<UserDTO> {
+  const headers = asUser ? { 'X-User-Id': asUser } : {}
+  return (await api.get(`/users/me`, { headers })).data
+}
+
+export interface ReviewTaskCommentDTO {
+  id: string
+  author: string
+  body: string
+  ts: string
+}
+export interface ReviewTaskDTO {
+  id: string
+  project_id: string
+  node_id: string | null
+  source: 'manual' | 'issue' | 'comment' | 'multi_review'
+  source_ref: string | null
+  assignee: string
+  creator: string
+  due_date: string | null
+  status: 'open' | 'in_progress' | 'resolved' | 'wont_fix'
+  severity: 'error' | 'warn' | 'info'
+  title: string
+  body: string
+  comments: ReviewTaskCommentDTO[]
+  created_at: string
+  updated_at: string
+}
+export async function listTasks(pid: string,
+                                 params: { assignee?: string; status?: string; severity?: string; node_id?: string } = {}): Promise<ReviewTaskDTO[]> {
+  return (await api.get(`/projects/${pid}/tasks`, { params })).data
+}
+export async function createTask(pid: string, body: {
+  assignee: string; body: string; severity?: string; node_id?: string;
+  title?: string; due_date?: string
+}, asUser?: string): Promise<ReviewTaskDTO> {
+  const headers = asUser ? { 'X-User-Id': asUser } : {}
+  return (await api.post(`/projects/${pid}/tasks`, body, { headers })).data
+}
+export async function patchTask(pid: string, tid: string, patch: {
+  status?: string; assignee?: string; body?: string; title?: string;
+  severity?: string; comment?: string
+}, asUser?: string): Promise<ReviewTaskDTO> {
+  const headers = asUser ? { 'X-User-Id': asUser } : {}
+  return (await api.patch(`/projects/${pid}/tasks/${tid}`, patch, { headers })).data
+}
+export async function resolveTask(pid: string, tid: string): Promise<ReviewTaskDTO> {
+  return (await api.post(`/projects/${pid}/tasks/${tid}/resolve`)).data
+}
+export async function reopenTask(pid: string, tid: string): Promise<ReviewTaskDTO> {
+  return (await api.post(`/projects/${pid}/tasks/${tid}/reopen`)).data
+}
+export async function taskFromIssue(pid: string, issueId: string, body: {
+  assignee: string; due_date?: string
+}): Promise<ReviewTaskDTO> {
+  return (await api.post(`/projects/${pid}/tasks/from_issue/${issueId}`, body)).data
+}
+export async function taskFromComment(pid: string, cid: string, body: {
+  assignee: string; due_date?: string
+}): Promise<ReviewTaskDTO> {
+  return (await api.post(`/projects/${pid}/tasks/from_comment/${cid}`, body)).data
+}
+
+// Project compare
+export interface DiffResultDTO {
+  pid_a: string
+  pid_b: string
+  mode: 'outline' | 'drafts'
+  outline: Array<{ node_id: string; title: string; kind: string; notes: string }>
+  drafts: Array<{ node_id: string; title: string; n_added: number; n_removed: number; diff: string }>
+  summary: Record<string, number>
+}
+export async function compareProjects(pidA: string, pidB: string, by: 'outline' | 'drafts'): Promise<DiffResultDTO> {
+  return (await api.post(`/projects/compare`, { pid_a: pidA, pid_b: pidB, by })).data
+}
+
+// Queue
+export interface QueueTaskRecordDTO {
+  id: string
+  task_type: string
+  project_id: string | null
+  status: string
+  progress: number
+  message: string
+  error: string | null
+  created_at: string
+  started_at: string | null
+  finished_at: string | null
+  backend: string
+}
+export async function getQueueTaskStatus(taskId: string): Promise<QueueTaskRecordDTO> {
+  return (await api.get(`/tasks/${taskId}/status`)).data
+}
+
 export default api

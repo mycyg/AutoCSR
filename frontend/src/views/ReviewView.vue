@@ -3,8 +3,10 @@ import { computed, onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
 import {
-  getReview, getReviewHistory, patchReviewIssue, startReview,
-  type ReviewIssueDTO, type ReviewResultDTO, type ReviewHistoryDTO,
+  getMultiReview, getReview, getReviewHistory, listUsers,
+  patchReviewIssue, runMultiReview, startReview, taskFromIssue,
+  type MultiReviewDTO, type ReviewIssueDTO, type ReviewResultDTO,
+  type ReviewHistoryDTO, type UserDTO,
 } from '@/api/rest'
 
 const props = defineProps<{ id: string }>()
@@ -14,17 +16,57 @@ const review = ref<ReviewResultDTO | null>(null)
 const history = ref<ReviewHistoryDTO[]>([])
 const running = ref(false)
 const currentHistIdx = ref<number>(-1)   // -1 = latest
+const mode = ref<'classic' | 'multi'>('classic')
+const multi = ref<MultiReviewDTO | null>(null)
+const users = ref<UserDTO[]>([])
+const taskDlg = ref({ visible: false, issueId: '', assignee: 'demo_reviewer' })
 
 async function refresh(): Promise<void> {
   try {
     review.value = await getReview(props.id)
     history.value = await getReviewHistory(props.id)
+    multi.value = await getMultiReview(props.id)
   } catch (e) {
     review.value = null
   }
 }
 
-onMounted(() => { void refresh() })
+async function loadUsers(): Promise<void> {
+  try { users.value = await listUsers() } catch { /* ignore */ }
+}
+
+onMounted(async () => {
+  await loadUsers()
+  await refresh()
+})
+
+async function onStartMulti(): Promise<void> {
+  running.value = true
+  try {
+    multi.value = await runMultiReview(props.id)
+    ElMessage.success(`三审完成: ${JSON.stringify(multi.value.combined_count)}`)
+  } catch (e) {
+    ElMessage.error(e instanceof Error ? e.message : String(e))
+  } finally {
+    running.value = false
+  }
+}
+
+function openTaskDlg(issueId: string): void {
+  taskDlg.value = { visible: true, issueId, assignee: 'demo_reviewer' }
+}
+
+async function submitTask(): Promise<void> {
+  try {
+    await taskFromIssue(props.id, taskDlg.value.issueId, {
+      assignee: taskDlg.value.assignee,
+    })
+    taskDlg.value.visible = false
+    ElMessage.success('已转换为任务')
+  } catch (e) {
+    ElMessage.error(e instanceof Error ? e.message : String(e))
+  }
+}
 
 async function onStart(): Promise<void> {
   running.value = true
@@ -79,8 +121,15 @@ const counts = computed(() => ({
 <template>
   <div class="review-view">
     <div class="topbar">
-      <el-button type="primary" :loading="running" @click="onStart">
+      <el-radio-group v-model="mode" size="small">
+        <el-radio-button label="classic">单审 (M10)</el-radio-button>
+        <el-radio-button label="multi">三审 (M16)</el-radio-button>
+      </el-radio-group>
+      <el-button v-if="mode === 'classic'" type="primary" :loading="running" @click="onStart">
         触发审查
+      </el-button>
+      <el-button v-else type="primary" :loading="running" @click="onStartMulti">
+        触发三审
       </el-button>
       <span v-if="review?.created_at" class="ts">
         最近审查 {{ new Date(review.created_at).toLocaleString('zh-CN') }}
@@ -103,7 +152,57 @@ const counts = computed(() => ({
       </span>
     </div>
 
-    <div class="body">
+    <div v-if="mode === 'multi' && multi" class="multi-summary">
+      <el-tabs>
+        <el-tab-pane :label="`Statistician (${(multi.statistician?.issues?.length || 0)})`">
+          <div v-for="iss in (multi.statistician?.issues || [])" :key="iss.id" class="issue">
+            <div class="head">
+              <el-tag size="small" :type="iss.severity === 'error' ? 'danger' : iss.severity === 'warn' ? 'warning' : 'info'">
+                {{ iss.severity }}
+              </el-tag>
+              <span class="loc" v-if="iss.location?.node_id">→ {{ iss.location.node_id }}</span>
+            </div>
+            <div class="msg">{{ iss.message }}</div>
+            <div v-if="iss.suggestion" class="sug">建议：{{ iss.suggestion }}</div>
+            <div class="ops">
+              <el-button size="small" type="primary" plain @click="openTaskDlg(iss.id)">转任务</el-button>
+            </div>
+          </div>
+        </el-tab-pane>
+        <el-tab-pane :label="`Medical (${(multi.medical?.issues?.length || 0)})`">
+          <div v-for="iss in (multi.medical?.issues || [])" :key="iss.id" class="issue">
+            <div class="head">
+              <el-tag size="small" :type="iss.severity === 'error' ? 'danger' : iss.severity === 'warn' ? 'warning' : 'info'">
+                {{ iss.severity }}
+              </el-tag>
+              <span class="loc" v-if="iss.location?.node_id">→ {{ iss.location.node_id }}</span>
+            </div>
+            <div class="msg">{{ iss.message }}</div>
+            <div v-if="iss.suggestion" class="sug">建议：{{ iss.suggestion }}</div>
+            <div class="ops">
+              <el-button size="small" type="primary" plain @click="openTaskDlg(iss.id)">转任务</el-button>
+            </div>
+          </div>
+        </el-tab-pane>
+        <el-tab-pane :label="`Regulatory (${(multi.regulatory?.issues?.length || 0)})`">
+          <div v-for="iss in (multi.regulatory?.issues || [])" :key="iss.id" class="issue">
+            <div class="head">
+              <el-tag size="small" :type="iss.severity === 'error' ? 'danger' : iss.severity === 'warn' ? 'warning' : 'info'">
+                {{ iss.severity }}
+              </el-tag>
+              <span class="loc" v-if="iss.location?.node_id">→ {{ iss.location.node_id }}</span>
+            </div>
+            <div class="msg">{{ iss.message }}</div>
+            <div v-if="iss.suggestion" class="sug">建议：{{ iss.suggestion }}</div>
+            <div class="ops">
+              <el-button size="small" type="primary" plain @click="openTaskDlg(iss.id)">转任务</el-button>
+            </div>
+          </div>
+        </el-tab-pane>
+      </el-tabs>
+    </div>
+
+    <div v-show="mode === 'classic'" class="body">
       <div class="main">
         <el-collapse :default-active="['error', 'warn']">
           <el-collapse-item v-for="sev in ['error', 'warn', 'info']" :key="sev"
@@ -125,6 +224,7 @@ const counts = computed(() => ({
               <div v-if="iss.suggestion" class="sug">建议：{{ iss.suggestion }}</div>
               <div class="ops">
                 <el-button size="small" plain @click="gotoSection(iss)">跳转章节</el-button>
+                <el-button size="small" type="primary" plain @click="openTaskDlg(iss.id)">转任务</el-button>
                 <el-button size="small" type="info" @click="onIgnore(iss, true)">忽略</el-button>
               </div>
             </div>
@@ -159,6 +259,20 @@ const counts = computed(() => ({
         </div>
       </div>
     </div>
+
+    <el-dialog v-model="taskDlg.visible" title="转换为任务" width="420">
+      <el-form label-width="80px">
+        <el-form-item label="Assignee">
+          <el-select v-model="taskDlg.assignee">
+            <el-option v-for="u in users" :key="u.id" :label="u.name" :value="u.id" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="taskDlg.visible = false">取消</el-button>
+        <el-button type="primary" @click="submitTask">创建任务</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 

@@ -48,7 +48,7 @@ from app.report.writer_agent import (
     _word_count as _wa_word_count,
 )
 from app.schemas.chat import ChatMessage, ChatTurnResult, Patch
-from app.schemas.report import SectionDraft
+from app.schemas.report import Provenance, SectionDraft
 
 logger = logging.getLogger("autocsr.report.chat_editor")
 
@@ -279,6 +279,8 @@ async def chat_turn(
                     max_tokens=policy.max_tokens,
                     temperature=policy.temperature,
                     reasoning_effort=policy.reasoning_effort,
+                    project_id=project_id,
+                    caller_agent="chat_editor",
                 )
             out = await asyncio.to_thread(_call)
             text = (out.get("text") or "").strip()
@@ -348,6 +350,12 @@ async def chat_turn(
             target = args.get("target")
             after = str(args.get("after") or "")
             note = str(args.get("note") or "")
+            # M15: a patch initiated by the LLM is 'hybrid'; chat_editor
+            # never sees a pure-human edit (those go through the markdown
+            # PATCH route below). Caller can override via args.source.
+            patch_source = str(args.get("source") or "hybrid").lower()
+            if patch_source not in ("hybrid", "human", "ai"):
+                patch_source = "hybrid"
             try:
                 new_md, before = _apply_one_patch(current_md, op, target, after)
             except ValueError as e:
@@ -358,6 +366,16 @@ async def chat_turn(
             refs = _wa_extract_refs(new_md)
             citations, ref_warnings = _wa_validate_refs(project_id, refs)
             new_warnings.extend(ref_warnings)
+            # Re-derive provenance: keep existing 'ai' baseline span,
+            # append a hybrid/human span covering the new section.
+            new_prov = list(updated_draft.provenance or [])
+            new_prov.append(Provenance(
+                range=(0, len(new_md)),
+                source=patch_source,  # type: ignore[arg-type]
+                confidence=0.9 if patch_source == "hybrid" else 1.0,
+                agent_name="chat_editor",
+                ts=_now(),
+            ))
             updated_draft = updated_draft.model_copy(update={
                 "markdown": new_md,
                 "citations": citations,
@@ -365,6 +383,7 @@ async def chat_turn(
                 "generated_at": _now(),
                 "warnings": (updated_draft.warnings or []) + ref_warnings,
                 "status": "draft",
+                "provenance": new_prov,
             })
             draft_store.save_draft(project_id, updated_draft)
             new_version = draft_store.snapshot_draft(project_id, updated_draft)

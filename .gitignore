@@ -50,3 +50,8 @@ refer/
 
 # Reports / exports
 data/projects/*/exports/
+
+# V2-F M15 — demo signing keys + persisted signatures; never publish
+data/projects/*/keys/
+data/projects/*/signatures/
+data/users.json

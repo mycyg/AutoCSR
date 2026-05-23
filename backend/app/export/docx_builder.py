@@ -71,6 +71,41 @@ class ExportResult:
 _PLACEHOLDER_RE = re.compile(r"\{\{([A-Z_]+)\}\}")
 
 
+# ---------------------------------------------------------------------------
+# M15 — AI provenance shading
+# ---------------------------------------------------------------------------
+
+def _is_ai_authored(draft: SectionDraft) -> bool:
+    """A section is AI-authored if its latest provenance entry is 'ai'.
+
+    Hybrid / human entries (added by chat_editor or manual edits)
+    downgrade the section so it does not get shaded.
+    """
+    prov = list(draft.provenance or [])
+    if not prov:
+        return False
+    last = prov[-1]
+    src = str(getattr(last, "source", "") or "")
+    return src == "ai"
+
+
+def _shade_paragraphs(doc: Document, *, start: int) -> None:
+    """Apply a light grey shading to every paragraph from index ``start``
+    onwards (one-shot per section render call)."""
+    from docx.oxml import OxmlElement
+    from docx.oxml.ns import qn
+    for p in doc.paragraphs[start:]:
+        pPr = p._p.get_or_add_pPr()
+        shd = OxmlElement("w:shd")
+        shd.set(qn("w:val"), "clear")
+        shd.set(qn("w:color"), "auto")
+        shd.set(qn("w:fill"), "EEEEEE")
+        # Replace any existing shading element first
+        for old in pPr.findall(qn("w:shd")):
+            pPr.remove(old)
+        pPr.append(shd)
+
+
 def _substitute_placeholders(doc: Document, mapping: dict[str, str]) -> None:
     """Walk every paragraph in body + header + footer and replace
     ``{{KEY}}`` placeholders. Done at the run level so existing run formatting
@@ -524,8 +559,14 @@ def build_docx(
         if draft and draft.markdown.strip():
             md = draft.markdown
             md = re.sub(r"^##\s+[^\n]+\n+", "", md.strip(), count=1)
+            # M15: when AI provenance shading requested, remember which
+            # paragraph indices are AI-authored so we can shade them
+            # after rendering.
+            n_before = len(doc.paragraphs)
             # Body H levels start one below the chapter heading
             _render_markdown_into_doc(doc, md, base_level=lvl + 1)
+            if cfg.show_ai_provenance and _is_ai_authored(draft):
+                _shade_paragraphs(doc, start=n_before)
         else:
             # Non-leaf chapters often have no draft — write a placeholder if
             # this node has no children either.

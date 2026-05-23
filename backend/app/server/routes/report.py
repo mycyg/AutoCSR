@@ -6,7 +6,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
-from fastapi import APIRouter, Body, HTTPException
+from fastapi import APIRouter, Body, HTTPException, Request
+
+from app.state import guard_locked
 
 from app.config import data_dir
 from app.outline.store import load as load_outline
@@ -148,8 +150,9 @@ def delete_draft_endpoint(pid: str, node_id: str) -> dict[str, bool]:
 
 
 @router.post("/projects/{pid}/report/regenerate/{node_id}")
-async def regenerate(pid: str, node_id: str, body: dict = Body(default_factory=dict)) -> dict[str, Any]:
+async def regenerate(pid: str, node_id: str, request: Request, body: dict = Body(default_factory=dict)) -> dict[str, Any]:
     _ensure_project(pid)
+    guard_locked(pid, request)
     outline = load_outline(pid)
     if outline is None:
         raise HTTPException(status_code=400, detail="outline not built")

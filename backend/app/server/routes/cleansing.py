@@ -7,9 +7,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, Body, HTTPException, Query
+from fastapi import APIRouter, Body, HTTPException, Query, Request
 
 from app.cleansing.auditor import log as audit_log, read_log
+from app.state import guard_locked
 from app.cleansing.pipeline_io import (
     export_pipeline as export_yaml, import_pipeline as import_yaml,
     load_proposals, save_proposals,
@@ -86,9 +87,11 @@ def update_proposal(
 @router.post("/projects/{pid}/cleansing/apply")
 async def apply(
     pid: str,
+    request: Request,
     body: dict = Body(...),
 ) -> dict[str, Any]:
     _ensure_project(pid)
+    guard_locked(pid, request)
     file_id = body.get("file_id")
     if not file_id:
         raise HTTPException(status_code=400, detail="file_id required")

@@ -39,3 +39,21 @@ pipeline:
   max_parallel_writers: 4
   max_parallel_ingest_workers: 4
   llm_data_redaction: strict  # strict | mild | off
+
+# ---------------------------------------------------------------
+# M15 — AI safety + audit
+# ---------------------------------------------------------------
+safety:
+  pii_pre_check: off          # off | warn | auto_redact | strict
+  pii_llm_check: false        # second-pass LLM filter on regex hits (costs LLM)
+  llm_audit_mode: hash_only   # full | hash_only | off
+
+# ---------------------------------------------------------------
+# M16 — collaboration + queue
+# ---------------------------------------------------------------
+queue:
+  backend: inmemory           # inmemory | arq (arq requires Redis)
+  redis_url: redis://127.0.0.1:6379/0
+
+collab:
+  dev_seed_users: true        # create demo_author/demo_reviewer/... on first boot
