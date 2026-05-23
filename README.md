@@ -291,6 +291,11 @@ This project relies on excellent open-source work:
 [Element Plus](https://element-plus.org),
 [md-editor-v3](https://imzbf.github.io/md-editor-v3/).
 
+Built with **AI pair programming**: [Claude Opus 4.7](https://www.anthropic.com/claude)
+(architecture + implementation) + [OpenAI Codex](https://openai.com/codex)
+(testing iteration + security hardening). All code reviewed and
+integrated by the project maintainer.
+
 ---
 
 ## Data Privacy
@@ -399,3 +404,39 @@ with 6 guides.
 See [CONTRIBUTING.md](./CONTRIBUTING.md#roadmap) for the remaining
 v3.x backlog (SSO/OIDC, real HSM signing, true OCR vision, recording
 replay, multi-study knowledge base, regulatory inquiry tracking).
+
+### v2.1.0 — 2026-05-24
+
+A maintenance + polish release driven by AI pair iteration.
+
+**Codex-contributed**
+
+- Route-level tenant + ACL guard (`server/middlewares/project_access.py`)
+- Cross-project workbench search (`server/routes/workbench.py`)
+- Normalized WebSocket task event DTOs (`server/task_events.py`)
+- Upload path traversal guard + frontend input sanitization
+- Tightened sandbox AST denylist
+- Playwright e2e infrastructure (`frontend/e2e/`)
+- 10 new backend unit tests + 16 prompt files tuned
+
+**Claude UI redesign**
+
+- Emoji-free interface (UI emoji across 5 files replaced with
+  `lucide-vue-next` icons or numeric ordinals)
+- Warm orange primary (`#BA5535` light / `#DA7756` dark) replacing
+  the cyan-blue (`#0891b2`); aligned with Claude product aesthetic
+- Inter web font + 1.6 line-height for readable typography
+- Flat shadows (`0 1px 2px rgba(0,0,0,0.04)`) replacing heavy elevation
+- True-black dark mode background (`#0a0a0a` from `#081421`)
+- LoginView: solid white background + bordered card (was gradient + shadow)
+- Element Plus theme fully overridden via CSS variables
+
+**Fixes**
+
+- `ProjectDTO` frontend types synced with backend M21 multi-tenant
+  schema (`tenant_id`, `created_by`)
+- `literature_search` unknown source now raises `AgentError`
+  (was bare `ValueError`); route maps non-retryable AgentError to 400
+- CI: added `frontend-e2e` Playwright job
+- README e2e badge: 17 -> 22 passing
+- `docs/api.md` curl/python/typescript examples for new endpoints

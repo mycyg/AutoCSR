@@ -79,6 +79,9 @@ Released versions:
 - **v1.0.0** (2026-05-22) — first production-ready CSR pipeline (M1-M18)
 - **v2.0.0** (2026-05-23) — production deployment + 5 therapeutic
   domains + multi-tenant accounts + advanced visualizations (M19-M22)
+- **v2.1.0** (2026-05-24) — codex-contributed security middleware
+  and cross-project workbench, plus Claude UI redesign (emoji-free,
+  warm orange primary, Inter font, flat shadows)
 
 When cutting a new release:
 
