@@ -1,0 +1,273 @@
+# Vaccine CSR principle (M20 v2.2) — immunogenicity (GMT/SCR/SCT/seroprotection),
+# efficacy (VE), long-term immune persistence, AESI safety surveillance per
+# ICH E3 + WHO vaccine guidelines + ICH E2D.
+
+meta:
+  id: vaccine
+  name: Vaccine CSR (immunogenicity + VE + persistence + AESI)
+  version: "1.0"
+  scope: [vaccine, prophylactic, therapeutic-vaccine]
+  derives_from: ich_e3
+
+sections:
+  - id: "1"
+    title: "Title Page"
+    required: true
+    requirements:
+      - "Vaccine name (antigen + adjuvant), target pathogen, target population (age range), study phase"
+      - "Sponsor, protocol identifier, study sites + countries"
+    stat_hints: []
+    children: []
+
+  - id: "2"
+    title: "Synopsis"
+    required: true
+    requirements:
+      - "Primary immunogenicity endpoint result (e.g. 28-day post-dose-2 SCR with 95% CI)"
+      - "Vaccine efficacy (VE) with 95% CI if efficacy trial"
+      - "Reactogenicity summary (solicited local/systemic AEs within 7 days)"
+      - "AESI summary (anaphylaxis, myocarditis, GBS, etc.)"
+    stat_hints:
+      - "GMT pre/post with GMR; SCR n (%) with 95% CI"
+    children: []
+
+  - id: "3"
+    title: "Background"
+    required: true
+    requirements:
+      - "Pathogen biology + disease burden (incidence, mortality, sequelae)"
+      - "Existing vaccines (gaps in coverage) + correlates of protection if known"
+      - "Vaccine design rationale (antigen choice, adjuvant, platform — mRNA / protein / viral vector / inactivated)"
+    stat_hints: []
+    children: []
+
+  - id: "4"
+    title: "Objectives"
+    required: true
+    requirements: []
+    stat_hints: []
+    children:
+      - id: "4.1"
+        title: "Primary Immunogenicity Objective"
+        requirements:
+          - "Pre-specified threshold for SCR (e.g. lower bound of 95% CI > 70%)"
+          - "Or GMT non-inferiority margin vs comparator vaccine"
+        stat_hints: []
+        children: []
+      - id: "4.2"
+        title: "Primary Efficacy Objective (if applicable)"
+        requirements:
+          - "Confirmed disease cases primary endpoint; case definition + adjudication"
+        stat_hints: []
+        children: []
+      - id: "4.3"
+        title: "Safety Objectives"
+        requirements:
+          - "Solicited reactogenicity + unsolicited AEs + SAEs + AESI"
+        stat_hints: []
+        children: []
+
+  - id: "5"
+    title: "Study Design"
+    required: true
+    requirements:
+      - "Randomization (1:1 vs placebo or active comparator), blinding, stratification"
+      - "Dose schedule (e.g. 0/28 days for two-dose; booster at 6 months)"
+      - "Follow-up duration (≥6 months primary, 12-24 months persistence cohort)"
+    stat_hints: []
+    children: []
+
+  - id: "6"
+    title: "Population"
+    required: true
+    requirements: []
+    stat_hints: []
+    children:
+      - id: "6.1"
+        title: "Eligibility"
+        requirements:
+          - "Age range (defined precisely), serostatus at entry (sero-positive subset analysis)"
+          - "Exclusions: immunocompromise, prior vaccination against pathogen, pregnancy (or specific inclusion for maternal vaccine)"
+        stat_hints: []
+        children: []
+      - id: "6.2"
+        title: "Special Populations"
+        requirements:
+          - "Older adults (≥65), immunocompromised cohort, pediatric strata if applicable"
+        stat_hints: []
+        children: []
+
+  - id: "7"
+    title: "Immunogenicity Endpoints"
+    required: true
+    requirements: []
+    stat_hints: []
+    children:
+      - id: "7.1"
+        title: "Geometric Mean Titer (GMT)"
+        requirements:
+          - "Assay: ELISA / neutralization / PRNT — assay validation summary"
+          - "Pre-vaccination + post-dose-1 + post-dose-2 + month 6 / 12"
+        stat_hints:
+          - "GMT with 95% CI by arm × visit; GMR (post/pre) and inter-arm GMR"
+          - "Use log10-transformed titers for normality; back-transform"
+          - "ADaM cols: PARAMCD=GMT, AVAL=log10titer, AVISIT, AVISITN, ARM"
+        children: []
+      - id: "7.2"
+        title: "Seroconversion Rate (SCR)"
+        requirements:
+          - "Definition: ≥4-fold rise from baseline (or seroconversion from seronegative)"
+          - "Per protocol vs per immunogenicity subset"
+        stat_hints:
+          - "SCR n (%) with 95% CI (Clopper-Pearson); difference in SCR with 95% CI"
+        children: []
+      - id: "7.3"
+        title: "Seroconversion Threshold (SCT) + Seroprotection Rate"
+        requirements:
+          - "Pre-defined protection threshold (e.g. anti-HBs ≥10 mIU/mL, HI ≥40 for influenza)"
+        stat_hints:
+          - "Seroprotection % with 95% CI; reverse cumulative distribution curves (RCDC)"
+        children: []
+      - id: "7.4"
+        title: "Cell-Mediated Immunity (if measured)"
+        requirements:
+          - "T-cell responses (IFN-γ ELISPOT, ICS), B-cell memory responses"
+        stat_hints:
+          - "Median spot-forming cells with IQR by visit × arm"
+        children: []
+
+  - id: "8"
+    title: "Vaccine Efficacy (VE)"
+    required: false
+    requirements:
+      - "Case definition: confirmed (lab-confirmed) + symptomatic + severity strata"
+      - "Surveillance method (active vs passive); duration of follow-up"
+    stat_hints:
+      - "VE = 1 - IRR (incidence rate ratio); 95% CI by exact Poisson or Wald"
+      - "VE for primary case definition + secondary (severe disease, hospitalization)"
+      - "ADaM cols: CNSR (0=case, 1=censor), AVAL=days-to-case-or-censor"
+    children: []
+
+  - id: "9"
+    title: "Long-Term Immune Persistence"
+    required: false
+    requirements:
+      - "Follow-up at 6, 12, 24 months post-primary; pre-booster sampling"
+      - "Decline in GMT and seroprotection over time"
+    stat_hints:
+      - "GMT decline curves with 95% CI bands; half-life estimates"
+      - "Proportion remaining seroprotected at each timepoint"
+    children: []
+
+  - id: "10"
+    title: "Booster Response"
+    required: false
+    requirements:
+      - "Anamnestic response post-booster: pre/post booster GMT, fold-rise"
+      - "Heterologous vs homologous booster comparisons"
+    stat_hints:
+      - "Booster GMR (post/pre); proportion achieving ≥4-fold rise"
+    children: []
+
+  - id: "11"
+    title: "Reactogenicity (Solicited Local + Systemic AEs)"
+    required: true
+    requirements:
+      - "Diary card: 7-day window post each dose for local (pain, redness, swelling) + systemic (fever, fatigue, headache, myalgia)"
+      - "Severity grading (mild / moderate / severe per FDA toxicity grading)"
+    stat_hints:
+      - "Solicited AE n (%) by symptom × severity × dose × arm"
+      - "Maximum severity per subject; median time to onset, median duration"
+      - "ADaM cols: FACAT=SOLICITED, FATEST, FASEV, FAOCCUR"
+    children: []
+
+  - id: "12"
+    title: "Unsolicited AEs"
+    required: true
+    requirements:
+      - "Unsolicited AEs within 28 days post each dose by MedDRA SOC × PT × arm"
+      - "Medically attended AEs (MAAEs) + new chronic medical conditions"
+    stat_hints:
+      - "Unsolicited AE n (%) by SOC × arm; ADaM cols: AESOC, AETERM, AESEV"
+    children: []
+
+  - id: "13"
+    title: "AEs of Special Interest (AESI)"
+    required: true
+    requirements:
+      - "Pre-defined list per platform (e.g. myocarditis/pericarditis for mRNA, GBS, anaphylaxis, thrombosis)"
+      - "Detailed narrative for each AESI case"
+    stat_hints:
+      - "AESI incidence rates per 100k doses with 95% CI"
+      - "Background rate comparison (observed vs expected)"
+    children: []
+
+  - id: "14"
+    title: "Serious Adverse Events + Deaths"
+    required: true
+    requirements:
+      - "SAEs throughout study by arm; relatedness assessment; outcomes"
+    stat_hints:
+      - "SAE n (%) by arm; deaths n with cause attribution"
+    children: []
+
+  - id: "15"
+    title: "Subgroup Analyses"
+    required: true
+    requirements:
+      - "Pre-specified: age strata (<18, 18-64, ≥65), sex, baseline serostatus, region, ethnicity, BMI"
+    stat_hints:
+      - "Subgroup GMR + SCR forest plots"
+      - "Subgroup VE forest plot if efficacy trial"
+    children: []
+
+  - id: "16"
+    title: "Statistical Methods"
+    required: true
+    requirements:
+      - "Analysis sets: ITT / per-protocol (PP) / Immunogenicity subset (IGS) / Safety"
+      - "Non-inferiority / superiority hypotheses + margins"
+      - "Missing data handling for immunogenicity (typically per-protocol primary)"
+    stat_hints: []
+    children: []
+
+  - id: "17"
+    title: "Discussion + Benefit-Risk"
+    required: true
+    requirements:
+      - "Public health context; comparison with platform / class peers"
+      - "Coverage of variants / strains (relevant for influenza, COVID)"
+    stat_hints: []
+    children: []
+
+  - id: "18"
+    title: "References"
+    required: true
+    requirements:
+      - "Vancouver; include WHO vaccine guidelines, FDA / EMA guidance on the platform,"
+      - "  assay validation papers, correlates of protection literature"
+    stat_hints: []
+    children: []
+
+  - id: "19"
+    title: "Appendices"
+    required: true
+    requirements: []
+    stat_hints: []
+    children:
+      - id: "19.1"
+        title: "Protocol + SAP"
+        requirements: []
+        children: []
+      - id: "19.2"
+        title: "Assay Validation Reports"
+        requirements: []
+        children: []
+      - id: "19.3"
+        title: "AESI Narratives"
+        requirements: []
+        children: []
+      - id: "19.4"
+        title: "Patient Listings (Reactogenicity Diary, SAE, Death)"
+        requirements: []
+        children: []

@@ -1,0 +1,9 @@
+{
+  "id": "cardiovascular",
+  "name": "心血管 CSR (MACE + CV 生物标志物)",
+  "description": "心血管 CSR 模板，含 MACE 复合终点 (CV 死亡 + MI + 卒中 + HF 住院)、LVEF / NT-proBNP / 6MWT、出血亚组。",
+  "principle_id": "cardiovascular",
+  "language": "zh",
+  "tags": ["cardiovascular", "MACE", "HF", "ACS"],
+  "notes": "符合 ICH E9(R1) estimand 框架 + FDA CV outcome trial 指南 + ESC 指南。"
+}

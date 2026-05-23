@@ -24,6 +24,8 @@ from app.server.routes import (
     hallucination, ectd,
     # M19 — project backup + restore
     backup,
+    # M20 (v2.2) — sample projects + literature + polish + chart + formula
+    sample_projects, literature_search, polish, chart_recommend,
 )
 from app.server.ws import router as ws_router
 
@@ -125,6 +127,11 @@ def create_app() -> FastAPI:
     app.include_router(ectd.router, prefix="/api")
     # M19 — project backup + restore
     app.include_router(backup.router, prefix="/api")
+    # M20 (v2.2) — sample projects + 4 new AI agent endpoints
+    app.include_router(sample_projects.router, prefix="/api")
+    app.include_router(literature_search.router, prefix="/api")
+    app.include_router(polish.router, prefix="/api")
+    app.include_router(chart_recommend.router, prefix="/api")
     try:
         from app.observability.metrics import router as metrics_router
         app.include_router(metrics_router)

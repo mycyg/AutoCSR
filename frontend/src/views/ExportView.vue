@@ -320,6 +320,14 @@ const previewHeadingStyle = computed(() => {
             <el-switch v-model="cfg.show_ai_provenance"
                        @change="(v: boolean | string | number) => saveCfg({ show_ai_provenance: !!v })" />
           </el-form-item>
+          <el-form-item label="参考文献格式">
+            <el-select v-model="cfg.reference_style"
+                       @change="(v: string) => saveCfg({ reference_style: v as any })">
+              <el-option value="vancouver" label="Vancouver (NEJM/NLM)" />
+              <el-option value="gb7714" label="GB/T 7714-2015 (国标)" />
+              <el-option value="ama" label="AMA (American Medical Assoc.)" />
+            </el-select>
+          </el-form-item>
         </el-form>
 
         <div class="upload-row">

@@ -1,0 +1,263 @@
+# Rare Disease CSR principle (M20 v2.2) — small-sample designs, historical controls,
+# real-world evidence, and Bayesian adaptive approaches per FDA Rare Disease guidance
+# and EMA Reflection Paper on small populations.
+
+meta:
+  id: rare_disease
+  name: Rare Disease CSR (small-sample + historical control + Bayesian)
+  version: "1.0"
+  scope: [rare-disease, orphan-drug, ultra-rare]
+  derives_from: ich_e3
+
+sections:
+  - id: "1"
+    title: "Title Page"
+    required: true
+    requirements:
+      - "Disease (with prevalence + ICD-10 + ORPHA code), study phase, design (single-arm / N-of-1 / Bayesian adaptive)"
+      - "Sponsor, protocol identifier, orphan-drug designation status"
+    stat_hints: []
+    children: []
+
+  - id: "2"
+    title: "Synopsis"
+    required: true
+    requirements:
+      - "Total enrolled N (often <50 — call out small-sample explicitly)"
+      - "Primary endpoint with point estimate + 95% CI (Bayesian credible interval if applicable)"
+      - "Comparison source: historical control / natural history / external control arm"
+    stat_hints:
+      - "Bayesian posterior mean + 95% CrI; probability of meeting threshold"
+    children: []
+
+  - id: "3"
+    title: "Disease Background"
+    required: true
+    requirements:
+      - "Epidemiology: prevalence per 100k, age of onset, mortality, natural history"
+      - "Pathophysiology + genetic basis (gene panel / mutation list if relevant)"
+      - "Existing therapies (none / supportive only / off-label) and unmet need"
+    stat_hints: []
+    children: []
+
+  - id: "4"
+    title: "Objectives"
+    required: true
+    requirements: []
+    stat_hints: []
+    children:
+      - id: "4.1"
+        title: "Primary Objective"
+        requirements:
+          - "Pre-specify success threshold (e.g. response rate ≥40% vs historical 10%)"
+        stat_hints: []
+        children: []
+      - id: "4.2"
+        title: "Secondary + Exploratory"
+        requirements:
+          - "Biomarker normalization, patient-reported outcomes, functional measures"
+        stat_hints: []
+        children: []
+
+  - id: "5"
+    title: "Study Design"
+    required: true
+    requirements: []
+    stat_hints: []
+    children:
+      - id: "5.1"
+        title: "Design Rationale — Why Small-Sample Methods"
+        requirements:
+          - "Justify departure from large RCT: feasibility (disease prevalence)"
+          - "Discussion with regulators (Type B meeting / Scientific Advice) summarized"
+        stat_hints: []
+        children: []
+      - id: "5.2"
+        title: "Single-Arm + Historical Control"
+        requirements:
+          - "Historical control source: published registry, prior trial data, NHS data lake"
+          - "Adjustment method: propensity score matching, IPTW, regression with covariates"
+        stat_hints:
+          - "Standardized mean differences before/after matching; love plot"
+          - "Bias assessment via E-value sensitivity"
+        children: []
+      - id: "5.3"
+        title: "Bayesian Adaptive Design (if applicable)"
+        requirements:
+          - "Prior elicitation: weakly informative vs evidence-based (meta-analysis prior)"
+          - "Stopping rules: futility / success boundaries; interim analyses"
+        stat_hints:
+          - "Posterior probability of success at interim + final"
+          - "Predictive probability of success (PPoS) for futility checks"
+        children: []
+      - id: "5.4"
+        title: "N-of-1 / Crossover Designs (if applicable)"
+        requirements:
+          - "Within-patient comparison sequence with washout periods"
+          - "Mixed-effects model accounting for patient as random effect"
+        stat_hints: []
+        children: []
+      - id: "5.5"
+        title: "External Control Arm (ECA)"
+        requirements:
+          - "Source dataset description, eligibility harmonization, common data model"
+          - "ICH E10 + FDA RWE framework adherence"
+        stat_hints:
+          - "ECA cohort N + baseline balance table"
+        children: []
+
+  - id: "6"
+    title: "Population"
+    required: true
+    requirements:
+      - "Genetic confirmation requirements (if applicable)"
+      - "Age strata particularly important (pediatric subpopulations)"
+      - "Geographic diversity to maximize enrollment"
+    stat_hints: []
+    children: []
+
+  - id: "7"
+    title: "Treatments"
+    required: true
+    requirements:
+      - "Dose, schedule, route; weight-based dosing for pediatric inclusion"
+      - "Long-term extension provisions (open-label extension common in rare disease)"
+    stat_hints: []
+    children: []
+
+  - id: "8"
+    title: "Primary Efficacy Analysis"
+    required: true
+    requirements:
+      - "Pre-specified statistical method (frequentist with exact CI / Bayesian posterior)"
+      - "Sensitivity analyses: alternative priors (Bayesian), missing-data patterns"
+    stat_hints:
+      - "Posterior probability that effect > δ (clinically meaningful threshold)"
+      - "Frequentist 95% CI by exact (Clopper-Pearson) method when N small"
+      - "ADaM cols: USUBJID, AVAL, BASE, CHG, AVISITN"
+    children: []
+
+  - id: "9"
+    title: "Bayesian Methodology Detail"
+    required: false
+    requirements:
+      - "Prior specification + sensitivity to prior (alternative priors comparison)"
+      - "MCMC convergence diagnostics (Rhat < 1.01, effective sample size)"
+      - "Posterior summaries: mean / median / 95% CrI / probability of clinical benefit"
+    stat_hints:
+      - "Trace plots + autocorrelation diagnostics"
+      - "Posterior probability charts"
+    children: []
+
+  - id: "10"
+    title: "Real-World Evidence Integration"
+    required: false
+    requirements:
+      - "RWE source: claims data, EHR, patient registries, natural history studies"
+      - "Linkage methodology + privacy controls (HIPAA / GDPR)"
+      - "Causal inference framework: target trial emulation"
+    stat_hints:
+      - "Cohort flowchart per CONSORT for RWE; sensitivity to definition of exposure / outcome"
+    children: []
+
+  - id: "11"
+    title: "Subgroup Analyses"
+    required: true
+    requirements:
+      - "Pre-specified despite small N — typically genotype, age strata, severity at baseline"
+      - "Forest plot acknowledging wide CIs in small subgroups"
+    stat_hints:
+      - "Subgroup-level posterior probabilities (Bayesian) or descriptive (frequentist)"
+    children: []
+
+  - id: "12"
+    title: "Safety"
+    required: true
+    requirements: []
+    stat_hints: []
+    children:
+      - id: "12.1"
+        title: "AE Profile"
+        requirements:
+          - "AE by SOC × PT × grade × arm (or vs historical natural history)"
+        stat_hints:
+          - "Any AE / G≥3 / Serious AE n (%); use exact CIs given small N"
+          - "ADaM cols: AESOC, AETERM, AESEV, AESER, AEREL"
+        children: []
+      - id: "12.2"
+        title: "Long-Term Safety Surveillance"
+        requirements:
+          - "OLE phase data; durability of safety signals"
+        stat_hints:
+          - "Patient-years of exposure; AE incidence rates per 100 patient-years"
+        children: []
+
+  - id: "13"
+    title: "Patient-Reported Outcomes + Functional Outcomes"
+    required: false
+    requirements:
+      - "Disease-specific PRO instruments + generic (EQ-5D)"
+      - "Functional measures relevant to disease (6MWT, motor function tests, cognitive batteries)"
+    stat_hints:
+      - "Change from baseline per visit; MMRM with limited covariates given small N"
+    children: []
+
+  - id: "14"
+    title: "Limitations + Generalizability"
+    required: true
+    requirements:
+      - "Sample size limitations explicit + statistical caveats"
+      - "Selection bias from single-center / referral patterns"
+      - "Historical control validity; secular trends in standard-of-care"
+    stat_hints: []
+    children: []
+
+  - id: "15"
+    title: "Benefit-Risk Discussion"
+    required: true
+    requirements:
+      - "Weigh small magnitude of evidence against severity of unmet need"
+      - "Conditional / accelerated approval pathway considerations"
+    stat_hints: []
+    children: []
+
+  - id: "16"
+    title: "Statistical Methods Summary"
+    required: true
+    requirements:
+      - "Pre-specified analysis sets + handling of multiplicity"
+      - "Type I error per regulatory guidance for rare diseases (may relax from 0.025)"
+    stat_hints: []
+    children: []
+
+  - id: "17"
+    title: "References"
+    required: true
+    requirements:
+      - "Vancouver; include FDA Rare Disease Guidance, EMA Small Population reflection paper,"
+      - "  ICH E10 (Choice of Control), key natural history papers"
+    stat_hints: []
+    children: []
+
+  - id: "18"
+    title: "Appendices"
+    required: true
+    requirements: []
+    stat_hints: []
+    children:
+      - id: "18.1"
+        title: "Protocol + SAP + Bayesian Analysis Plan"
+        requirements: []
+        children: []
+      - id: "18.2"
+        title: "Historical Control Source Documentation"
+        requirements: []
+        children: []
+      - id: "18.3"
+        title: "MCMC Diagnostics + Sensitivity Tables"
+        requirements: []
+        children: []
+      - id: "18.4"
+        title: "Patient Listings"
+        requirements: []
+        children: []

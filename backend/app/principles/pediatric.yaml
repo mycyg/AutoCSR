@@ -1,0 +1,276 @@
+# Pediatric CSR principle (M20 v2.2) — age stratification (neonate/infant/child/adolescent),
+# weight-based dosing, growth + developmental safety, palatability per ICH E11(R1) and
+# FDA PREA / EMA PIP guidance.
+
+meta:
+  id: pediatric
+  name: Pediatric CSR (ICH E11(R1) + age strata + growth + palatability)
+  version: "1.0"
+  scope: [pediatric, neonatology, adolescent]
+  derives_from: ich_e3
+
+sections:
+  - id: "1"
+    title: "Title Page"
+    required: true
+    requirements:
+      - "Indication + age range studied + formulation (suspension / tablet / minitablet / dispersible)"
+      - "PIP (Pediatric Investigation Plan) / PREA reference"
+    stat_hints: []
+    children: []
+
+  - id: "2"
+    title: "Synopsis"
+    required: true
+    requirements:
+      - "Primary endpoint result per ICH E11(R1) age strata"
+      - "Dosing approach (weight-based, BSA, fixed-dose by age band)"
+      - "Growth + development safety summary"
+    stat_hints:
+      - "PK exposure (AUC, Cmax) by age stratum vs adult reference range"
+    children: []
+
+  - id: "3"
+    title: "Background + Extrapolation Strategy"
+    required: true
+    requirements:
+      - "Disease in pediatric population: epidemiology, severity vs adults"
+      - "Extrapolation framework: full / partial / no extrapolation from adult data per ICH E11A"
+      - "PK/PD bridging rationale"
+    stat_hints: []
+    children: []
+
+  - id: "4"
+    title: "Age Stratification per ICH E11(R1)"
+    required: true
+    requirements: []
+    stat_hints: []
+    children:
+      - id: "4.1"
+        title: "Preterm Newborn Infants"
+        requirements:
+          - "Gestational age, postmenstrual age, weight; surfactant maturity considerations"
+        stat_hints:
+          - "n by GA-band (<28, 28-31, 32-36 weeks)"
+        children: []
+      - id: "4.2"
+        title: "Term Newborn Infants (0-27 days)"
+        requirements:
+          - "Hepatic + renal immaturity; PK adjustments expected"
+        stat_hints:
+          - "PK params (CL/F, V/F) by postnatal age"
+        children: []
+      - id: "4.3"
+        title: "Infants and Toddlers (28 days - 23 months)"
+        requirements:
+          - "Rapid developmental changes; weight-based dosing critical"
+        stat_hints:
+          - "Allometric scaling factor (weight^0.75)"
+        children: []
+      - id: "4.4"
+        title: "Children (2 - 11 years)"
+        requirements:
+          - "Pre-pubertal, may sub-stratify pre-school (2-5) vs school-age (6-11)"
+        stat_hints:
+          - "Demographics + PK summary by age stratum"
+        children: []
+      - id: "4.5"
+        title: "Adolescents (12 - 17 years)"
+        requirements:
+          - "Tanner staging may be relevant; menarcheal status for females"
+        stat_hints:
+          - "Demographics by Tanner stage; PK comparison to adult"
+        children: []
+
+  - id: "5"
+    title: "Study Design"
+    required: true
+    requirements:
+      - "Within-age-stratum randomization (typically open-label PK / efficacy in pediatrics)"
+      - "Use of population PK + modeling for sparse sampling"
+      - "Assent + consent procedures (age-appropriate forms)"
+    stat_hints: []
+    children: []
+
+  - id: "6"
+    title: "Dosing Strategy"
+    required: true
+    requirements: []
+    stat_hints: []
+    children:
+      - id: "6.1"
+        title: "Weight-Based Dosing"
+        requirements:
+          - "mg/kg dosing rationale; dose capping at adult dose"
+          - "Allometric scaling (FFM, BSA) considerations"
+        stat_hints:
+          - "Dose received per kg distribution; correlation with exposure"
+          - "ADaM cols: AGE, AGEU, WEIGHT, HEIGHT, BMI, EXDOSE, EXDOSU"
+        children: []
+      - id: "6.2"
+        title: "Fixed-Dose by Age / Weight Band"
+        requirements:
+          - "Banded dosing scheme (e.g. 5-10 kg → 25mg; 10-20 kg → 50mg)"
+          - "Pharmacometric simulation supporting band cut-points"
+        stat_hints:
+          - "Predicted vs observed exposure per band; coverage of target window"
+        children: []
+      - id: "6.3"
+        title: "Population PK Analysis"
+        requirements:
+          - "NONMEM / Monolix / nlmixr model; covariate analysis (weight, age, organ maturation)"
+        stat_hints:
+          - "PopPK parameter estimates + RSE%; VPC plots"
+        children: []
+
+  - id: "7"
+    title: "Formulation + Palatability"
+    required: true
+    requirements:
+      - "Age-appropriate formulation: liquid / dispersible tablet / minitablet / chewable"
+      - "Palatability assessment (3- or 5-point hedonic scale, FACES or visual analog)"
+      - "Acceptability outcomes (swallowability, willingness to repeat)"
+    stat_hints:
+      - "Palatability score distribution by age stratum"
+      - "Acceptability success rate (% completing dose) with 95% CI"
+    children: []
+
+  - id: "8"
+    title: "Efficacy"
+    required: true
+    requirements:
+      - "Age-stratified primary analysis if extrapolation not full"
+      - "Pediatric-specific endpoints (functional, developmental, school attendance)"
+    stat_hints:
+      - "Forest plot of effect estimates by age stratum"
+      - "Subgroup-level point estimates with 95% CI"
+    children: []
+
+  - id: "9"
+    title: "Pediatric-Specific Safety"
+    required: true
+    requirements: []
+    stat_hints: []
+    children:
+      - id: "9.1"
+        title: "Growth Assessment"
+        requirements:
+          - "Height, weight, BMI percentiles using WHO / CDC reference"
+          - "Velocity calculations (height velocity z-score over study)"
+        stat_hints:
+          - "Mean change in height z-score / weight z-score per visit × arm"
+          - "Growth velocity plots vs reference curves"
+          - "ADaM cols: PARAMCD=HTSDS/WTSDS, AVAL, BASE, CHG, AVISIT"
+        children: []
+      - id: "9.2"
+        title: "Developmental Milestones"
+        requirements:
+          - "Ages & Stages Questionnaire (ASQ), Bayley Scales for younger children"
+          - "Cognitive testing (Wechsler scales) for school-age"
+        stat_hints:
+          - "Mean developmental score per visit; proportion meeting age-appropriate milestones"
+        children: []
+      - id: "9.3"
+        title: "Tanner Staging + Pubertal Development"
+        requirements:
+          - "Tanner scale assessment at baseline + annually; menarche age for females"
+        stat_hints:
+          - "Tanner stage progression by age cohort; menarche age distribution"
+        children: []
+      - id: "9.4"
+        title: "Bone Maturation / Skeletal Health"
+        requirements:
+          - "Bone age X-ray (if drug affects growth plate); DXA scans for bone density"
+        stat_hints:
+          - "Bone age advancement vs chronological age; BMD z-score changes"
+        children: []
+      - id: "9.5"
+        title: "Adverse Events"
+        requirements:
+          - "AE by age stratum × SOC × PT × severity × arm"
+          - "Age-specific AESI (e.g. tooth discoloration for tetracyclines, growth retardation for steroids)"
+        stat_hints:
+          - "AE incidence per 100 patient-years by age stratum"
+          - "ADaM cols: AESOC, AETERM, AESEV, AESER, AEREL, AGE, AGEU"
+        children: []
+
+  - id: "10"
+    title: "Long-Term Follow-Up"
+    required: false
+    requirements:
+      - "Extension beyond treatment period to capture delayed developmental effects"
+      - "Registry / open-label extension data"
+    stat_hints:
+      - "Cumulative incidence of delayed AEs; growth trajectory plots over 2-5 years"
+    children: []
+
+  - id: "11"
+    title: "Subgroup Analyses"
+    required: true
+    requirements:
+      - "Age stratum, sex, weight band, baseline disease severity, race/ethnicity"
+      - "Genetic polymorphisms affecting drug metabolism (CYP2D6, CYP2C19) if applicable"
+    stat_hints:
+      - "Stratum-specific exposure-response analyses"
+    children: []
+
+  - id: "12"
+    title: "Statistical Methods"
+    required: true
+    requirements:
+      - "Pre-specified age strata with hierarchical analysis approach"
+      - "Bayesian borrowing from adult data (if extrapolation strategy uses Bayesian framework)"
+      - "Power assumptions stratum-specific"
+    stat_hints: []
+    children: []
+
+  - id: "13"
+    title: "Ethics — Pediatric Specific"
+    required: true
+    requirements:
+      - "Risk-benefit per category (minimal risk / minor increase over minimal risk)"
+      - "Assent procedures by developmental level"
+      - "Parental consent + child assent documentation"
+    stat_hints: []
+    children: []
+
+  - id: "14"
+    title: "Discussion"
+    required: true
+    requirements:
+      - "Pediatric formulation suitability + caregiver perspectives"
+      - "Comparison with adult data; extrapolation strategy validation"
+    stat_hints: []
+    children: []
+
+  - id: "15"
+    title: "References"
+    required: true
+    requirements:
+      - "Vancouver; include ICH E11(R1) + E11A, FDA Pediatric Study Plan guidance,"
+      - "  EMA PIP regulations, WHO growth reference, key pediatric pharmacometric papers"
+    stat_hints: []
+    children: []
+
+  - id: "16"
+    title: "Appendices"
+    required: true
+    requirements: []
+    stat_hints: []
+    children:
+      - id: "16.1"
+        title: "Protocol + SAP + PopPK Analysis Plan"
+        requirements: []
+        children: []
+      - id: "16.2"
+        title: "Age-Appropriate Consent + Assent Forms"
+        requirements: []
+        children: []
+      - id: "16.3"
+        title: "Growth Charts (Per Patient)"
+        requirements: []
+        children: []
+      - id: "16.4"
+        title: "Palatability Questionnaires"
+        requirements: []
+        children: []

@@ -39,7 +39,10 @@ from docx.table import Table
 from app.analysis import store as analysis_store
 from app.cleansing import pipeline_io as cleansing_pipeline
 from app.config import data_dir
+from app.corpus.index import fetch_ref as corpus_fetch_ref
 from app.export._make_template import create_template
+from app.export.formula_render import extract_math_spans, render_latex_to_png
+from app.export.reference_formatter import format_references
 from app.export.template_engine import DocxTemplateConfig, load_config as load_template_config
 from app.export.template_uploader import open_uploaded
 from app.outline.store import load as load_outline
@@ -209,6 +212,41 @@ def _set_list_style(paragraph, ordered: bool) -> None:
         pass
 
 
+def _add_latex_inline(paragraph, latex: str, *, fontsize: int = 12) -> None:
+    """Embed a LaTeX expression as an inline image inside ``paragraph``."""
+    try:
+        from docx.shared import Pt as _Pt
+        png_bytes = render_latex_to_png(latex, dpi=200, fontsize=fontsize)
+        if not png_bytes:
+            paragraph.add_run(f"${latex}$")    # fallback to source
+            return
+        import io as _io
+        run = paragraph.add_run()
+        run.add_picture(_io.BytesIO(png_bytes))
+    except Exception as e:        # noqa: BLE001
+        logger.warning("latex_inline_failed expr=%r err=%s", latex[:60], e)
+        paragraph.add_run(f"${latex}$")
+
+
+def _add_latex_block(doc: Document, latex: str) -> None:
+    """Center an isolated LaTeX equation on its own paragraph."""
+    try:
+        from docx.enum.text import WD_ALIGN_PARAGRAPH as _W
+        png_bytes = render_latex_to_png(latex, dpi=240, fontsize=14)
+        if not png_bytes:
+            p = doc.add_paragraph(f"$$ {latex} $$")
+            p.alignment = _W.CENTER
+            return
+        import io as _io
+        p = doc.add_paragraph()
+        p.alignment = _W.CENTER
+        run = p.add_run()
+        run.add_picture(_io.BytesIO(png_bytes))
+    except Exception as e:        # noqa: BLE001
+        logger.warning("latex_block_failed expr=%r err=%s", latex[:60], e)
+        doc.add_paragraph(f"$$ {latex} $$")
+
+
 def _render_markdown_into_doc(doc: Document, markdown_text: str, *, base_level: int = 2) -> None:
     """Convert ``markdown_text`` to docx blocks appended to ``doc``.
 
@@ -218,6 +256,29 @@ def _render_markdown_into_doc(doc: Document, markdown_text: str, *, base_level: 
     """
     if not markdown_text.strip():
         return
+
+    # M20 — extract LaTeX spans + substitute deterministic markers so the
+    # markdown parser leaves them alone, then post-process at the run level.
+    math_spans = extract_math_spans(markdown_text)
+    math_lookup: dict[str, tuple[str, str]] = {}    # key -> (kind, latex)
+    if math_spans:
+        # Walk spans in source order; replace each with a marker token.
+        new_pieces: list[str] = []
+        cursor = 0
+        for i, (kind, latex, start, end) in enumerate(math_spans):
+            new_pieces.append(markdown_text[cursor:start])
+            key = f"AUTOCSRMATH{i}END"
+            math_lookup[key] = (kind, latex)
+            if kind == "block":
+                # Force the marker onto its own paragraph so it lands in a
+                # solo <p>; we'll replace that paragraph with a centered img.
+                new_pieces.append(f"\n\n{key}\n\n")
+            else:
+                new_pieces.append(key)
+            cursor = end
+        new_pieces.append(markdown_text[cursor:])
+        markdown_text = "".join(new_pieces)
+
     html = md_lib.markdown(
         markdown_text,
         extensions=["tables", "fenced_code", "sane_lists"],
@@ -227,6 +288,32 @@ def _render_markdown_into_doc(doc: Document, markdown_text: str, *, base_level: 
     root = soup.find("root")
     if root is None:
         return
+
+    _math_marker_re = re.compile(r"AUTOCSRMATH(\d+)END")
+
+    def _add_runs_with_math(paragraph, text_or_el) -> None:
+        """Like _add_inline_runs but resolves math markers to inline imgs."""
+        if not math_lookup:
+            _add_inline_runs(paragraph, text_or_el)
+            return
+        # Flatten the element to its visible text so we can split on markers.
+        # We lose bold/italic inside that flattened text — small price for
+        # correct math rendering in the common case of paragraph-level math.
+        text = text_or_el.get_text() if hasattr(text_or_el, "get_text") \
+                                          else str(text_or_el)
+        cursor = 0
+        for m in _math_marker_re.finditer(text):
+            pre = text[cursor:m.start()]
+            if pre:
+                paragraph.add_run(pre)
+            entry = math_lookup.get(m.group(0))
+            if entry is not None:
+                kind, latex = entry
+                _add_latex_inline(paragraph, latex)
+            cursor = m.end()
+        tail = text[cursor:]
+        if tail:
+            paragraph.add_run(tail)
 
     for el in root.children:
         if isinstance(el, NavigableString):
@@ -243,6 +330,18 @@ def _render_markdown_into_doc(doc: Document, markdown_text: str, *, base_level: 
             p = doc.add_paragraph(style=f"Heading {min(level, 4)}")
             _add_inline_runs(p, el)
         elif name == "p":
+            raw_text = el.get_text().strip()
+            # Block-math paragraph: marker is the only content
+            m = _math_marker_re.fullmatch(raw_text) if math_lookup else None
+            if m is not None and math_lookup.get(m.group(0)):
+                _kind, latex = math_lookup[m.group(0)]
+                _add_latex_block(doc, latex)
+                continue
+            # Inline math: marker(s) embedded in normal text
+            if math_lookup and _math_marker_re.search(raw_text):
+                p = doc.add_paragraph()
+                _add_runs_with_math(p, el)
+                continue
             p = doc.add_paragraph()
             _add_inline_runs(p, el)
         elif name in ("ul", "ol"):
@@ -582,15 +681,42 @@ def build_docx(
         progress_cb("references")
     doc.add_paragraph(style="Heading 1").add_run("References / 引用")
     cites = _gather_unique_citations(drafts)
-    if cites:
-        for c in cites:
+    # M20 — fetch full block metadata so we can render real Vancouver / GB7714
+    # / AMA citations rather than the bare snippet fallback.
+    literature_blocks: list[dict[str, Any]] = []
+    non_literature: list[dict[str, str]] = []
+    for c in cites:
+        block = corpus_fetch_ref(project_id, c["ref_code"])
+        is_lit = block is not None and block.type == "literature"
+        if is_lit:
+            meta = dict(block.meta or {})
+            meta.setdefault("ref_code", c["ref_code"])
+            meta.setdefault("title", meta.get("title") or
+                              (block.text or "").split("\n", 1)[0][:120])
+            literature_blocks.append(meta)
+        else:
+            non_literature.append(c)
+
+    if literature_blocks:
+        formatted = format_references(literature_blocks,
+                                        style=str(cfg.reference_style or "vancouver"))
+        for line in formatted:
+            p = doc.add_paragraph()
+            p.style = doc.styles["Normal"]
+            p.add_run(line)
+    if non_literature:
+        if literature_blocks:
+            doc.add_paragraph().add_run(
+                "Non-literature citations (stat / principle / note):"
+            ).italic = True
+        for c in non_literature:
             p = doc.add_paragraph()
             p.style = doc.styles["Normal"]
             r1 = p.add_run(f"[{c['ref_code']}] ")
             r1.bold = True
             r2 = p.add_run(f"({c['type']}) {c['snippet']}")
             r2.font.size = Pt(10)
-    else:
+    if not cites:
         doc.add_paragraph("（本报告未包含已解析的引用。）")
     n_citations = len(cites)
 

@@ -67,3 +67,7 @@ backend/coverage.xml
 
 # M19 — project backup zips (transient downloads)
 data/backups/
+
+# M20 — generated sample-project parquet (regenerable via
+#       `python scripts/generate_sample_data.py`)
+data/sample_projects/

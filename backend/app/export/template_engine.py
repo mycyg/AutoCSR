@@ -22,6 +22,7 @@ from app.config import data_dir
 
 
 PresetId = Literal["standard", "pharma", "academic", "regulatory"]
+ReferenceStyle = Literal["vancouver", "gb7714", "ama"]
 
 
 class FontConfig(BaseModel):
@@ -63,6 +64,8 @@ class DocxTemplateConfig(BaseModel):
     watermark: str = ""
     show_ai_provenance: bool = False
     custom_template_id: str | None = None  # M13 upload reference
+    # M20 (v2.2) — reference list rendering style
+    reference_style: ReferenceStyle = "vancouver"
 
 
 def _preset(name: PresetId) -> DocxTemplateConfig:

@@ -18,6 +18,41 @@ const form = ref<{ name: string; principle_id: string; template_id: string }>({
   name: '', principle_id: '', template_id: '',
 })
 
+// M20 — sample-project dropdown (lazy-loaded on first open)
+const sampleDomains = ref<Array<{ domain: string; template_id: string; name: string; blurb: string }>>([])
+const sampleLoading = ref(false)
+
+async function loadSampleDomains(): Promise<void> {
+  if (sampleDomains.value.length || sampleLoading.value) return
+  sampleLoading.value = true
+  try {
+    const res = await fetch('/api/sample_projects')
+    if (res.ok) sampleDomains.value = await res.json()
+  } catch (e) {
+    handleApiError(e)
+  } finally {
+    sampleLoading.value = false
+  }
+}
+
+async function createFromSample(domain: string): Promise<void> {
+  submitting.value = true
+  try {
+    const res = await fetch(`/api/projects/from_sample/${domain}`,
+                              { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({}) })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const proj = await res.json()
+    await store.refresh()
+    ElMessage.success(`${proj.name} (${proj.parquet_count} files staged)`)
+    router.push(`/p/${proj.id}`)
+  } catch (e) {
+    ElMessage.error(e instanceof Error ? e.message : String(e))
+  } finally {
+    submitting.value = false
+  }
+}
+
 const searchQ = ref('')
 const tagQ = ref<string | undefined>(undefined)
 const showArchived = ref(false)
@@ -118,6 +153,23 @@ const tagOptions = computed(() => store.allTags.map((t) => ({ value: t, label: t
       <h2>{{ $t('projects.title') }}</h2>
       <div class="bar-right">
         <el-button :loading="store.loading" @click="store.refresh()">{{ $t('common.refresh') }}</el-button>
+        <el-dropdown trigger="click" @command="(v: any) => createFromSample(String(v))"
+                      @visible-change="(v: boolean) => v && loadSampleDomains()">
+          <el-button :loading="submitting || sampleLoading">
+            🧪 Try with Sample Data <el-icon class="el-icon--right">▾</el-icon>
+          </el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item v-if="sampleLoading" disabled>Loading…</el-dropdown-item>
+              <el-dropdown-item v-for="d in sampleDomains" :key="d.domain" :command="d.domain">
+                <strong>{{ d.name }}</strong>
+                <div style="font-size: 11px; opacity: 0.7; max-width: 280px; white-space: normal;">
+                  {{ d.blurb }}
+                </div>
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
         <el-dropdown trigger="click" @command="(v: any) => openCreate(typeof v === 'string' ? v : '')">
           <el-button type="primary">
             {{ $t('common.new') }} <el-icon class="el-icon--right">▾</el-icon>

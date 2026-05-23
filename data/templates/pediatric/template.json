@@ -1,0 +1,9 @@
+{
+  "id": "pediatric",
+  "name": "儿科 CSR (ICH E11(R1) + 年龄分层)",
+  "description": "儿科 CSR 模板，含 ICH E11(R1) 年龄分层 (新生儿/婴幼儿/儿童/青少年)、体重剂量、生长发育、适口性。",
+  "principle_id": "pediatric",
+  "language": "zh",
+  "tags": ["pediatric", "ICH-E11", "growth", "palatability"],
+  "notes": "符合 ICH E11(R1) + FDA PREA + EMA PIP；含 PopPK / 适口性 / 生长曲线评估。"
+}

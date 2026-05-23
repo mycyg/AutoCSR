@@ -825,6 +825,8 @@ export interface DocxTemplateConfigDTO {
   watermark: string
   show_ai_provenance: boolean
   custom_template_id: string | null
+  // M20 — reference list rendering style
+  reference_style?: 'vancouver' | 'gb7714' | 'ama'
 }
 
 export interface UploadedTemplateDTO {

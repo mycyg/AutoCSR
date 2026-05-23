@@ -1,0 +1,9 @@
+{
+  "id": "oncology",
+  "name": "肿瘤学 CSR (RECIST 1.1 + iRECIST)",
+  "description": "肿瘤试验 CSR 模板，含 RECIST 1.1 / iRECIST 评估、PFS/OS/ORR/DOR 生存终点、PD-L1 / 驱动基因亚组分层。",
+  "principle_id": "oncology",
+  "language": "zh",
+  "tags": ["oncology", "immuno-oncology", "RECIST", "survival"],
+  "notes": "默认含 waterfall / swimmer / KM 图表 hint；适用 I-III 期肿瘤试验。"
+}

@@ -1,0 +1,9 @@
+{
+  "id": "rare_disease",
+  "name": "罕见病 CSR (小样本 + 历史对照 + Bayesian)",
+  "description": "罕见病 CSR 模板，支持小样本设计、历史对照 / 外部对照臂、Bayesian 自适应、真实世界证据集成。",
+  "principle_id": "rare_disease",
+  "language": "zh",
+  "tags": ["rare-disease", "orphan-drug", "bayesian", "RWE"],
+  "notes": "符合 FDA Rare Disease Guidance + EMA Small Population reflection paper。"
+}

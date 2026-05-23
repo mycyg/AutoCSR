@@ -262,6 +262,47 @@ call_analyst_tool = ToolSpec(
 
 
 # ---------------------------------------------------------------------------
+# search_literature — PubMed + Wanfang (M20 v2.2)
+# ---------------------------------------------------------------------------
+
+async def _h_search_literature(args: dict[str, Any], ctx: ToolContext
+                                 ) -> dict[str, Any]:
+    import asyncio
+
+    query = str(args.get("query") or "").strip()
+    if not query:
+        raise ValueError("query is required")
+    source = str(args.get("source") or "pubmed").lower()
+    max_results = int(args.get("max_results") or 10)
+
+    def _go() -> dict[str, Any]:
+        from app.agents.literature_search import search_literature
+        return search_literature(query, source=source,
+                                   max_results=max_results,
+                                   project_id=ctx.project_id)
+
+    return await asyncio.to_thread(_go)
+
+
+search_literature_tool = ToolSpec(
+    name="search_literature",
+    description=("在 PubMed (E-utilities) 或万方 (stub) 上检索文献，返回最多 N 篇的"
+                  " title/authors/year/journal/abstract/doi。网络失败自动回退到"
+                  " mock 模式。"),
+    input_schema={
+        "type": "object",
+        "properties": {
+            "query": {"type": "string"},
+            "source": {"type": "string", "enum": ["pubmed", "wanfang"]},
+            "max_results": {"type": "integer", "minimum": 1, "maximum": 30},
+        },
+        "required": ["query"],
+    },
+    handler=_h_search_literature,
+)
+
+
+# ---------------------------------------------------------------------------
 # respond — terminates the loop
 # ---------------------------------------------------------------------------
 
@@ -295,6 +336,7 @@ WRITER_TOOLS: list[ToolSpec] = [
     read_stat_block_tool,
     read_section_tool,
     call_analyst_tool,
+    search_literature_tool,
     respond_tool,
 ]
 

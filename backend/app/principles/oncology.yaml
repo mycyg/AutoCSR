@@ -1,0 +1,338 @@
+# Oncology CSR principle (M20 v2.2) — ICH E3 backbone + tumor-specific sections.
+# Adds RECIST 1.1 / iRECIST evaluation, survival endpoints (PFS / OS / DOR / TTP),
+# response categories (CR/PR/SD/PD/ORR/DCR), and stratified subgroup analyses
+# common in immuno-oncology and targeted therapy trials.
+
+meta:
+  id: oncology
+  name: Oncology CSR (ICH E3 + RECIST 1.1 / iRECIST)
+  version: "1.0"
+  scope: [oncology, immuno-oncology, targeted-therapy]
+  derives_from: ich_e3
+
+sections:
+  - id: "1"
+    title: "Title Page"
+    required: true
+    requirements:
+      - "Tumor type + line of therapy + biomarker (e.g. PD-L1 ≥50% NSCLC 1L)"
+      - "Investigational product, sponsor, protocol identifier"
+      - "GCP compliance + lead investigator signature block"
+    stat_hints: []
+    children: []
+
+  - id: "2"
+    title: "Synopsis"
+    required: true
+    requirements:
+      - "Primary endpoint (ORR or PFS or OS) result + 95% CI"
+      - "Key safety: G≥3 TRAE rate, immune-related AE summary, treatment-related deaths"
+      - "Stratified analyses: PD-L1, EGFR/HER2/BRAF, prior therapy lines"
+    stat_hints:
+      - "ORR n (%) with 95% CI by arm; ΔORR with 95% CI"
+      - "Median PFS / OS with KM 95% CI + HR with 95% CI"
+    children: []
+
+  - id: "3"
+    title: "Background and Rationale"
+    required: true
+    requirements:
+      - "Epidemiology of indication + unmet medical need"
+      - "Mechanism of action + preclinical anti-tumor activity"
+      - "Phase I/II prior data summary (recommended dose rationale)"
+    stat_hints: []
+    children: []
+
+  - id: "4"
+    title: "Objectives"
+    required: true
+    requirements: []
+    stat_hints: []
+    children:
+      - id: "4.1"
+        title: "Primary Objective"
+        requirements:
+          - "Single hypothesis-driven endpoint: ORR / PFS / OS (justify choice)"
+        stat_hints: []
+        children: []
+      - id: "4.2"
+        title: "Secondary Objectives"
+        requirements:
+          - "DOR, DCR, TTR, quality of life (EORTC QLQ-C30 / FACT-G)"
+        stat_hints: []
+        children: []
+      - id: "4.3"
+        title: "Exploratory Objectives"
+        requirements:
+          - "Biomarker correlative: ctDNA dynamics, TMB, immune signatures"
+        stat_hints: []
+        children: []
+
+  - id: "5"
+    title: "Investigational Plan"
+    required: true
+    requirements: []
+    stat_hints: []
+    children:
+      - id: "5.1"
+        title: "Study Design"
+        requirements:
+          - "Single-arm vs randomized; stratification factors (PD-L1, prior therapy)"
+          - "Randomization scheme (e.g. 2:1 IO + chemo : chemo)"
+          - "Blinding (open-label vs BICR-blinded)"
+        stat_hints: []
+        children: []
+      - id: "5.2"
+        title: "Population — Inclusion / Exclusion"
+        requirements:
+          - "Histologically confirmed diagnosis, ECOG PS 0-1, measurable disease per RECIST 1.1"
+          - "Prior therapy lines, washout, organ function thresholds"
+          - "Exclusion: untreated CNS mets, autoimmune disease (IO trials), QTcF >480ms"
+        stat_hints: []
+        children: []
+      - id: "5.3"
+        title: "Treatment Schedule + Dose Modifications"
+        requirements:
+          - "Drug, dose, schedule, infusion duration; dose delays / reductions / DLT rules"
+          - "Treatment beyond progression rules (IO trials)"
+        stat_hints: []
+        children: []
+      - id: "5.4"
+        title: "Efficacy Assessment Schedule"
+        requirements:
+          - "Imaging (CT/MRI) at baseline + Q6W (W1-12 months) → Q9W; bone scans / brain MRI per protocol"
+        stat_hints: []
+        children: []
+
+  - id: "6"
+    title: "Tumor Response Evaluation — RECIST 1.1"
+    required: true
+    requirements: []
+    stat_hints: []
+    children:
+      - id: "6.1"
+        title: "Target Lesion Selection + Baseline Sum of Diameters"
+        requirements:
+          - "Up to 5 target lesions total (≤2 per organ), ≥10mm by CT or ≥15mm short axis for lymph nodes"
+        stat_hints:
+          - "Distribution of n target lesions per patient at baseline"
+        children: []
+      - id: "6.2"
+        title: "Non-Target Lesion Assessment"
+        requirements:
+          - "Qualitative present/absent/unequivocal progression"
+        stat_hints: []
+        children: []
+      - id: "6.3"
+        title: "Response Categories"
+        requirements:
+          - "CR / PR / SD / PD definitions per RECIST 1.1 (PR ≥30% decrease, PD ≥20% increase + ≥5mm absolute)"
+          - "Confirmation rules (≥4 weeks for CR/PR)"
+        stat_hints:
+          - "n (%) per response category by arm with 95% CI (Clopper-Pearson)"
+        children: []
+      - id: "6.4"
+        title: "Independent Central Review (ICR / BICR)"
+        requirements:
+          - "BICR concordance with investigator assessment; reasons for discordance"
+        stat_hints:
+          - "BICR vs investigator concordance rate; Cohen's kappa"
+        children: []
+
+  - id: "7"
+    title: "iRECIST — Immune Response Evaluation"
+    required: false
+    requirements:
+      - "Required if immunotherapy: iCR / iPR / iSD / iUPD / iCPD definitions"
+      - "Pseudo-progression confirmation window (typically 4-8 weeks)"
+    stat_hints:
+      - "n (%) per iRECIST category; pseudo-progression rate (iUPD → iCR/iPR/iSD)"
+    children: []
+
+  - id: "8"
+    title: "Efficacy Endpoints"
+    required: true
+    requirements: []
+    stat_hints: []
+    children:
+      - id: "8.1"
+        title: "Objective Response Rate (ORR)"
+        requirements:
+          - "n (%) with confirmed CR or PR; 95% CI by Clopper-Pearson"
+        stat_hints:
+          - "ORR by arm with 95% CI; difference in ORR with 95% CI"
+          - "ADaM cols: AVAL, AVALC=PR/CR/SD/PD, PARAMCD=BESTRESP"
+        children: []
+      - id: "8.2"
+        title: "Disease Control Rate (DCR)"
+        requirements:
+          - "n (%) with CR + PR + SD (≥24 weeks) as denominator"
+        stat_hints:
+          - "DCR with 95% CI"
+        children: []
+      - id: "8.3"
+        title: "Progression-Free Survival (PFS)"
+        requirements:
+          - "Time from randomization to PD or death; censoring rules per protocol"
+          - "Subjects censored at last evaluable assessment if no event"
+        stat_hints:
+          - "Median PFS by arm with KM 95% CI; HR with 95% CI; log-rank p"
+          - "ADaM cols: AVAL=days, CNSR (0=event, 1=censor), PARAMCD=PFS, EVNTDESC"
+          - "Plots: KM curve with risk table + censoring ticks"
+        children: []
+      - id: "8.4"
+        title: "Overall Survival (OS)"
+        requirements:
+          - "Time from randomization to death of any cause; KM analysis"
+          - "Subsequent therapy capture for crossover-adjusted analyses (RPSFT / IPCW)"
+        stat_hints:
+          - "Median OS by arm; HR with 95% CI; 12/24/36 month survival rate with 95% CI"
+          - "ADaM cols: AVAL, CNSR, DTHFL, DTHDT"
+          - "Plots: KM curve with risk table"
+        children: []
+      - id: "8.5"
+        title: "Duration of Response (DOR)"
+        requirements:
+          - "Time from first CR/PR to PD or death (among responders only)"
+        stat_hints:
+          - "Median DOR with KM 95% CI; landmark DOR at 6/12/24 months"
+        children: []
+      - id: "8.6"
+        title: "Time to Response (TTR) + Time to Progression (TTP)"
+        requirements: []
+        stat_hints:
+          - "Median TTR among responders; median TTP"
+        children: []
+
+  - id: "9"
+    title: "Subgroup + Biomarker Analyses"
+    required: true
+    requirements:
+      - "Pre-specified subgroups: PD-L1 expression strata (<1, 1-49, ≥50%), EGFR/ALK/HER2 status,"
+      - "  age (<65, ≥65), sex, race, ECOG PS (0, 1), prior lines (0, 1, ≥2), tumor burden quartiles"
+    stat_hints:
+      - "Forest plot of HR (or OR for ORR) by subgroup with 95% CI; interaction p-value"
+      - "Subgroup KM curves for PD-L1 strata"
+    children: []
+
+  - id: "10"
+    title: "Safety Evaluation"
+    required: true
+    requirements: []
+    stat_hints: []
+    children:
+      - id: "10.1"
+        title: "Extent of Exposure"
+        requirements:
+          - "Median cycles received, dose intensity (%), patient-years of exposure"
+        stat_hints:
+          - "ADaM cols: EXSTDTC, EXENDTC, EXDOSE, EXDOSU; derive cycle count + dose intensity"
+        children: []
+      - id: "10.2"
+        title: "Treatment-Related Adverse Events (TRAEs)"
+        requirements:
+          - "AE table by MedDRA SOC × PT × Grade (CTCAE v5) × relatedness × arm"
+        stat_hints:
+          - "Any TRAE / G≥3 TRAE / Serious TRAE n (%) by arm"
+          - "ADaM cols: AESOC, AETERM, AESEV, AESER, AEREL, AESTDTC, AEACN"
+        children: []
+      - id: "10.3"
+        title: "Immune-Related Adverse Events (irAEs)"
+        requirements:
+          - "Required for IO trials: pneumonitis, colitis, hepatitis, endocrinopathies, dermatitis"
+          - "Time to onset, time to resolution, steroid use, retreatment outcomes"
+        stat_hints:
+          - "irAE incidence by category and grade; cumulative incidence curves"
+        children: []
+      - id: "10.4"
+        title: "AEs of Special Interest (AESI)"
+        requirements:
+          - "Pre-defined AESI list per program; cumulative incidence"
+        stat_hints:
+          - "AESI table by category × grade × arm"
+        children: []
+      - id: "10.5"
+        title: "Deaths"
+        requirements:
+          - "On-treatment + within 30-day deaths; cause attribution (disease, AE, other)"
+        stat_hints:
+          - "Death summary by arm; treatment-related death narratives"
+        children: []
+      - id: "10.6"
+        title: "Laboratory Abnormalities"
+        requirements:
+          - "Hematology + chemistry shift tables; G≥3 abnormalities by parameter × arm"
+        stat_hints:
+          - "Shift counts Normal → Grade X by parameter; ADaM cols: LBTEST, LBSTRESN, LBNRIND"
+        children: []
+
+  - id: "11"
+    title: "Patient-Reported Outcomes"
+    required: false
+    requirements:
+      - "EORTC QLQ-C30 + indication-specific module; FACT-G as alternate"
+      - "Compliance rate, time to deterioration, change from baseline"
+    stat_hints:
+      - "Mean change from baseline per visit + arm; mixed model repeated measures (MMRM)"
+    children: []
+
+  - id: "12"
+    title: "Statistical Methods"
+    required: true
+    requirements:
+      - "Analysis populations: ITT / mITT / Safety / Response-evaluable"
+      - "Type I error control (alpha) for multiple primary endpoints (graphical approach / hierarchical)"
+      - "Missing data handling: PFS censoring rules, multiple imputation for QoL"
+    stat_hints:
+      - "Pre-specified alpha allocation table"
+      - "Interim analysis stopping boundaries (O'Brien-Fleming / Lan-DeMets)"
+    children: []
+
+  - id: "13"
+    title: "Visualization Requirements"
+    required: true
+    requirements:
+      - "Required figures: waterfall plot (best % change), swimmer plot (per-patient timeline),"
+      - "  spider plot (target lesion change over time), KM curves with risk table, forest plot for subgroups"
+    stat_hints:
+      - "Waterfall: x=patient, y=best % change from baseline, colored by best response"
+      - "Swimmer: each row=patient, bar=treatment duration, markers=response/progression events"
+    children: []
+
+  - id: "14"
+    title: "Discussion + Benefit-Risk"
+    required: true
+    requirements:
+      - "Efficacy interpretation in context of standard-of-care + cross-trial comparison"
+      - "Safety profile: irAE management algorithms, comparability with class effect"
+      - "Limitations: single-arm vs RCT, crossover, follow-up duration"
+    stat_hints: []
+    children: []
+
+  - id: "15"
+    title: "Reference List"
+    required: true
+    requirements:
+      - "Vancouver style; include RECIST 1.1 (Eisenhauer 2009), iRECIST (Seymour 2017),"
+      - "  CTCAE v5, key prior trial publications"
+    stat_hints: []
+    children: []
+
+  - id: "16"
+    title: "Appendices"
+    required: true
+    requirements: []
+    stat_hints: []
+    children:
+      - id: "16.1"
+        title: "Protocol + SAP + IB"
+        requirements: []
+        children: []
+      - id: "16.2"
+        title: "Patient Listings (Response, AE, Death narratives)"
+        requirements: []
+        children: []
+      - id: "16.3"
+        title: "Biomarker Methodology"
+        requirements: []
+        children: []

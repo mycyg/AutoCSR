@@ -1,0 +1,9 @@
+{
+  "id": "vaccine",
+  "name": "疫苗 CSR (免疫原性 + VE + 持久性)",
+  "description": "疫苗 CSR 模板，含免疫原性 (GMT/SCR/SCT) + 疫苗效力 (VE) + 长期持久性 + 加强针 + AESI 安全监测。",
+  "principle_id": "vaccine",
+  "language": "zh",
+  "tags": ["vaccine", "immunogenicity", "VE", "AESI"],
+  "notes": "符合 WHO 疫苗指南 + ICH E2D 监测要求；支持 mRNA / 蛋白 / 病毒载体 / 灭活平台。"
+}
