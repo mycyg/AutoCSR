@@ -184,3 +184,84 @@ All errors are JSON of shape:
 
 The frontend maps `code` to a localised toast via
 `src/utils/errors.ts`. New codes can be added there.
+
+## Endpoint examples (curl / python / typescript)
+
+### Auth — `POST /api/auth/login`
+
+```bash
+curl -X POST http://localhost:8000/api/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"admin@example.com","password":"secret"}'
+```
+
+```python
+import httpx
+r = httpx.post("http://localhost:8000/api/auth/login",
+               json={"email": "admin@example.com", "password": "secret"})
+token = r.json()["access_token"]
+```
+
+```ts
+const r = await fetch('/api/auth/login', {
+  method: 'POST',
+  headers: {'Content-Type': 'application/json'},
+  body: JSON.stringify({email: 'admin@example.com', password: 'secret'}),
+})
+const {access_token} = await r.json()
+```
+
+### Literature — `POST /api/projects/{pid}/literature_search`
+
+Source must be `pubmed` or `wanfang`. Unknown sources return `400` with
+`agent_error:` prefix (was `500` before v2.1.0).
+
+```bash
+curl -X POST http://localhost:8000/api/projects/abc123/literature_search \
+  -H 'Authorization: Bearer $TOKEN' \
+  -H 'Content-Type: application/json' \
+  -d '{"query":"semaglutide cardiovascular","source":"pubmed","max_results":10}'
+```
+
+```python
+r = httpx.post(f"http://localhost:8000/api/projects/{pid}/literature_search",
+               headers={"Authorization": f"Bearer {token}"},
+               json={"query": "semaglutide cardiovascular",
+                     "source": "pubmed", "max_results": 10})
+papers = r.json()["papers"]
+```
+
+```ts
+const r = await fetch(`/api/projects/${pid}/literature_search`, {
+  method: 'POST',
+  headers: {Authorization: `Bearer ${token}`, 'Content-Type': 'application/json'},
+  body: JSON.stringify({query: 'semaglutide cardiovascular', source: 'pubmed'}),
+})
+```
+
+### Polish — `POST /api/projects/{pid}/polish/{node_id}`
+
+Mode is one of `tighten` | `formalize` | `simplify` | `expand`.
+
+```bash
+curl -X POST http://localhost:8000/api/projects/abc123/polish/6.2.1 \
+  -H 'Authorization: Bearer $TOKEN' \
+  -H 'Content-Type: application/json' \
+  -d '{"mode":"tighten"}'
+```
+
+```python
+r = httpx.post(f"http://localhost:8000/api/projects/{pid}/polish/{node_id}",
+               headers={"Authorization": f"Bearer {token}"},
+               json={"mode": "tighten"})
+revised = r.json()["text"]
+```
+
+```ts
+const r = await fetch(`/api/projects/${pid}/polish/${nodeId}`, {
+  method: 'POST',
+  headers: {Authorization: `Bearer ${token}`, 'Content-Type': 'application/json'},
+  body: JSON.stringify({mode: 'tighten'}),
+})
+const {text} = await r.json()
+```

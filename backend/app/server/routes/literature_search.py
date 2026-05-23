@@ -47,6 +47,13 @@ async def search_endpoint(pid: str,
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:        # noqa: BLE001
+        from app.agents.base import AgentError
+        if isinstance(e, AgentError):
+            # Non-retryable AgentError → 400 (caller passed bad input);
+            # retryable → 502 (upstream issue worth retrying client-side).
+            status = 400 if getattr(e, "retryable", True) is False else 502
+            raise HTTPException(status_code=status,
+                                 detail=f"agent_error: {e}")
         logger.exception("literature_search failed")
         raise HTTPException(status_code=500,
                              detail=f"literature_search failed: {e}")

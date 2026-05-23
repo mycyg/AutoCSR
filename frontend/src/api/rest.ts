@@ -85,6 +85,9 @@ export interface ProjectDTO {
   language?: string
   notes?: string | null
   template_id?: string | null
+  // M21 multi-tenant fields (sync with backend app.server.routes.projects.Project).
+  tenant_id?: string
+  created_by?: string | null
 }
 
 export interface CreateProjectPayload {
@@ -102,6 +105,9 @@ export interface ProjectUpdatePayload {
   notes?: string | null
   language?: string | null
   principle_id?: string | null
+  // M21 — tenant_id is admin-only and rarely updated, but keep typed
+  // so admin tooling can pass it; created_by is set server-side only.
+  tenant_id?: string
 }
 
 export interface ProjectTemplateDTO {

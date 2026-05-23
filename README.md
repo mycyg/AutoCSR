@@ -2,7 +2,7 @@
 
 [![Release](https://img.shields.io/github/v/release/mycyg/AutoCSR)](https://github.com/mycyg/AutoCSR/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![Tests](https://img.shields.io/badge/e2e-17%20passing-brightgreen)](./scripts)
+[![Tests](https://img.shields.io/badge/e2e-22%20passing-brightgreen)](./scripts)
 [![Backend](https://img.shields.io/badge/Python-3.11+-blue)](./backend)
 [![Frontend](https://img.shields.io/badge/Vue-3.5-42b883)](./frontend)
 

@@ -256,7 +256,8 @@ def search_literature(query: str, *, source: PaperSource = "pubmed",
     elif src == "wanfang":
         papers = search_wanfang(query, max_results=max_results)
     else:
-        raise ValueError(f"unknown source: {source}")
+        from app.agents.base import AgentError
+        raise AgentError(f"unknown source: {source}", retryable=False)
     return {
         "query": query,
         "source": src,
