@@ -47,6 +47,21 @@ class ColumnProfile(BaseModel):
     suspected_pii: bool = False
 
 
+Severity = Literal["error", "warn", "info"]
+
+
+class Anomaly(BaseModel):
+    """Profiler-detected data quality flag (M11).
+
+    Surfaced by :mod:`app.cleansing.profiler` and aggregated by the
+    GlobalAlertBar via ``/api/projects/{pid}/alerts``.
+    """
+    severity: Severity = "warn"
+    message: str
+    column: str | None = None
+    value: str | None = None
+
+
 class DataProfile(BaseModel):
     file_id: str
     sheet: str | None = None
@@ -54,6 +69,8 @@ class DataProfile(BaseModel):
     n_cols: int
     columns: list[ColumnProfile]
     encoding_issues: list[str] = Field(default_factory=list)
+    # M11: profiler-level anomaly summary; populated by detect_anomalies()
+    anomalies: list[Anomaly] = Field(default_factory=list)
 
 
 class IngestResult(BaseModel):

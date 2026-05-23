@@ -12,8 +12,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import summary as config_summary
 from app.observability.logger import configure_logging, get_logger
 from app.server.routes import (
-    admin, health, llm_ping, projects,
-    upload, ingest, cleansing, corpus, principles,
+    admin, alerts, comments, diff, health, llm_ping, plan, projects,
+    review, upload, ingest, cleansing, corpus, principles,
     analysis, outline, report, chat, export, sandbox,
 )
 from app.server.ws import router as ws_router
@@ -53,6 +53,12 @@ def create_app() -> FastAPI:
     app.include_router(export.router, prefix="/api")
     app.include_router(admin.router, prefix="/api")
     app.include_router(sandbox.router, prefix="/api")
+    # V2-C M10 + M11
+    app.include_router(plan.router, prefix="/api")
+    app.include_router(review.router, prefix="/api")
+    app.include_router(comments.router, prefix="/api")
+    app.include_router(diff.router, prefix="/api")
+    app.include_router(alerts.router, prefix="/api")
 
     # WebSocket hub (no /api prefix — exposed at /ws/{pid})
     app.include_router(ws_router)

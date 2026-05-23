@@ -164,6 +164,13 @@ async def apply(
                                         reason=f"apply {file_id}")
     except Exception:
         pass
+    # M11: invalidate global alert cache so PII-not-hashed warnings clear
+    try:
+        from app.server.routes.alerts import invalidate as _alerts_invalidate
+        _alerts_invalidate(pid)
+        await publish(pid, "alerts.updated", {"source": "cleansing"})
+    except Exception:
+        pass
     return out
 
 

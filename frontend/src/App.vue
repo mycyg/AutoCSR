@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import GlobalAlertBar from '@/components/global/GlobalAlertBar.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -13,6 +14,7 @@ const steps = [
   { key: 'analyze', label: '分析', path: 'analyze', enabled: true },
   { key: 'outline', label: '大纲', path: 'outline', enabled: true },
   { key: 'report', label: '撰写', path: 'report', enabled: true },
+  { key: 'review', label: '审查', path: 'review', enabled: true },
   { key: 'export', label: '导出', path: 'export', enabled: true },
 ]
 
@@ -22,6 +24,7 @@ const activeKey = computed(() => {
   if (n.includes('cleanse')) return 'cleanse'
   if (n.includes('analyze')) return 'analyze'
   if (n.includes('outline')) return 'outline'
+  if (n.includes('review')) return 'review'
   if (n.includes('report')) return 'report'
   if (n.includes('export')) return 'export'
   if (n === 'project-detail') return 'intake'
@@ -48,9 +51,10 @@ function go(step: typeof steps[number]): void {
         </span>
       </nav>
       <div class="actions">
-        <el-tag size="small" type="success">M5</el-tag>
+        <el-tag size="small" type="success">V2-C</el-tag>
       </div>
     </el-header>
+    <GlobalAlertBar v-if="projectId" :project-id="projectId" />
     <el-main class="autocsr-main">
       <router-view />
     </el-main>

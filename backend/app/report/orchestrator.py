@@ -350,6 +350,13 @@ async def write_all(
             pass
     save_report(report)
     status_reg.update(project_id, current_phase="done", harmonized=report.harmonized)
+    # Invalidate alerts cache so writer errors are reflected in the bar
+    try:
+        from app.server.routes.alerts import invalidate as _alerts_invalidate
+        _alerts_invalidate(project_id)
+        await publish(project_id, "alerts.updated", {"source": "writer"})
+    except Exception:
+        pass
     await publish(project_id, "writer.report_done", {
         "harmonized": report.harmonized,
         "leaves_total": report.leaves_total,

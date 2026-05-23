@@ -148,7 +148,7 @@ def start_server(env: dict) -> subprocess.Popen:
     ]
     proc = subprocess.Popen(
         args, cwd=BACKEND, env=env,
-        stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
     )
     deadline = time.time() + 30
     while time.time() < deadline:

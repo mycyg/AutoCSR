@@ -93,7 +93,7 @@ def start_server(env: dict) -> subprocess.Popen:
     ]
     proc = subprocess.Popen(
         args, cwd=BACKEND, env=env,
-        stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
     )
     # Wait for /api/health to respond
     deadline = time.time() + 30

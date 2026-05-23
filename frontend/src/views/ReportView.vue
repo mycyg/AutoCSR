@@ -166,15 +166,18 @@ const running = computed(() => ['background', 'results', 'discussion', 'harmoniz
           @regenerate="(extra) => onRegenerate(extra)" />
       </el-main>
 
-      <el-aside class="right" width="380px">
+      <el-aside class="right" width="420px">
         <WriterStatus
           :project-id="props.id"
           :node-id="reportStore.selectedNodeId"
+          :outline-title="outlineNode?.title"
           :status="reportStore.status"
           :terminology="reportStore.terminology"
           @save-terminology="onSaveTerminology"
           @patch-applied="onPatchApplied"
-          @rolled-back="onRolledBack" />
+          @rolled-back="onRolledBack"
+          @refined="onPatchApplied"
+          @comments-applied="onPatchApplied" />
       </el-aside>
     </el-container>
   </div>

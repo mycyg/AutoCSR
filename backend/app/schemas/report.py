@@ -50,6 +50,10 @@ class SectionDraft(BaseModel):
     llm_meta: LLMMeta = Field(default_factory=LLMMeta)
     warnings: list[str] = Field(default_factory=list)
     status: Literal["draft", "harmonized", "error"] = "draft"
+    # M11: colored inline annotations carried forward across versions.
+    # Stored as plain dicts so older draft files without the field stay
+    # loadable (Pydantic supplies a default empty list).
+    markers: list[dict] = Field(default_factory=list)
 
 
 class WriterTokens(BaseModel):

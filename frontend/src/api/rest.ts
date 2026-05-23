@@ -466,4 +466,245 @@ export async function updateDraftMarkdown(pid: string, nodeId: string, markdown:
     { timeout: 60_000 })).data
 }
 
+// ============================================================================
+// V2-C: M10 (plan + review) + M11 (comments + markers + diff + alerts)
+// ============================================================================
+
+// ---- Plan ------------------------------------------------------------------
+
+export interface PlanPointDTO {
+  id: string
+  text: string
+  evidence_hints: string[]
+  stat_refs_hint: string[]
+  status: 'pending' | 'accepted' | 'edited'
+}
+
+export interface SectionPlanDTO {
+  node_id: string
+  title: string
+  points: PlanPointDTO[]
+  notes: string
+  version: number
+  created_at: string
+  updated_at: string
+  llm_meta: { model: string; tokens_in: number; tokens_out: number; via: string }
+}
+
+export async function createPlan(pid: string, nodeId: string,
+                                  opts: { max_points?: number } = {}): Promise<SectionPlanDTO> {
+  return (await api.post(`/projects/${pid}/report/plan/${nodeId}`, opts,
+    { timeout: 300_000 })).data
+}
+
+export async function getPlan(pid: string, nodeId: string): Promise<SectionPlanDTO | null> {
+  try {
+    return (await api.get(`/projects/${pid}/report/plan/${nodeId}`)).data
+  } catch (e: unknown) {
+    const err = e as { response?: { status?: number } }
+    if (err?.response?.status === 404) return null
+    throw e
+  }
+}
+
+export async function patchPlan(pid: string, nodeId: string,
+                                  body: { points?: PlanPointDTO[]; notes?: string }): Promise<SectionPlanDTO> {
+  return (await api.patch(`/projects/${pid}/report/plan/${nodeId}`, body)).data
+}
+
+export async function refineFromPlan(pid: string, nodeId: string): Promise<SectionDraftDTO> {
+  return (await api.post(`/projects/${pid}/report/refine/${nodeId}`, {},
+    { timeout: 300_000 })).data
+}
+
+// ---- Review ----------------------------------------------------------------
+
+export interface ReviewIssueDTO {
+  id: string
+  severity: 'error' | 'warn' | 'info'
+  location: { node_id?: string; char_range?: [number, number]; extra?: Record<string, string> }
+  message: string
+  suggestion: string
+  checker: string
+  ignored: boolean
+}
+
+export interface ReviewCheckerStatusDTO {
+  name: string
+  ok: boolean
+  issues_count: number
+  error: string | null
+  duration_ms: number
+}
+
+export interface ReviewResultDTO {
+  project_id: string
+  passed: boolean
+  issues: ReviewIssueDTO[]
+  checkers: ReviewCheckerStatusDTO[]
+  created_at: string | null
+  ignored_issue_ids: string[]
+}
+
+export interface ReviewHistoryDTO {
+  created_at: string
+  passed: boolean
+  n_errors: number
+  n_warns: number
+  n_infos: number
+}
+
+export async function startReview(pid: string): Promise<ReviewResultDTO> {
+  return (await api.post(`/projects/${pid}/review`, { sync: true },
+    { timeout: 300_000 })).data
+}
+
+export async function getReview(pid: string): Promise<ReviewResultDTO> {
+  return (await api.get(`/projects/${pid}/review`)).data
+}
+
+export async function getReviewHistory(pid: string): Promise<ReviewHistoryDTO[]> {
+  return (await api.get(`/projects/${pid}/review/history`)).data
+}
+
+export async function patchReviewIssue(pid: string, issueId: string,
+                                         ignored: boolean): Promise<ReviewResultDTO> {
+  return (await api.patch(`/projects/${pid}/review/issues/${issueId}`, { ignored })).data
+}
+
+// ---- Comments --------------------------------------------------------------
+
+export interface CommentDTO {
+  id: string
+  project_id: string
+  node_id: string
+  paragraph_idx: number
+  char_range: [number, number]
+  author: string
+  body: string
+  status: 'open' | 'resolved' | 'rejected'
+  created_at: string
+  applied_in_draft_version: number | null
+}
+
+export interface CommentApplyResultDTO {
+  project_id: string
+  applied_count: number
+  skipped_count: number
+  new_versions: Record<string, number>
+  warnings: string[]
+}
+
+export async function addComment(pid: string, nodeId: string,
+                                   paragraphIdx: number, charRange: [number, number],
+                                   body: string): Promise<CommentDTO> {
+  return (await api.post(`/projects/${pid}/comments`, {
+    node_id: nodeId, paragraph_idx: paragraphIdx, char_range: charRange, body,
+  })).data
+}
+
+export async function listComments(pid: string,
+                                     opts: { node_id?: string; status?: string } = {}): Promise<CommentDTO[]> {
+  return (await api.get(`/projects/${pid}/comments`, { params: opts })).data
+}
+
+export async function patchComment(pid: string, cid: string,
+                                     body: { status?: string; body?: string }): Promise<CommentDTO> {
+  return (await api.patch(`/projects/${pid}/comments/${cid}`, body)).data
+}
+
+export async function deleteComment(pid: string, cid: string): Promise<{ ok: boolean }> {
+  return (await api.delete(`/projects/${pid}/comments/${cid}`)).data
+}
+
+export async function applyComments(pid: string): Promise<CommentApplyResultDTO> {
+  return (await api.post(`/projects/${pid}/comments/apply`, {}, { timeout: 300_000 })).data
+}
+
+// ---- Markers ---------------------------------------------------------------
+
+export interface MarkerDTO {
+  id: string
+  node_id: string
+  type: 'important' | 'todo' | 'question' | 'risk'
+  color: string
+  range: [number, number]
+  note: string
+  created_at: string
+}
+
+export async function listMarkers(pid: string, nodeId?: string): Promise<MarkerDTO[]> {
+  return (await api.get(`/projects/${pid}/markers`,
+    { params: nodeId ? { node_id: nodeId } : {} })).data
+}
+
+export async function addMarker(pid: string,
+                                  nodeId: string,
+                                  type: 'important' | 'todo' | 'question' | 'risk',
+                                  range: [number, number],
+                                  note = ''): Promise<MarkerDTO> {
+  return (await api.post(`/projects/${pid}/markers`, {
+    node_id: nodeId, type, range, note,
+  })).data
+}
+
+export async function deleteMarker(pid: string, markerId: string,
+                                     nodeId: string): Promise<{ ok: boolean }> {
+  return (await api.delete(`/projects/${pid}/markers/${markerId}`,
+    { params: { node_id: nodeId } })).data
+}
+
+// ---- Diff ------------------------------------------------------------------
+
+export interface DiffBlockDTO {
+  op: 'equal' | 'insert' | 'delete' | 'replace'
+  v1_range: [number, number]
+  v2_range: [number, number]
+  v1_text: string
+  v2_text: string
+}
+
+export interface DiffResultDTO {
+  node_id: string
+  v1: number | null
+  v2: number | null
+  blocks: DiffBlockDTO[]
+  summary: Record<string, number>
+}
+
+export async function getDraftVersions(pid: string, nodeId: string): Promise<number[]> {
+  return (await api.get(`/projects/${pid}/drafts/${nodeId}/versions`)).data
+}
+
+export async function getDraftDiff(pid: string, nodeId: string,
+                                     v1?: number, v2?: number): Promise<DiffResultDTO> {
+  const params: Record<string, number> = {}
+  if (v1 !== undefined) params.v1 = v1
+  if (v2 !== undefined) params.v2 = v2
+  return (await api.get(`/projects/${pid}/drafts/${nodeId}/diff`, { params })).data
+}
+
+// ---- Alerts ----------------------------------------------------------------
+
+export interface AlertItemDTO {
+  severity: 'error' | 'warn' | 'info'
+  source: string
+  message: string
+  link: string
+  [k: string]: unknown
+}
+
+export interface AlertsPayloadDTO {
+  counts: { error: number; warn: number; info: number }
+  items: AlertItemDTO[]
+}
+
+export async function getAlerts(pid: string): Promise<AlertsPayloadDTO> {
+  return (await api.get(`/projects/${pid}/alerts`)).data
+}
+
+export async function invalidateAlerts(pid: string): Promise<{ ok: boolean }> {
+  return (await api.post(`/projects/${pid}/alerts/invalidate`, {})).data
+}
+
 export default api
